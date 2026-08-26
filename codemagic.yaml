@@ -12,7 +12,7 @@ workflows:
       cocoapods: default
       vars:
         DINI_MAIN_BUNDLE_ID: com.dini.diniFlutter
-        DINI_WIDGET_BUNDLE_ID: com.dini.dini_flutter.widget
+        DINI_WIDGET_BUNDLE_ID: com.dini.diniFlutter.widget
     scripts:
       - name: Validate release configuration
         script: |

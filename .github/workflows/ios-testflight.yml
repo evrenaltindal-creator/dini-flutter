@@ -18,7 +18,7 @@ jobs:
     environment: testflight
     env:
       DINI_MAIN_BUNDLE_ID: com.dini.diniFlutter
-      DINI_WIDGET_BUNDLE_ID: com.dini.dini_flutter.widget
+      DINI_WIDGET_BUNDLE_ID: com.dini.diniFlutter.widget
       APP_STORE_APPLE_ID: ${{ vars.APP_STORE_APPLE_ID }}
       TESTFLIGHT_INTERNAL_GROUP: ${{ vars.TESTFLIGHT_INTERNAL_GROUP }}
       DINI_IOS_MONTHLY_PRODUCT_ID: ${{ vars.DINI_IOS_MONTHLY_PRODUCT_ID }}

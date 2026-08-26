@@ -6,7 +6,7 @@ This file is the non-secret source of truth for the iOS release pipeline.
 | --- | --- |
 | Marketing version | `1.0.0` |
 | Main bundle ID | `com.dini.diniFlutter` |
-| Widget bundle ID | `com.dini.dini_flutter.widget` |
+| Widget bundle ID | `com.dini.diniFlutter.widget` |
 | App Group | `group.com.dini.dini_flutter` |
 | Flutter | `3.47.1` |
 | Xcode | `26.6` |
@@ -39,6 +39,6 @@ App Store Connect subscription group. Lifetime must be a non-consumable.
 - `dini_ios_config`: the Apple app ID, internal group name, and three StoreKit
   product identifiers
 
-The main and widget identifiers are fetched separately because the existing
-widget identifier is not a suffix of the main identifier. Both targets must use
-the same Apple team and App Group entitlement.
+The widget identifier is a suffix of the main identifier, as required for an
+embedded app extension. The signing workflow still fetches both profiles
+explicitly. Both targets must use the same Apple team and App Group entitlement.
