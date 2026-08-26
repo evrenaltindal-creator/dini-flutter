@@ -1,0 +1,120 @@
+workflows:
+  ios-testflight:
+    name: Dini iOS TestFlight Internal
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+    environment:
+      groups:
+        - appstore_credentials
+        - dini_ios_config
+      flutter: 3.47.1
+      xcode: 26.6
+      cocoapods: default
+      vars:
+        DINI_MAIN_BUNDLE_ID: com.dini.diniFlutter
+        DINI_WIDGET_BUNDLE_ID: com.dini.dini_flutter.widget
+    scripts:
+      - name: Validate release configuration
+        script: |
+          set -euo pipefail
+          required=(
+            APP_STORE_APPLE_ID
+            TESTFLIGHT_INTERNAL_GROUP
+            DINI_IOS_MONTHLY_PRODUCT_ID
+            DINI_IOS_YEARLY_PRODUCT_ID
+            DINI_IOS_LIFETIME_PRODUCT_ID
+            APP_STORE_CONNECT_ISSUER_ID
+            APP_STORE_CONNECT_KEY_IDENTIFIER
+            APP_STORE_CONNECT_PRIVATE_KEY
+            CERTIFICATE_PRIVATE_KEY
+          )
+          for name in "${required[@]}"; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "Missing required Codemagic variable: ${name}" >&2
+              exit 1
+            fi
+          done
+          for name in \
+            DINI_IOS_MONTHLY_PRODUCT_ID \
+            DINI_IOS_YEARLY_PRODUCT_ID \
+            DINI_IOS_LIFETIME_PRODUCT_ID; do
+            if [[ "${!name}" == *.dev ]]; then
+              echo "Development StoreKit identifier is forbidden for TestFlight: ${name}" >&2
+              exit 1
+            fi
+          done
+      - name: Get Flutter packages
+        script: flutter pub get
+      - name: Quality gate
+        script: |
+          dart format --output=none --set-exit-if-changed .
+          flutter analyze
+          flutter test --reporter expanded
+      - name: Verify CocoaPods availability
+        script: pod --version
+      - name: Fetch App Store signing files
+        script: |
+          app-store-connect fetch-signing-files \
+            "$DINI_MAIN_BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --strict-match-identifier \
+            --create
+          app-store-connect fetch-signing-files \
+            "$DINI_WIDGET_BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --strict-match-identifier \
+            --create
+      - name: Configure signing
+        script: |
+          keychain initialize
+          keychain add-certificates
+          xcode-project use-profiles \
+            --project ios/Runner.xcodeproj \
+            --archive-method app-store \
+            --custom-export-options='{"testFlightInternalTestingOnly": true}'
+      - name: Determine next build number
+        script: |
+          latest="$(app-store-connect get-latest-build-number \
+            "$APP_STORE_APPLE_ID" \
+            --all-versions \
+            --platform IOS)"
+          if [[ -z "$latest" ]]; then
+            latest=0
+          fi
+          if ! [[ "$latest" =~ ^[0-9]+$ ]]; then
+            echo "App Store Connect returned a non-numeric build number." >&2
+            exit 1
+          fi
+          echo "DINI_BUILD_NUMBER=$((latest + 1))" >> "$CM_ENV"
+      - name: Build signed IPA
+        script: |
+          flutter build ipa \
+            --release \
+            --build-name=1.0.0 \
+            --build-number="$DINI_BUILD_NUMBER" \
+            --export-options-plist="$HOME/export_options.plist" \
+            --dart-define=DINI_IOS_MONTHLY_PRODUCT_ID="$DINI_IOS_MONTHLY_PRODUCT_ID" \
+            --dart-define=DINI_IOS_YEARLY_PRODUCT_ID="$DINI_IOS_YEARLY_PRODUCT_ID" \
+            --dart-define=DINI_IOS_LIFETIME_PRODUCT_ID="$DINI_IOS_LIFETIME_PRODUCT_ID"
+      - name: Verify embedded WidgetKit extension
+        script: |
+          set -euo pipefail
+          shopt -s nullglob
+          ipa_files=(build/ios/ipa/*.ipa)
+          if (( ${#ipa_files[@]} != 1 )); then
+            echo "Expected exactly one IPA, found ${#ipa_files[@]}." >&2
+            exit 1
+          fi
+          unzip -l "${ipa_files[0]}" | grep -q \
+            'Payload/Runner.app/PlugIns/DiniWidgetExtension.appex/'
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - build/ios/archive/*.xcarchive
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        beta_groups:
+          - $TESTFLIGHT_INTERNAL_GROUP

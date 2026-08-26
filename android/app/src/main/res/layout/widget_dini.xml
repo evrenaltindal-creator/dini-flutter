@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#10263A">
+    <TextView
+        android:id="@+id/widget_next_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Sıradaki namaz"
+        android:textColor="#FFFFFF"
+        android:textSize="14sp" />
+    <TextView
+        android:id="@+id/widget_next_time"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="—"
+        android:textColor="#F4D58D"
+        android:textSize="26sp"
+        android:textStyle="bold" />
+    <TextView
+        android:id="@+id/widget_prayer_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Fajr — · Dhuhr — · Asr — · Maghrib — · Isha —"
+        android:textColor="#D8E5EF"
+        android:textSize="11sp" />
+</LinearLayout>

@@ -1,0 +1,176 @@
+name: iOS TestFlight Internal
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dini-ios-testflight
+  cancel-in-progress: false
+
+jobs:
+  testflight:
+    name: Signed IPA and internal distribution
+    runs-on: macos-26
+    timeout-minutes: 120
+    environment: testflight
+    env:
+      DINI_MAIN_BUNDLE_ID: com.dini.diniFlutter
+      DINI_WIDGET_BUNDLE_ID: com.dini.dini_flutter.widget
+      APP_STORE_APPLE_ID: ${{ vars.APP_STORE_APPLE_ID }}
+      TESTFLIGHT_INTERNAL_GROUP: ${{ vars.TESTFLIGHT_INTERNAL_GROUP }}
+      DINI_IOS_MONTHLY_PRODUCT_ID: ${{ vars.DINI_IOS_MONTHLY_PRODUCT_ID }}
+      DINI_IOS_YEARLY_PRODUCT_ID: ${{ vars.DINI_IOS_YEARLY_PRODUCT_ID }}
+      DINI_IOS_LIFETIME_PRODUCT_ID: ${{ vars.DINI_IOS_LIFETIME_PRODUCT_ID }}
+      APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_KEY_IDENTIFIER }}
+      APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+      CERTIFICATE_PRIVATE_KEY: ${{ secrets.CERTIFICATE_PRIVATE_KEY }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Validate release configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          required=(
+            APP_STORE_APPLE_ID
+            TESTFLIGHT_INTERNAL_GROUP
+            DINI_IOS_MONTHLY_PRODUCT_ID
+            DINI_IOS_YEARLY_PRODUCT_ID
+            DINI_IOS_LIFETIME_PRODUCT_ID
+            APP_STORE_CONNECT_ISSUER_ID
+            APP_STORE_CONNECT_KEY_IDENTIFIER
+            APP_STORE_CONNECT_PRIVATE_KEY
+            CERTIFICATE_PRIVATE_KEY
+          )
+          for name in "${required[@]}"; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "Missing required GitHub environment value: ${name}" >&2
+              exit 1
+            fi
+          done
+          for name in \
+            DINI_IOS_MONTHLY_PRODUCT_ID \
+            DINI_IOS_YEARLY_PRODUCT_ID \
+            DINI_IOS_LIFETIME_PRODUCT_ID; do
+            if [[ "${!name}" == *.dev ]]; then
+              echo "Development StoreKit identifier is forbidden for TestFlight: ${name}" >&2
+              exit 1
+            fi
+          done
+
+      - name: Select Xcode 26.6
+        run: sudo xcode-select --switch /Applications/Xcode_26.6.app
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.1
+          cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install Codemagic CLI tools
+        run: python -m pip install codemagic-cli-tools==0.67.0
+
+      - name: Resolve packages
+        run: flutter pub get
+
+      - name: Quality gate
+        run: |
+          dart format --output=none --set-exit-if-changed .
+          flutter analyze
+          flutter test --reporter expanded
+
+      - name: Verify CocoaPods availability
+        run: pod --version
+
+      - name: Fetch App Store signing files
+        run: |
+          app-store-connect fetch-signing-files \
+            "$DINI_MAIN_BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --strict-match-identifier \
+            --create
+          app-store-connect fetch-signing-files \
+            "$DINI_WIDGET_BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --strict-match-identifier \
+            --create
+
+      - name: Configure keychain and Xcode signing
+        run: |
+          keychain initialize
+          keychain add-certificates
+          xcode-project use-profiles \
+            --project ios/Runner.xcodeproj \
+            --archive-method app-store \
+            --custom-export-options='{"testFlightInternalTestingOnly": true}'
+
+      - name: Determine next build number
+        shell: bash
+        run: |
+          set -euo pipefail
+          latest="$(app-store-connect get-latest-build-number \
+            "$APP_STORE_APPLE_ID" \
+            --all-versions \
+            --platform IOS)"
+          if [[ -z "$latest" ]]; then
+            latest=0
+          fi
+          if ! [[ "$latest" =~ ^[0-9]+$ ]]; then
+            echo "App Store Connect returned a non-numeric build number." >&2
+            exit 1
+          fi
+          echo "DINI_BUILD_NUMBER=$((latest + 1))" >> "$GITHUB_ENV"
+
+      - name: Build signed IPA
+        run: >-
+          flutter build ipa
+          --release
+          --build-name=1.0.0
+          --build-number="$DINI_BUILD_NUMBER"
+          --export-options-plist="$HOME/export_options.plist"
+          --dart-define=DINI_IOS_MONTHLY_PRODUCT_ID="$DINI_IOS_MONTHLY_PRODUCT_ID"
+          --dart-define=DINI_IOS_YEARLY_PRODUCT_ID="$DINI_IOS_YEARLY_PRODUCT_ID"
+          --dart-define=DINI_IOS_LIFETIME_PRODUCT_ID="$DINI_IOS_LIFETIME_PRODUCT_ID"
+
+      - name: Verify IPA and embedded WidgetKit extension
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          ipa_files=(build/ios/ipa/*.ipa)
+          if (( ${#ipa_files[@]} != 1 )); then
+            echo "Expected exactly one IPA, found ${#ipa_files[@]}." >&2
+            exit 1
+          fi
+          unzip -l "${ipa_files[0]}" | grep -q \
+            'Payload/Runner.app/PlugIns/DiniWidgetExtension.appex/'
+
+      - name: Upload and assign to internal TestFlight group
+        run: |
+          app-store-connect publish \
+            --path 'build/ios/ipa/*.ipa' \
+            --beta-group "$TESTFLIGHT_INTERNAL_GROUP" \
+            --locale tr \
+            --whats-new @file:TESTFLIGHT_NOTES.txt \
+            --max-find-build-wait 15 \
+            --max-build-processing-wait 60
+
+      - name: Upload IPA artifact
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: dini-ios-ipa-${{ github.run_number }}
+          path: build/ios/ipa/*.ipa
+          if-no-files-found: ignore
+          retention-days: 14

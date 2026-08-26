@@ -1,0 +1,132 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/storage/storage_provider.dart';
+import '../data/entitlement_repository.dart';
+import '../data/purchase_service.dart';
+import '../domain/premium.dart';
+
+class PremiumStorePage extends ConsumerStatefulWidget {
+  const PremiumStorePage({super.key});
+
+  @override
+  ConsumerState<PremiumStorePage> createState() => _PremiumStorePageState();
+}
+
+class _PremiumStorePageState extends ConsumerState<PremiumStorePage> {
+  late final InAppPurchaseService service;
+  late final EntitlementRepository cache;
+  Future<List<StoreProduct>>? products;
+  PremiumEntitlement entitlement = const PremiumEntitlement();
+
+  @override
+  void initState() {
+    super.initState();
+    service = InAppPurchaseService();
+    cache = EntitlementRepository(ref.read(localStorageProvider));
+    products = _load();
+    service.entitlementUpdates.listen((value) {
+      if (!mounted) return;
+      setState(() => entitlement = value);
+      cache.save(value);
+    });
+  }
+
+  Future<List<StoreProduct>> _load() async {
+    final cached = await cache.load();
+    if (mounted) setState(() => entitlement = cached);
+    if (!await service.isStoreAvailable()) return [];
+    return service.loadProducts();
+  }
+
+  @override
+  void dispose() {
+    service.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Dini Premium')),
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          Text(
+            'Temel ibadet özellikleri ücretsizdir.',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Ücretsiz: namaz vakitleri, kıble, temel bildirimler, Hicri takvim, günlük içerik, temel takip, tesbih, temel widget ve varsayılan cami sahnesi.',
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Premium: ek sahne ve widget görünümleri, görünüm kişiselleştirme ve yerel gelişmiş istatistikler.',
+          ),
+          const SizedBox(height: 20),
+          FutureBuilder<List<StoreProduct>>(
+            future: products,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState != ConnectionState.done) {
+                return const Card(
+                  child: ListTile(title: Text('Mağaza ürünleri yükleniyor…')),
+                );
+              }
+              final values = snapshot.data ?? [];
+              if (values.isEmpty) {
+                return const Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Text(
+                      'Mağaza ürünleri şu anda kullanılamıyor. Fiyat gösterilmedi. Ücretsiz özellikler kullanılmaya devam eder.',
+                    ),
+                  ),
+                );
+              }
+              return Column(
+                children: values
+                    .map(
+                      (value) => Card(
+                        child: ListTile(
+                          title: Text(value.title),
+                          subtitle: Text(value.description),
+                          trailing: TextButton(
+                            onPressed: () async {
+                              await service.purchase(value.product);
+                            },
+                            child: Text(value.price),
+                          ),
+                        ),
+                      ),
+                    )
+                    .toList(),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+          OutlinedButton(
+            onPressed: () async {
+              await service.restorePurchases();
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Restore isteği mağazaya gönderildi.'),
+                ),
+              );
+            },
+            child: const Text('Restore Purchases'),
+          ),
+          if (entitlement.isPremium)
+            const ListTile(
+              leading: Icon(Icons.check_circle),
+              title: Text('Premium etkin'),
+              subtitle: Text(
+                'Mağaza state’i yerel UX cache’iyle gösteriliyor.',
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}

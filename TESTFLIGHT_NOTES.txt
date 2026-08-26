@@ -1,0 +1,12 @@
+Dini'nin ilk dahili TestFlight yapısında aşağıdaki alanları doğrulayın:
+
+- Namaz vakitlerinin konuma ve tarihe göre doğruluğu
+- Konum izni akışı ve konum değişiklikleri
+- Kıble yönü ve pusula davranışı
+- Bildirim izinleri ve planlanan namaz bildirimleri
+- Ana ekran küçük/orta widget içerikleri ve yenilenmesi
+- Takvim ekranı ve tarih geçişleri
+- İbadet takipçisi kayıtları
+- Tesbih sayacı ve kalıcılığı
+- Premium aylık, yıllık ve ömür boyu ürünlerin mağaza fiyatları
+- Satın alımları geri yükleme akışı
