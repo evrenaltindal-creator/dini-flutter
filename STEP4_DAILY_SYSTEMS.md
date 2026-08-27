@@ -22,7 +22,7 @@ Gerçek native dosyalar şunlardır:
 - `android/app/src/main/res/xml/dini_widget_info.xml`
 - `android/app/src/main/AndroidManifest.xml`
 
-Widget snapshot minimum prayer data, effective date, next prayer, scene period ve privacy kontrollü location name içerir. Tracker, tasbih ve favorites paylaşılmaz. iOS App Group `group.com.dini.dini_flutter`, Android ise uygulamanın private shared preferences alanını kullanır. Widget timeline yalnızca prayer transition tarihleri çevresinde güncellenir; permanent background service veya minute-by-minute wakeup yoktur.
+Widget snapshot minimum prayer data, effective date, next prayer, scene period ve privacy kontrollü location name içerir. Tracker, tasbih ve favorites paylaşılmaz. iOS App Group `group.com.dini.diniFlutter`, Android ise uygulamanın private shared preferences alanını kullanır. Widget timeline yalnızca prayer transition tarihleri çevresinde güncellenir; permanent background service veya minute-by-minute wakeup yoktur.
 
 ## Tracker, tasbih and calendar
 

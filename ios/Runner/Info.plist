@@ -26,6 +26,8 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Namaz vakitlerini ve kıble yönünü bulunduğunuz konuma göre hesaplamak için konumunuz kullanılır.</string>
 	<key>UIApplicationSceneManifest</key>

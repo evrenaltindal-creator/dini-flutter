@@ -3,7 +3,7 @@ import WidgetKit
 
 final class WidgetSnapshotBridge {
   static let channelName = "dini/widget_snapshot"
-  static let appGroup = "group.com.dini.dini_flutter"
+  static let appGroup = "group.com.dini.diniFlutter"
 
   static func register(with registry: FlutterPluginRegistry) {
     guard let registrar = registry.registrar(forPlugin: "WidgetSnapshotBridge") else { return }

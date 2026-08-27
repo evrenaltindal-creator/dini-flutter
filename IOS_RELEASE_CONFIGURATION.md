@@ -7,7 +7,12 @@ This file is the non-secret source of truth for the iOS release pipeline.
 | Marketing version | `1.0.0` |
 | Main bundle ID | `com.dini.diniFlutter` |
 | Widget bundle ID | `com.dini.diniFlutter.widget` |
-| App Group | `group.com.dini.dini_flutter` |
+| App Group | `group.com.dini.diniFlutter` |
+| App Store Apple ID | `6805668631` |
+| TestFlight internal group | `Dini Internal` |
+| Monthly product ID | `com.dini.diniFlutter.premium.monthly` |
+| Yearly product ID | `com.dini.diniFlutter.premium.yearly` |
+| Lifetime product ID | `com.dini.diniFlutter.premium.lifetime` |
 | Flutter | `3.47.1` |
 | Xcode | `26.6` |
 
@@ -31,7 +36,9 @@ signed TestFlight workflow refuses to run until all three production StoreKit
 identifiers are supplied and none ends in `.dev`.
 
 Monthly and yearly products must be auto-renewable subscriptions in the same
-App Store Connect subscription group. Lifetime must be a non-consumable.
+App Store Connect `Dini Premium` subscription group. Lifetime must be a
+non-consumable. Pricing remains a business decision and is intentionally not
+encoded in source or CI.
 
 ## Codemagic variable groups
 

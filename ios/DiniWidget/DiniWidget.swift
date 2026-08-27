@@ -1,7 +1,7 @@
 import WidgetKit
 import SwiftUI
 
-private let appGroup = "group.com.dini.dini_flutter"
+private let appGroup = "group.com.dini.diniFlutter"
 
 struct DiniWidgetEntry: TimelineEntry {
     let date: Date

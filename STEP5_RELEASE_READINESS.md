@@ -6,7 +6,7 @@ Free remains: prayer times, Qibla, essential local notifications, Hijri calendar
 
 ## Store architecture
 
-`in_app_purchase` is the maintained Flutter bridge for StoreKit and Google Play Billing. `PurchaseService` is store-independent at the UI/domain boundary. The product IDs are centralized dev placeholders (`com.dini.dini_flutter.premium.monthly.dev`, `.yearly.dev`, `.lifetime.dev`) and must be replaced with registered IDs before release. Store product title, description and localized price are queried at runtime; unavailable metadata produces no price.
+`in_app_purchase` is the maintained Flutter bridge for StoreKit and Google Play Billing. `PurchaseService` is store-independent at the UI/domain boundary. The product IDs are centralized dev fallbacks (`com.dini.dini_flutter.premium.monthly.dev`, `.yearly.dev`, `.lifetime.dev`). The signed TestFlight path injects the registered production IDs `com.dini.diniFlutter.premium.monthly`, `com.dini.diniFlutter.premium.yearly`, and `com.dini.diniFlutter.premium.lifetime`; CI rejects `.dev` IDs. Store product title, description and localized price are queried at runtime; unavailable metadata produces no price.
 
 Monthly and yearly are subscription products. Lifetime is modeled separately as a non-consumable purchase. The local entitlement cache is UX continuity only and is reconciled from store purchase updates/restore. Without a custom backend, this is not server-grade receipt verification and a future verifier can be introduced behind `PurchaseService` without changing UI/domain contracts.
 
