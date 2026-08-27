@@ -155,6 +155,21 @@ jobs:
           fi
           unzip -l "${ipa_files[0]}" | grep -q \
             'Payload/Runner.app/PlugIns/DiniWidgetExtension.appex/'
+          ipa_contents="$(mktemp -d)"
+          trap 'rm -rf "$ipa_contents"' EXIT
+          unzip -q "${ipa_files[0]}" -d "$ipa_contents"
+          extension="$ipa_contents/Payload/Runner.app/PlugIns/DiniWidgetExtension.appex"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' \
+            "$extension/Info.plist")" = 'DiniWidgetExtension'
+          test -n "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleName' \
+            "$extension/Info.plist")"
+          if /usr/libexec/PlistBuddy -c \
+            'Print :NSExtension:NSExtensionPrincipalClass' \
+            "$extension/Info.plist" >/dev/null 2>&1; then
+            echo 'WidgetKit extension must not declare NSExtensionPrincipalClass.' >&2
+            exit 1
+          fi
+          otool -l "$extension/DiniWidgetExtension" | grep -q '__swift5_entry'
 
       - name: Upload and assign to internal TestFlight group
         run: |
