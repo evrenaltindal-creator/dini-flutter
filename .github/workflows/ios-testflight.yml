@@ -175,11 +175,12 @@ jobs:
           fi
           otool -l "$extension/DiniWidgetExtension" | grep -q '__swift5_entry'
 
-      - name: Upload and assign to internal TestFlight group
+      - name: Upload internal-only TestFlight build
         run: |
+          # The IPA is exported as TestFlight internal-only. App Store Connect
+          # automatically distributes it to the Dini Internal group.
           app-store-connect publish \
             --path 'build/ios/ipa/*.ipa' \
-            --beta-group "$TESTFLIGHT_INTERNAL_GROUP" \
             --locale tr \
             --whats-new @file:TESTFLIGHT_NOTES.txt \
             --max-find-build-wait 15 \
