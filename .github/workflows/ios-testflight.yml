@@ -130,7 +130,11 @@ jobs:
             echo "App Store Connect returned a non-numeric build number." >&2
             exit 1
           fi
-          echo "DINI_BUILD_NUMBER=$((latest + 1))" >> "$GITHUB_ENV"
+          next=$((latest + 1))
+          if (( GITHUB_RUN_NUMBER > next )); then
+            next="$GITHUB_RUN_NUMBER"
+          fi
+          echo "DINI_BUILD_NUMBER=$next" >> "$GITHUB_ENV"
 
       - name: Build signed IPA
         run: >-
