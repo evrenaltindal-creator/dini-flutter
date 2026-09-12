@@ -15,4 +15,9 @@ class QiblaCalculator {
         math.sin(lat1) * math.cos(lat2) * math.cos(dLon);
     return (math.atan2(y, x) * 180 / math.pi + 360) % 360;
   }
+
+  /// Signed shortest turn from the device heading to the Qibla bearing.
+  /// Positive values turn clockwise/right, negative values left.
+  double turnDifference({required double bearing, required double heading}) =>
+      ((bearing - heading + 540) % 360) - 180;
 }

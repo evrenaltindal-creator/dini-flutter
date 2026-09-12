@@ -11,15 +11,26 @@ import '../data/flutter_local_notification_service.dart';
 import '../data/notification_preferences_repository.dart';
 import '../domain/notification_system.dart';
 
-class NotificationSettingsPage extends ConsumerStatefulWidget {
+class NotificationSettingsPage extends StatelessWidget {
   const NotificationSettingsPage({super.key});
+
   @override
-  ConsumerState<NotificationSettingsPage> createState() =>
-      _NotificationSettingsPageState();
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: Text(context.l10n.text('settings.notifications'))),
+    body: const SafeArea(child: NotificationSettingsView()),
+  );
 }
 
-class _NotificationSettingsPageState
-    extends ConsumerState<NotificationSettingsPage> {
+class NotificationSettingsView extends ConsumerStatefulWidget {
+  const NotificationSettingsView({super.key});
+
+  @override
+  ConsumerState<NotificationSettingsView> createState() =>
+      _NotificationSettingsViewState();
+}
+
+class _NotificationSettingsViewState
+    extends ConsumerState<NotificationSettingsView> {
   late final NotificationPreferencesRepository repository;
   final service = FlutterLocalNotificationService();
   NotificationPreferences? preferences;
@@ -43,77 +54,75 @@ class _NotificationSettingsPageState
   Widget build(BuildContext context) {
     final value = preferences;
     if (value == null) return const Center(child: CircularProgressIndicator());
-    return SafeArea(
-      child: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          Text(
-            context.l10n.text('settings.notifications'),
-            style: Theme.of(context).textTheme.headlineMedium,
-          ),
-          const SizedBox(height: 8),
-          Text(context.l10n.text('notifications.description')),
-          const SizedBox(height: 16),
-          ...notificationPrayers.map(
-            (prayer) => _PrayerNotificationTile(
-              prayer: prayer,
-              value: value.forPrayer(prayer),
-              onChanged: (next) => _update(
-                value.copyWith(prayers: {...value.prayers, prayer: next}),
-              ),
+    final times = ref.watch(prayerTimesProvider);
+    return ListView(
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 18, 16, 28),
+      children: [
+        Text(context.l10n.text('notifications.description')),
+        const SizedBox(height: 16),
+        ...notificationPrayers.map(
+          (prayer) => _PrayerNotificationTile(
+            prayer: prayer,
+            time: _formatTime(times.times[prayer]!),
+            value: value.forPrayer(prayer),
+            onChanged: (next) => _update(
+              value.copyWith(prayers: {...value.prayers, prayer: next}),
             ),
           ),
-          DropdownButtonFormField<NotificationSound>(
-            initialValue: value.sound,
-            decoration: InputDecoration(
-              labelText: context.l10n.text('notifications.sound'),
-            ),
-            items: NotificationSound.values
-                .map(
-                  (sound) => DropdownMenuItem(
-                    value: sound,
-                    child: Text(_soundLabel(context, sound)),
-                  ),
-                )
-                .toList(),
-            onChanged: (sound) {
-              if (sound != null) _update(value.copyWith(sound: sound));
-            },
+        ),
+        DropdownButtonFormField<NotificationSound>(
+          initialValue: value.sound,
+          decoration: InputDecoration(
+            labelText: context.l10n.text('notifications.sound'),
           ),
-          SwitchListTile(
-            title: Text(context.l10n.text('notifications.friday')),
-            value: value.fridayReminder,
-            onChanged: (enabled) =>
-                _update(value.copyWith(fridayReminder: enabled)),
+          items: NotificationSound.values
+              .map(
+                (sound) => DropdownMenuItem(
+                  value: sound,
+                  child: Text(_soundLabel(context, sound)),
+                ),
+              )
+              .toList(),
+          onChanged: (sound) {
+            if (sound != null) _update(value.copyWith(sound: sound));
+          },
+        ),
+        SwitchListTile(
+          title: Text(context.l10n.text('notifications.friday')),
+          value: value.fridayReminder,
+          onChanged: (enabled) =>
+              _update(value.copyWith(fridayReminder: enabled)),
+        ),
+        SwitchListTile(
+          title: Text(context.l10n.text('notifications.suhoor')),
+          value: value.ramadanSuhoorReminder,
+          onChanged: (enabled) =>
+              _update(value.copyWith(ramadanSuhoorReminder: enabled)),
+        ),
+        SwitchListTile(
+          title: Text(context.l10n.text('notifications.iftar')),
+          value: value.ramadanIftarReminder,
+          onChanged: (enabled) =>
+              _update(value.copyWith(ramadanIftarReminder: enabled)),
+        ),
+        const SizedBox(height: 12),
+        FilledButton.icon(
+          onPressed: permissionRequested ? null : _requestPermission,
+          icon: const Icon(Icons.notifications_outlined),
+          label: Text(
+            permissionRequested
+                ? context.l10n.text('notifications.permissionDone')
+                : context.l10n.text('notifications.managePermission'),
           ),
-          SwitchListTile(
-            title: Text(context.l10n.text('notifications.suhoor')),
-            value: value.ramadanSuhoorReminder,
-            onChanged: (enabled) =>
-                _update(value.copyWith(ramadanSuhoorReminder: enabled)),
-          ),
-          SwitchListTile(
-            title: Text(context.l10n.text('notifications.iftar')),
-            value: value.ramadanIftarReminder,
-            onChanged: (enabled) =>
-                _update(value.copyWith(ramadanIftarReminder: enabled)),
-          ),
-          const SizedBox(height: 12),
-          FilledButton.icon(
-            onPressed: permissionRequested ? null : _requestPermission,
-            icon: const Icon(Icons.notifications_outlined),
-            label: Text(
-              permissionRequested
-                  ? context.l10n.text('notifications.permissionDone')
-                  : context.l10n.text('notifications.managePermission'),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(context.l10n.text('notifications.notice')),
-        ],
-      ),
+        ),
+        const SizedBox(height: 8),
+        Text(context.l10n.text('notifications.notice')),
+      ],
     );
   }
+
+  String _formatTime(DateTime value) =>
+      '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
 
   Future<void> _requestPermission() async {
     final allowed = await showDialog<bool>(
@@ -204,10 +213,12 @@ class _NotificationSettingsPageState
 
 class _PrayerNotificationTile extends StatelessWidget {
   final Prayer prayer;
+  final String time;
   final PrayerNotificationPreference value;
   final ValueChanged<PrayerNotificationPreference> onChanged;
   const _PrayerNotificationTile({
     required this.prayer,
+    required this.time,
     required this.value,
     required this.onChanged,
   });
@@ -218,7 +229,9 @@ class _PrayerNotificationTile extends StatelessWidget {
       child: Column(
         children: [
           SwitchListTile(
+            secondary: const Icon(Icons.alarm_outlined),
             title: Text(context.l10n.prayer(prayer.name)),
+            subtitle: Text(time),
             value: value.enabled,
             onChanged: (enabled) => onChanged(value.copyWith(enabled: enabled)),
           ),

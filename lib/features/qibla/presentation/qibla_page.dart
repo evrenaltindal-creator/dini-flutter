@@ -1,34 +1,31 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:sensors_plus/sensors_plus.dart';
+import 'package:flutter_compass/flutter_compass.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/app_localizations.dart';
-import '../domain/qibla_calculator.dart';
 import '../../prayer_times/domain/prayer_engine.dart';
+import '../../prayer_times/presentation/providers.dart';
+import '../domain/qibla_calculator.dart';
 
-class QiblaPage extends StatefulWidget {
+class QiblaPage extends ConsumerStatefulWidget {
   const QiblaPage({super.key});
+
   @override
-  State<QiblaPage> createState() => _QiblaPageState();
+  ConsumerState<QiblaPage> createState() => _QiblaPageState();
 }
 
-class _QiblaPageState extends State<QiblaPage> {
-  StreamSubscription<MagnetometerEvent>? _subscription;
+class _QiblaPageState extends ConsumerState<QiblaPage> {
+  StreamSubscription<CompassEvent>? _subscription;
   double? _heading;
-  final double _bearing = const QiblaCalculator().bearing(
-    const Coordinates(41.0082, 28.9784),
-  );
 
   @override
   void initState() {
     super.initState();
-    _subscription = magnetometerEventStream().listen(
+    _subscription = FlutterCompass.events?.listen(
       (event) {
-        final value =
-            (math.atan2(event.y, event.x) * 180 / math.pi + 360) % 360;
-        if (mounted) setState(() => _heading = value);
+        if (mounted) setState(() => _heading = event.heading);
       },
       onError: (_) {
         if (mounted) setState(() => _heading = null);
@@ -44,41 +41,137 @@ class _QiblaPageState extends State<QiblaPage> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = ref.watch(effectivePrayerSettingsProvider);
+    const calculator = QiblaCalculator();
+    final bearing = calculator.bearing(
+      Coordinates(
+        settings.location.latitude ?? 41.0082,
+        settings.location.longitude ?? 28.9784,
+      ),
+    );
     final difference = _heading == null
         ? null
-        : ((_bearing - _heading! + 540) % 360) - 180;
+        : calculator.turnDifference(bearing: bearing, heading: _heading!);
+    final aligned = difference != null && difference.abs() < 4;
+
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.text('home.qibla'))),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.explore, size: 110),
-              Text(
-                '${_bearing.toStringAsFixed(0)}°',
-                style: Theme.of(context).textTheme.displaySmall,
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsetsDirectional.fromSTEB(20, 18, 20, 28),
+          children: [
+            Text(
+              context.l10n.text('qibla.title'),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 24),
+            Center(
+              child: AnimatedRotation(
+                turns: (difference ?? 0) / 360,
+                duration: const Duration(milliseconds: 350),
+                curve: Curves.easeOut,
+                child: _CompassFace(aligned: aligned),
               ),
-              Text(
-                _heading == null
-                    ? context.l10n.text('qibla.sensorUnavailable')
-                    : context.l10n.text('qibla.heading', {
-                        'degrees': _heading!.toStringAsFixed(0),
-                        'aligned': difference!.abs() < 5
-                            ? context.l10n.text('qibla.aligned')
-                            : '',
+            ),
+            const SizedBox(height: 24),
+            Card(
+              color: aligned
+                  ? Theme.of(context).colorScheme.primaryContainer
+                  : null,
+              child: Padding(
+                padding: const EdgeInsetsDirectional.all(18),
+                child: Column(
+                  children: [
+                    Text(
+                      difference == null
+                          ? context.l10n.text('qibla.sensorUnavailable')
+                          : aligned
+                          ? context.l10n.text('qibla.ready')
+                          : context.l10n.text(
+                              difference > 0
+                                  ? 'qibla.turnRight'
+                                  : 'qibla.turnLeft',
+                              {'degrees': difference.abs().round()},
+                            ),
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      context.l10n.text('qibla.bearings', {
+                        'heading': _heading?.round() ?? '—',
+                        'qibla': bearing.round(),
                       }),
-                textAlign: TextAlign.center,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 24),
-              Text(
-                context.l10n.text('qibla.privacy'),
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 12),
+            ListTile(
+              leading: const Icon(Icons.screen_rotation_outlined),
+              title: Text(context.l10n.text('qibla.calibration')),
+              subtitle: Text(context.l10n.text('qibla.calibrationHint')),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              context.l10n.text('qibla.privacy'),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
         ),
+      ),
+    );
+  }
+}
+
+class _CompassFace extends StatelessWidget {
+  final bool aligned;
+
+  const _CompassFace({required this.aligned});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      width: 250,
+      height: 250,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: scheme.surface,
+        border: Border.all(
+          color: aligned ? scheme.secondary : scheme.primary,
+          width: aligned ? 5 : 2,
+        ),
+        boxShadow: const [
+          BoxShadow(
+            blurRadius: 28,
+            color: Color(0x24000000),
+            offset: Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            top: 15,
+            child: Column(
+              children: [
+                Icon(Icons.mosque, color: scheme.secondary, size: 34),
+                Icon(Icons.arrow_drop_up, color: scheme.secondary, size: 42),
+              ],
+            ),
+          ),
+          Icon(
+            Icons.navigation,
+            size: 86,
+            color: aligned ? scheme.secondary : scheme.primary,
+          ),
+        ],
       ),
     );
   }

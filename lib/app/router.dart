@@ -21,7 +21,6 @@ import '../core/storage/local_storage.dart';
 import '../core/storage/storage_provider.dart';
 import '../core/storage/local_data_repository.dart';
 import '../features/calendar/presentation/calendar_page.dart';
-import '../features/tracker/presentation/prayer_tracker_page.dart';
 import '../features/tasbih/presentation/tasbih_page.dart';
 import '../features/notifications/presentation/notification_settings_page.dart';
 import '../features/notifications/data/flutter_local_notification_service.dart';
@@ -31,6 +30,8 @@ import '../features/widgets/data/widget_preferences_repository.dart';
 import '../features/widgets/domain/widget_snapshot.dart';
 import '../features/premium/presentation/premium_page.dart';
 import '../features/info/diyanet_flow.dart';
+import '../features/audio/presentation/opening_takbir.dart';
+import '../features/worship/presentation/worship_hub_page.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
@@ -111,7 +112,10 @@ final appRouter = GoRouter(
         ),
         StatefulShellBranch(
           routes: [
-            GoRoute(path: '/worship', builder: (_, _) => const TasbihPage()),
+            GoRoute(
+              path: '/worship',
+              builder: (_, _) => const WorshipHubPage(),
+            ),
           ],
         ),
         StatefulShellBranch(
@@ -131,7 +135,10 @@ final appRouter = GoRouter(
     GoRoute(path: '/about', builder: (_, _) => const AboutPage()),
     GoRoute(path: '/qibla', builder: (_, _) => const QiblaPage()),
     GoRoute(path: '/tasbih', builder: (_, _) => const TasbihPage()),
-    GoRoute(path: '/tracker', builder: (_, _) => const PrayerTrackerPage()),
+    GoRoute(
+      path: '/tracker',
+      builder: (_, _) => const WorshipHubPage(initialIndex: 0),
+    ),
     GoRoute(
       path: '/notifications',
       builder: (_, _) => const NotificationSettingsPage(),
@@ -715,6 +722,7 @@ class SettingsPage extends ConsumerWidget {
                 ref.read(themeModeProvider.notifier).state = ThemeMode.dark,
           ),
           _languageSelector(context, ref),
+          const OpeningTakbirSettingTile(),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -932,14 +940,13 @@ class _Page extends StatelessWidget {
   final List<Widget> children;
   const _Page({required this.title, required this.children});
   @override
-  Widget build(BuildContext context) => SafeArea(
-    child: ListView(
-      padding: const EdgeInsets.all(20),
-      children: [
-        Text(title, style: Theme.of(context).textTheme.headlineMedium),
-        const SizedBox(height: 8),
-        ...children,
-      ],
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: Text(title)),
+    body: SafeArea(
+      child: ListView(
+        padding: const EdgeInsetsDirectional.fromSTEB(20, 12, 20, 28),
+        children: children,
+      ),
     ),
   );
 }

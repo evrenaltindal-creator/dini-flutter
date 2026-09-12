@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'app/router.dart';
 import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
+import 'features/audio/presentation/opening_takbir.dart';
 import 'features/prayer_times/presentation/settings_controller.dart';
 
 final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
@@ -50,5 +51,7 @@ class DiniApp extends ConsumerWidget {
       GlobalCupertinoLocalizations.delegate,
     ],
     routerConfig: appRouter,
+    builder: (context, child) =>
+        OpeningTakbirGate(child: child ?? const SizedBox.shrink()),
   );
 }

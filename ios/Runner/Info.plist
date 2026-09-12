@@ -30,6 +30,8 @@
 	<false/>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Namaz vakitlerini ve kıble yönünü bulunduğunuz konuma göre hesaplamak için konumunuz kullanılır.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Namaz vakitlerini ve kıble yönünü bulunduğunuz konuma göre hesaplamak için konumunuz kullanılır.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

@@ -1,0 +1,66 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../core/localization/app_localizations.dart';
+import '../../notifications/presentation/notification_settings_page.dart';
+import '../../tracker/presentation/prayer_tracker_page.dart';
+import 'prayer_guide_view.dart';
+import 'wudu_guide_view.dart';
+
+class WorshipHubPage extends StatelessWidget {
+  final int initialIndex;
+
+  const WorshipHubPage({super.key, this.initialIndex = 0});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return DefaultTabController(
+      length: 4,
+      initialIndex: initialIndex,
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: Navigator.of(context).canPop(),
+          title: Text(l10n.text('worship.title')),
+          actions: [
+            IconButton(
+              tooltip: l10n.text('home.tasbih'),
+              onPressed: () => context.push('/tasbih'),
+              icon: const Icon(Icons.touch_app_outlined),
+            ),
+          ],
+          bottom: TabBar(
+            isScrollable: true,
+            tabAlignment: TabAlignment.start,
+            tabs: [
+              Tab(
+                icon: const Icon(Icons.check_circle_outline),
+                text: l10n.text('worship.tracker'),
+              ),
+              Tab(
+                icon: const Icon(Icons.menu_book_outlined),
+                text: l10n.text('worship.prayerGuide'),
+              ),
+              Tab(
+                icon: const Icon(Icons.water_drop_outlined),
+                text: l10n.text('worship.wudu'),
+              ),
+              Tab(
+                icon: const Icon(Icons.alarm_outlined),
+                text: l10n.text('worship.alarms'),
+              ),
+            ],
+          ),
+        ),
+        body: const TabBarView(
+          children: [
+            PrayerTrackerView(),
+            PrayerGuideView(),
+            WuduGuideView(),
+            NotificationSettingsView(),
+          ],
+        ),
+      ),
+    );
+  }
+}
