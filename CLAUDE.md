@@ -39,12 +39,28 @@ flutter analyze
 flutter test --reporter expanded
 ```
 
-- CI Flutter sürümü **3.47.1 (stable)**, Dart SDK kısıtı `^3.13.1`.
+- CI Flutter sürümü **3.47.1 (stable)** ve onun getirdiği **Dart 3.13.1**.
+  Paketin SDK kısıtı `^3.13.1`.
 - `dart format` bir kapıdır: push'tan önce **mutlaka `dart format .` çalıştır**.
   Formatlanmamış tek bir satır tüm CI'ı kırar.
-- Remote container'da Flutter SDK kurulu değildir. Kuruluysa yukarıdaki komutları
-  çalıştır; değilse **testleri çalıştıramadığını raporunda açıkça yaz**, "geçti"
-  deme. Kod yazarken mevcut test dosyalarındaki stili örnek al.
+- **Formatter sürümü önemlidir.** Dart 3.12 ile 3.13 satırları farklı kırar;
+  3.12 ile formatlanmış kod CI'da (3.13.1) "Changed ..." verip build'i düşürür.
+  Bu tuzak ard arda dört CI koşusunu kırdı. Yerel Dart'ın sürümünü
+  `dart --version` ile doğrula; 3.13.1 değilse formatlama sonucuna güvenme.
+- Remote container'da Flutter SDK kurulu gelmez. CI ile birebir aynı sürümü
+  kurmak için:
+
+  ```bash
+  curl -sSL -o /tmp/flutter.tar.xz \
+    https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.47.1-stable.tar.xz
+  tar -xf /tmp/flutter.tar.xz -C /tmp
+  export PATH="/tmp/flutter/bin:$PATH"   # dart --version -> 3.13.1
+  ```
+
+  İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
+  çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
+  test dosyalarındaki stili örnek al.
+- Depoda şu an 64 test var; hepsi geçmelidir.
 
 ## Git akışı
 

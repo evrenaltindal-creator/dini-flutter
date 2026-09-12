@@ -842,8 +842,7 @@ class PremiumPage extends StatelessWidget {
       const Text('Temel dini özellikler herkes için ücretsiz kalır.'),
       _Card(
         title: 'Premium ekleri',
-        body:
-            'Ek cami temaları, gelişmiş widget tasarımları ve ileri istatistikler.',
+        body: 'Ek cami temaları, gelişmiş widget tasarımları ve ileri istatistikler.',
       ),
       FilledButton(
         onPressed: null,
