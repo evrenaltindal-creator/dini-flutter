@@ -1,145 +1,153 @@
 # HANDOFF — Neler yaptık, nerede kaldık
 
-Son güncelleme: 2026-09-13 · Oturum: Codex (local)
-Branch: `codex/worship-guide` · Ana dal: `main`
-
-Bu dosya, işi devralan ajanın (Codex veya Claude) baştan keşif yapmadan devam
-edebilmesi içindir. Kurallar için `CLAUDE.md`, proje haritası için
-`ARCHITECTURE.md`.
+Son güncelleme: 2026-09-12 · Oturum: Claude Code (remote, Linux konteyner)
+Branch: `claude/worship-stabilization` · Taban: `codex/worship-guide` (`e7ec770`)
 
 ---
 
-## 1. Şu anki durum — ÖNEMLİ
+## 1. Devralma doğrulaması
 
-| Dal | Commit | CI |
-| --- | --- | --- |
-| `main` | `8459840` | Önceki format ve dil paritesi düzeltmeleri merge edildi |
-| `codex/worship-guide` | çalışma dalı | Yerelde tam kapı **YEŞİL**, Android debug APK üretildi |
+`codex/worship-guide` çekildi, `e7ec770` ve temiz çalışma ağacı doğrulandı.
+Codex'in bildirdiği doğrulama sonuçları **bağımsız olarak yeniden üretildi ve
+doğru çıktı**: format 59 dosya / 0 değişiklik, analyze temiz, 70/70 test geçti.
 
-Yeni ibadet rehberi işi yalnızca `codex/worship-guide` dalındadır; `main`'e
-merge edilene kadar yayımlanmış sürüme girmez.
+## 2. Bulunan sorunlar ve gerçek sebepleri
 
-## 2. Tamamlanan işler
+### a) Dördüncü ibadet sekmesi ekran dışında (kullanıcı göremiyor)
 
-### a) Format kapısı hatası çözüldü (asıl tıkanıklık)
+`WorshipHubPage` içindeki `TabBar` `isScrollable: true` + `TabAlignment.start`
+ile kuruluydu. Etiketler uzun olduğu için ("Namaz nasıl kılınır?", "Abdest nasıl
+alınır?") dört sekme hiçbir telefon genişliğine sığmıyordu.
 
-`main`'deki `df98749` commit'i CI'da şu hatayla düşüyordu:
+Ölçülen değerler: 390 dp ekranda 4. sekmenin sağ kenarı **814.8** (ekran 390),
+Arapça RTL'de 3. sekmenin sol kenarı **-89.0**. Yani "Alarmlar" sekmesi üç dilde
+de görünmez durumdaydı.
 
-```
-Changed lib/app/router.dart
-Formatted 53 files (1 changed) in 0.29 seconds.
-```
+Bu bir taşma *istisnası* üretmediği için mevcut testler yakalamıyordu.
 
-Son altı CI koşusundan dördü aynı yerde kırılmıştı.
+### b) Alarmlar sekmesi açılınca `LateInitializationError`
 
-**Yanlış teşhis:** "Windows ve Linux Dart formatter'ları satırları farklı kırıyor."
-Bu doğru değil. Kontrol edildi: `router.dart` içinde CRLF satır yok, tab yok,
-sondaki boşluk yok, depoda `.gitattributes` yok.
+Sekme erişilebilir hale gelince ortaya çıktı — daha önce hiç çalıştırılmamıştı.
+`NotificationSettingsView.initState` içinde `service.initialize()` korumasız
+çağrılıyor; bildirim eklentisi kayıtlı olmayan bir platformda hata doğrudan
+UI'a sızıyordu.
 
-**Gerçek sebep:** Dart **sürüm** farkı. CI'daki Flutter 3.47.1 → **Dart 3.13.1**.
-Yerelde Dart 3.12 kullanılmıştı. İki sürümün satır kırma algoritması farklı.
+### c) Açılış tekbiri kullanıcının sesini eziyordu
 
-**Doğrulama yöntemi:** CI ile birebir aynı SDK (Flutter 3.47.1 / Dart 3.13.1)
-kuruldu ve hata tahmin edilmeden yeniden üretildi — CI log'undaki satırın aynısı
-çıktı. Fark tek satırmış, `lib/app/router.dart` içindeki `PremiumPage` gövdesinde:
-Dart 3.12 `body:` argümanını iki satıra bölüyor, 3.13 tek satırda tutuyor.
+`audioplayers` hiçbir `AudioContext` verilmeden kullanılmıştı. Paketin kendi
+varsayılanları (doğrulandı, `audioplayers_platform_interface-7.2.0`):
 
-### b) Üç dil paritesi artık testle korunuyor
+- `respectSilence = false` → *"audio will be played even if the device is in
+  silent mode"* — telefon sessizken bile çalıyordu.
+- `focus = AudioContextConfigFocus.gain` → *"your application is now the sole
+  source of audio"*, Android'de `AndroidAudioFocus.gain` → kullanıcının çalan
+  müziğini kesiyordu.
 
-`CLAUDE.md` "her metin tr/en/ar için birlikte eklenir" diyordu ama bunu koruyan
-hiçbir test yoktu — bir dili unutmak sessizce geçebiliyordu.
+İkisi de istenen davranışın tam tersiydi.
 
-- `AppLocalizations.keysFor(String languageCode)` eklendi (`@visibleForTesting`).
-- `test/localization_test.dart` içine iki test eklendi:
-  - `every language defines exactly the same keys` — tr/en/ar anahtar kümeleri
-    birebir aynı olmalı; hata mesajı eksik/fazla anahtarları isim isim yazar.
-  - `no language leaves a key empty` — hiçbir dilde boş değer kalmamalı.
+## 3. Yapılan düzeltmeler
 
-Mevcut durum: üç dilde de **155 anahtar**, parite tam.
+- `TabBar` kaydırmalı olmaktan çıkarıldı; sekmeler kısa etiketlere geçti
+  (`worship.tabPrayer`, `worship.tabWudu` — tr/en/ar üçünde de tanımlı).
+  Uzun açıklayıcı başlıklar sayfa içi başlık olarak korundu; abdest rehberine
+  eksik olan başlık eklendi. Hiçbir metin kaybolmadı.
+- `FlutterLocalNotificationService.initialize()` eklenti yokluğunu yutuyor
+  (depoda `WidgetSnapshotService`'in zaten kullandığı kalıp). Tercihler yerel
+  olarak saklanmaya devam eder; yalnızca planlama atlanır.
+- Açılış tekbiri artık `mixWithOthers` + `respectSilence: true` ile çalıyor:
+  sessiz modda hiç çalmıyor, çalan müziği kesmiyor. Çalma bitince player
+  serbest bırakılıyor (çift `dispose` koruması ile).
 
-### c) Dokümantasyon
+## 4. Eklenen test
 
-- **`CLAUDE.md`** — bağlayıcı çalışma kuralları: backend/analytics yasağı, üç dil
-  zorunluluğu, RTL koruma, CI'ın tam komutları, git akışı, tuzaklar.
-  Formatter sürüm tuzağı ve doğru SDK'yı kurma komutları da buraya yazıldı.
-- **`ARCHITECTURE.md`** — projenin tam haritası: katmanlama, rota tablosu, her
-  feature modülü, yerelleştirme/RTL mekanizması, iOS App Group + WidgetKit
-  köprüsü, test envanteri, iki workflow, gizlilik duruşu, yeni ekran ekleme adımları.
+`test/worship_responsive_test.dart` — ibadet merkezi ve kıble ekranı için
+320 / 360 / 390 / 430 dp, 1.5 metin ölçeği ve tr/en/ar.
 
-### d) Ana ekran değişikliği incelendi (kod değiştirilmedi)
+Kritik nokta: test yalnızca "istisna yok" demiyor, **her sekmenin görünür alanda
+kaldığını** ölçüyor. Zayıf hali sekme ekran dışındayken de geçiyordu.
 
-`df98749`'daki tam ekran cami düzeni doğru uygulanmış:
-`Positioned.fill` → `SizedBox.expand` → `Image.asset(fit: BoxFit.cover)`.
-Görsel gerçekten kenardan kenara oturuyor; üstteki dört duraklı koyu gradyan
-(`0x8C000000` → `0xD9082021`) ve gölgeli beyaz metin okunabilirliği sağlıyor.
-Burada düzeltilecek bir şey bulunmadı.
+## 5. Doğrulama sonuçları
 
-## 3. Doğrulama — gerçekten çalıştırıldı
-
-CI ile birebir aynı toolchain (Flutter 3.47.1 / Dart 3.13.1) ile:
+Flutter 3.47.1 / Dart 3.13.1 ile:
 
 | Adım | Sonuç |
 | --- | --- |
-| `dart format --output=none --set-exit-if-changed .` | 53 dosya, **0 değişiklik** |
+| `dart format --output=none --set-exit-if-changed .` | 60 dosya, **0 değişiklik** |
 | `flutter analyze` | **No issues found** |
-| `flutter test` | **66/66 geçti** (64 mevcut + 2 yeni) |
+| `flutter test` | **82/82 geçti** (70 mevcut + 12 yeni) |
 
-## 4. Devralan ajan için kritik kural
+## 6. Cihaz testi — YAPILAMADI
 
-**Push etmeden önce `dart --version` çıktısının `3.13.1` olduğunu doğrula.**
-Başka bir sürümle formatlarsan CI yine kırılır. Doğru SDK'yı kurmak için:
+Bu oturum **Linux konteynerde** çalışıyor. Gerçek cihaz doğrulaması
+yapılmamıştır ve yapılmış gibi raporlanmamalıdır:
 
-```bash
-curl -sSL -o /tmp/flutter.tar.xz \
-  https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.47.1-stable.tar.xz
-tar -xf /tmp/flutter.tar.xz -C /tmp
-export PATH="/tmp/flutter/bin:$PATH"
+- Fiziksel Android telefon veya iPhone bağlı değil.
+- macOS/Xcode yok (`xcodebuild` bulunamadı) → iOS derlemesi imkânsız.
+- Konteynerde Android SDK/emülatör yok.
+- Manyetometre ve ses donanımı headless ortamda simüle edilemez.
+
+Dolayısıyla şunlar **hâlâ doğrulanmamıştır**: kıble okunun gerçek dönüşü,
+pusula kalibrasyonu ve metal etkisi, tekbirin gerçek ses seviyesi, sessiz mod
+davranışı ve diğer uygulamalarla ses etkileşimi. Yukarıdaki (c) düzeltmesi
+paketin belgelenmiş sözleşmesine dayanır; cihazda ayrıca duyulmalıdır.
+
+## 7. TestFlight — YÜKLENMEDİ
+
+Bu ortamdan yüklenemez (macOS ve imzalama sertifikası yok). Gerçek yol
+depodaki `.github/workflows/ios-testflight.yml` (macos-26, `workflow_dispatch`).
+Build numarası o workflow içinde App Store Connect'ten okunup bir artırılıyor,
+yani elle numara seçmeye gerek yok. Tetiklenmesi kullanıcı onayı ister.
+
+## 8. Açık kalan işler
+
+1. `claude/worship-stabilization` → `codex/worship-guide` diff'i incelenip
+   merge edilmeli; `main` hâlâ `8459840`'ta.
+2. Gerçek cihaz testleri (madde 6).
+3. TestFlight yüklemesi (madde 7).
+4. **Namaz rehberi derinleştirme ve yeni başlayanlar rehberi** — rekât rekât
+   akış, okunacak sûre/dua adları, Arapça metin + okunuş + anlam. Veri modeli
+   hazırlanabilir; **içerik kaynak kararı verilmeden yazılmamalıdır.** Dinî
+   metin ezberden üretilmemelidir.
+5. **Kuran ekranı** — `/quran` hâlâ `PlaceholderPage`. Kapsam raporu için
+   aşağıya bakın.
+
+## 9. Kuran ekranı — kapsam raporu (kod yazılmadı)
+
+Uygulama offline-first olduğu için metin **paketlenmek zorunda**; çalışma anında
+API çağrısı kural gereği yasak. Karar verilmesi gerekenler:
+
+- **Arapça metin.** Tanzil.net veya Kral Fahd Kompleksi metinleri yaygın
+  kullanılır. Yaklaşık boyut: düz Arapça metin ~1–3 MB. Sûre/ayet indeksiyle
+  birlikte JSON olarak paketlenebilir.
+- **Türkçe meal — asıl darboğaz.** Diyanet İşleri meali telif korumalıdır;
+  uygulamaya gömmek için izin gerekir. İzinsiz gömülmemelidir.
+- **Font.** Amiri veya Scheherazade New (SIL OFL) lisans açısından rahattır.
+  KFGQPC Uthmanic Hafs'ın kullanım şartları ayrıca incelenmelidir.
+- **Ses.** Kıraat kayıtları hem büyük (yüzlerce MB) hem lisanslıdır.
+  Offline kuralıyla birlikte ilk sürüm için kapsam dışı bırakılması önerilir.
+- **Ekranlar.** Sûre listesi → okuma ekranı (ayet numarası, meal aç/kapa,
+  yazı boyutu, kaldığın yer). RTL zaten destekleniyor.
+
+**Bu lisans bilgileri doğrulanmalıdır; kesin hukuki bilgi olarak alınmamalıdır.**
+Depo kuralı gereği kaynak veya lisans belirsizse içerik eklenmemelidir.
+
+## 10. Bu oturumda değiştirilen dosyalar
+
+```
+lib/features/worship/presentation/worship_hub_page.dart   (TabBar + kısa etiketler)
+lib/features/worship/presentation/wudu_guide_view.dart    (sayfa başlığı)
+lib/features/notifications/data/flutter_local_notification_service.dart (init koruması)
+lib/features/audio/presentation/opening_takbir.dart       (AudioContext + temizlik)
+lib/core/localization/app_localizations.dart              (2 anahtar x 3 dil)
+test/worship_responsive_test.dart                         (YENİ, 12 test)
+HANDOFF.md
 ```
 
-Sonra sırasıyla: `flutter pub get` → `dart format .` → `flutter analyze` →
-`flutter test`. Dördü de temiz olmadan push etme.
+`ios/`, `android/`, `pubspec.yaml`, tema, kıble hesaplayıcı ve diğer feature
+klasörleri bu oturumda **değiştirilmedi**.
 
-## 5. Açık işler
+## 11. Devralan ajan için zorunlu kural
 
-1. **`codex/worship-guide` incelenip merge edilmeli.**
-2. **Kuran ekranı yazılmadı.** `/quran` rotası hâlâ `PlaceholderPage`
-   (`lib/app/router.dart:106`), alt menüde sekmesi hazır. Sıradaki büyük iş bu.
-   Kapsam netleştirilmeli: sure listesi mi, okuma ekranı mı, ses olacak mı,
-   metin nereden gelecek (backend yasağı gereği paketlenmiş olmalı).
-3. **İki ajan aynı anda `main`'e yazmamalı.** Aynı dosyanın aynı satırına iki
-   düzeltme gelirse çakışma çıkar. İş başlamadan kimin hangi dosyada çalıştığı
-   belirlenmeli.
-
-## 6. Önceki Claude oturumunda dokunulmayanlar
-
-`ios/`, `android/`, `.github/workflows/`, `pubspec.yaml`, tema ve diğer feature
-klasörleri bu oturumda değiştirilmedi. Değişen dosyalar yalnızca:
-`lib/app/router.dart` (tek satır format),
-`lib/core/localization/app_localizations.dart` (test erişimcisi),
-`test/localization_test.dart`, `CLAUDE.md`, `ARCHITECTURE.md`, `HANDOFF.md`.
-
-## 7. Codex ibadet rehberi turu — 2026-09-13
-
-- Kıble ekranı ham manyetometre hesabından `flutter_compass` cihaz yönüne
-  geçirildi. Kıble açısı artık kayıtlı konumdan hesaplanıyor; en kısa sağ/sol
-  dönüş, hizalanma ve kalibrasyon açıklaması gösteriliyor.
-- Android konum izinleri ve iOS
-  `NSLocationAlwaysAndWhenInUseUsageDescription` eklendi. Bu aynı zamanda
-  önceki App Store 90683 amaç metni uyarısını kapatır.
-- İbadet alt menüsü `Takip / Namaz nasıl kılınır? / Abdest nasıl alınır? /
-  Alarmlar` sekmeli rehbere dönüştürüldü. Beş namazın Hanefî/Diyanet temelli
-  sünnet-farz-vitir sırası ve ayrıntı ekranları eklendi.
-- Namaz ve abdest için iki çevrimdışı görsel rehber
-  `assets/guides/` altına, düşük sesli doğal Türkçe açılış tekbiri
-  `assets/audio/opening_takbir.mp3` altına eklendi. Ses Ayarlar'dan kapanabilir.
-- Beş vakit alarm kartları vakit, aç/kapat ve önceden hatırlatma seçimini aynı
-  yerde gösteriyor.
-- Takip, alarm, tesbih, gizlilik ve bilgi akışlarındaki geri dönüş sorunu
-  `Scaffold/AppBar` düzenleriyle giderildi; metin taşmalarına açık başlıklar
-  esnek Material 3 düzenine alındı.
-- Türkçe, İngilizce ve Arapça için tüm yeni metinler birlikte eklendi; RTL
-  düzenlerinde `EdgeInsetsDirectional` kullanıldı.
-
-Doğrulama (Flutter 3.47.1 / Dart 3.13.1): format 59/59 değişiklik yok,
-`flutter analyze` 0 hata, `flutter test` 70/70 geçti. Native Android debug APK
-başarıyla üretildi: `build/app/outputs/flutter-apk/app-debug.apk`.
+Push etmeden önce `dart --version` çıktısının **3.13.1** olduğunu doğrula.
+Kurulum ve komutlar için `CLAUDE.md`'deki "Kalite kapısı" bölümüne bak.
+Dördü de (format, analyze, test) temiz olmadan push etme.
