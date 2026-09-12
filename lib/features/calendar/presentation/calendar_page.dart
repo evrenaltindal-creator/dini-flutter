@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/localization/app_localizations.dart';
 import '../domain/islamic_calendar.dart';
 import '../domain/religious_events.dart';
 
@@ -24,6 +25,7 @@ class _CalendarPageState extends State<CalendarPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final firstWeekday = DateTime(month.year, month.month, 1).weekday - 1;
     final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
     final cells = firstWeekday + daysInMonth;
@@ -31,16 +33,17 @@ class _CalendarPageState extends State<CalendarPage> {
       child: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          Text('Takvim', style: Theme.of(context).textTheme.headlineMedium),
-          const SizedBox(height: 8),
-          const Text(
-            'Hicri tarih offline tabular hesaplama ile gösterilir; gözlemlenen tarihler bölgeye ve otoriteye göre değişebilir.',
+          Text(
+            l10n.text('nav.calendar'),
+            style: Theme.of(context).textTheme.headlineMedium,
           ),
+          const SizedBox(height: 8),
+          Text(l10n.text('calendar.disclaimer')),
           const SizedBox(height: 16),
           Row(
             children: [
               IconButton(
-                tooltip: 'Önceki ay',
+                tooltip: l10n.text('calendar.previousMonth'),
                 onPressed: () => setState(
                   () => month = DateTime(month.year, month.month - 1),
                 ),
@@ -49,35 +52,39 @@ class _CalendarPageState extends State<CalendarPage> {
               Expanded(
                 child: Center(
                   child: Text(
-                    '${_months[month.month]} ${month.year}',
+                    '${l10n.month(month.month)} ${month.year}',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ),
               ),
               IconButton(
-                tooltip: 'Sonraki ay',
+                tooltip: l10n.text('calendar.nextMonth'),
                 onPressed: () => setState(
                   () => month = DateTime(month.year, month.month + 1),
                 ),
                 icon: const Icon(Icons.chevron_right),
               ),
-              TextButton(onPressed: _goToday, child: const Text('Bugün')),
+              TextButton(
+                onPressed: _goToday,
+                child: Text(l10n.text('calendar.today')),
+              ),
             ],
           ),
           const SizedBox(height: 8),
           Row(
-            children: _weekdays
-                .map(
-                  (day) => Expanded(
-                    child: Center(
-                      child: Text(
-                        day,
-                        style: Theme.of(context).textTheme.labelSmall,
+            children:
+                List.generate(7, (index) => l10n.text('weekday.${index + 1}'))
+                    .map(
+                      (day) => Expanded(
+                        child: Center(
+                          child: Text(
+                            day,
+                            style: Theme.of(context).textTheme.labelSmall,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                )
-                .toList(),
+                    )
+                    .toList(),
           ),
           const SizedBox(height: 8),
           GridView.builder(
@@ -100,7 +107,7 @@ class _CalendarPageState extends State<CalendarPage> {
               return Semantics(
                 button: true,
                 label:
-                    '$dayNumber ${_months[month.month]} ${hijri.label}${marked ? ', dini gün' : ''}',
+                    '$dayNumber ${l10n.month(month.month)} ${hijri.label}${marked ? ', ${l10n.text('calendar.religiousDay')}' : ''}',
                 child: InkWell(
                   borderRadius: BorderRadius.circular(10),
                   onTap: () => setState(() => selected = date),
@@ -147,26 +154,29 @@ class _CalendarPageState extends State<CalendarPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Seçili gün', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              context.l10n.text('calendar.selectedDay'),
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 8),
-            Text('${selected.day} ${_months[selected.month]} ${selected.year}'),
-            Text('Hicri ${h.label}'),
+            Text(
+              '${selected.day} ${context.l10n.month(selected.month)} ${selected.year}',
+            ),
+            Text(context.l10n.text('home.hijri', {'date': h.label})),
             if (dayEvents.isEmpty)
-              const Padding(
-                padding: EdgeInsets.only(top: 8),
-                child: Text('Bu gün için kayıtlı dini etkinlik yok.'),
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(context.l10n.text('calendar.noEvent')),
               )
             else
               ...dayEvents.map(
                 (event) => Padding(
                   padding: const EdgeInsets.only(top: 8),
-                  child: Text(event.name),
+                  child: Text(context.l10n.text('event.${event.id}')),
                 ),
               ),
             const SizedBox(height: 8),
-            const Text(
-              'Tarihler hesaplanmış İslami takvim tarihidir; yerel ilanlarla farklılık gösterebilir.',
-            ),
+            Text(context.l10n.text('calendar.dateNotice')),
           ],
         ),
       ),
@@ -180,21 +190,4 @@ class _CalendarPageState extends State<CalendarPage> {
       selected = DateTime(now.year, now.month, now.day);
     });
   }
-
-  static const _months = [
-    '',
-    'Ocak',
-    'Şubat',
-    'Mart',
-    'Nisan',
-    'Mayıs',
-    'Haziran',
-    'Temmuz',
-    'Ağustos',
-    'Eylül',
-    'Ekim',
-    'Kasım',
-    'Aralık',
-  ];
-  static const _weekdays = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
 }

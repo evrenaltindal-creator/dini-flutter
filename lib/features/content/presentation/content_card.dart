@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../core/localization/app_localizations.dart';
 import '../domain/content_repository.dart';
 
 class DailyContentCard extends StatefulWidget {
@@ -47,7 +48,9 @@ class _DailyContentCardState extends State<DailyContentCard> {
                   ),
                 ),
                 IconButton(
-                  tooltip: favorite ? 'Favoriden çıkar' : 'Favoriye ekle',
+                  tooltip: context.l10n.text(
+                    favorite ? 'content.removeFavorite' : 'content.addFavorite',
+                  ),
                   onPressed: () {
                     setState(() => favorite = !favorite);
                     widget.onFavoriteChanged?.call(favorite);
@@ -65,25 +68,31 @@ class _DailyContentCardState extends State<DailyContentCard> {
               alignment: Alignment.centerLeft,
               child: TextButton(
                 onPressed: () => setState(() => expanded = !expanded),
-                child: Text(expanded ? 'Daralt' : 'Devamını gör'),
+                child: Text(
+                  context.l10n.text(
+                    expanded ? 'content.collapse' : 'content.more',
+                  ),
+                ),
               ),
             ),
             Row(
               children: [
                 IconButton(
-                  tooltip: 'Metni kopyala',
+                  tooltip: context.l10n.text('content.copy'),
                   onPressed: () async {
                     await Clipboard.setData(ClipboardData(text: text));
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Metin kopyalandı')),
+                        SnackBar(
+                          content: Text(context.l10n.text('content.copied')),
+                        ),
                       );
                     }
                   },
                   icon: const Icon(Icons.copy_outlined),
                 ),
                 IconButton(
-                  tooltip: 'Paylaş',
+                  tooltip: context.l10n.text('content.share'),
                   onPressed: () => Share.share(text, subject: widget.title),
                   icon: const Icon(Icons.share_outlined),
                 ),

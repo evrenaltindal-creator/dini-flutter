@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../main.dart';
+import '../core/localization/app_localizations.dart';
 import '../features/prayer_times/presentation/providers.dart';
 import '../features/prayer_times/presentation/settings_controller.dart';
 import '../features/prayer_times/domain/timezone_service.dart';
@@ -34,36 +35,39 @@ final appRouter = GoRouter(
   initialLocation: '/',
   routes: [
     StatefulShellRoute.indexedStack(
-      builder: (context, state, shell) => Scaffold(
-        body: shell,
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: shell.currentIndex,
-          onDestinationSelected: shell.goBranch,
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home),
-              label: 'Ana Sayfa',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.menu_book_outlined),
-              label: 'Kuran',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.mosque_outlined),
-              label: 'İbadet',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.calendar_month_outlined),
-              label: 'Takvim',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.settings_outlined),
-              label: 'Ayarlar',
-            ),
-          ],
-        ),
-      ),
+      builder: (context, state, shell) {
+        final l10n = context.l10n;
+        return Scaffold(
+          body: shell,
+          bottomNavigationBar: NavigationBar(
+            selectedIndex: shell.currentIndex,
+            onDestinationSelected: shell.goBranch,
+            destinations: [
+              NavigationDestination(
+                icon: const Icon(Icons.home_outlined),
+                selectedIcon: const Icon(Icons.home),
+                label: l10n.text('nav.home'),
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.menu_book_outlined),
+                label: l10n.text('nav.quran'),
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.mosque_outlined),
+                label: l10n.text('nav.worship'),
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.calendar_month_outlined),
+                label: l10n.text('nav.calendar'),
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.settings_outlined),
+                label: l10n.text('nav.settings'),
+              ),
+            ],
+          ),
+        );
+      },
       branches: [
         StatefulShellBranch(
           routes: [GoRoute(path: '/', builder: (_, _) => const HomePage())],
@@ -72,7 +76,7 @@ final appRouter = GoRouter(
           routes: [
             GoRoute(
               path: '/quran',
-              builder: (_, _) => const PlaceholderPage(title: 'Kuran'),
+              builder: (_, _) => const PlaceholderPage(titleKey: 'nav.quran'),
             ),
           ],
         ),
@@ -110,6 +114,7 @@ class HomePage extends ConsumerWidget {
   const HomePage({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final times = ref.watch(prayerTimesProvider);
     final next = ref.watch(nextPrayerProvider);
     final settings = ref.watch(effectivePrayerSettingsProvider);
@@ -126,15 +131,17 @@ class HomePage extends ConsumerWidget {
     );
     final daily = OfflineContentRepository.dailyFor(now);
     final contentRepository = _contentRepository(ref);
-    String label(Prayer p) => p.name[0].toUpperCase() + p.name.substring(1);
+    String label(Prayer p) => l10n.prayer(p.name);
     String fmt(DateTime d) =>
         '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
     final viewport = MediaQuery.sizeOf(context);
     final sceneHeight = viewport.width <= 340
         ? 420.0
         : (viewport.height * .68).clamp(520.0, 680.0).toDouble();
-    final remaining =
-        '${next.remaining.inHours} sa ${next.remaining.inMinutes.remainder(60)} dk';
+    final remaining = l10n.text('home.remaining', {
+      'hours': next.remaining.inHours,
+      'minutes': next.remaining.inMinutes.remainder(60),
+    });
     return SafeArea(
       child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
@@ -151,9 +158,9 @@ class HomePage extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Huzurlu bir gün',
-                      style: TextStyle(
+                    Text(
+                      l10n.text('home.greeting'),
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 29,
                         height: 1.05,
@@ -165,7 +172,7 @@ class HomePage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '${settings.location.city ?? 'Seçili konum'} · ${now.day} ${_month(now.month)} ${now.year}',
+                      '${settings.location.city ?? l10n.text('home.selectedLocation')} · ${now.day} ${l10n.month(now.month)} ${now.year}',
                       style: const TextStyle(
                         color: Color(0xFFF7F3E9),
                         fontSize: 14,
@@ -215,9 +222,9 @@ class HomePage extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Sıradaki namaz',
-                              style: TextStyle(
+                            Text(
+                              l10n.text('home.nextPrayer'),
+                              style: const TextStyle(
                                 color: Color(0xFFC9DDD8),
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
@@ -226,7 +233,7 @@ class HomePage extends ConsumerWidget {
                             ),
                             const SizedBox(height: 3),
                             Text(
-                              '${label(next.next!)} · $remaining kaldı',
+                              '${label(next.next!)} · $remaining',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 17,
@@ -256,22 +263,25 @@ class HomePage extends ConsumerWidget {
             children: [
               Chip(
                 avatar: const Icon(Icons.calendar_today, size: 16),
-                label: Text('Hicri ${hijri.label}'),
+                label: Text(l10n.text('home.hijri', {'date': hijri.label})),
               ),
               if (scene.friday)
-                const Chip(
-                  avatar: Icon(Icons.star, size: 16),
-                  label: Text('Cuma'),
+                Chip(
+                  avatar: const Icon(Icons.star, size: 16),
+                  label: Text(l10n.text('home.friday')),
                 ),
               if (scene.ramadan)
-                const Chip(
-                  avatar: Icon(Icons.nightlight, size: 16),
-                  label: Text('Ramazan'),
+                Chip(
+                  avatar: const Icon(Icons.nightlight, size: 16),
+                  label: Text(l10n.text('home.ramadan')),
                 ),
             ],
           ),
           if (scene.ramadan)
-            _Card(title: 'Ramazan', body: _ramadanMessage(now, times, fmt)),
+            _Card(
+              title: l10n.text('home.ramadan'),
+              body: _ramadanMessage(now, times, fmt, l10n),
+            ),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -279,27 +289,27 @@ class HomePage extends ConsumerWidget {
               OutlinedButton.icon(
                 onPressed: () => context.push('/qibla'),
                 icon: const Icon(Icons.explore_outlined),
-                label: const Text('Kıble'),
+                label: Text(l10n.text('home.qibla')),
               ),
               OutlinedButton.icon(
                 onPressed: () => context.push('/tasbih'),
                 icon: const Icon(Icons.touch_app_outlined),
-                label: const Text('Tesbih'),
+                label: Text(l10n.text('home.tasbih')),
               ),
               OutlinedButton.icon(
                 onPressed: () => context.push('/tracker'),
                 icon: const Icon(Icons.check_circle_outline),
-                label: const Text('Namaz takibi'),
+                label: Text(l10n.text('home.tracker')),
               ),
               OutlinedButton.icon(
                 onPressed: () => context.go('/calendar'),
                 icon: const Icon(Icons.calendar_month_outlined),
-                label: const Text('Takvim'),
+                label: Text(l10n.text('home.calendar')),
               ),
             ],
           ),
           Text(
-            'Bugünün vakitleri',
+            l10n.text('home.todayTimes'),
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
@@ -315,9 +325,9 @@ class HomePage extends ConsumerWidget {
                   return ListTile(
                     dense: true,
                     selected: isNext,
-                    selectedTileColor: Theme.of(context)
-                        .colorScheme
-                        .primaryContainer,
+                    selectedTileColor: Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer,
                     leading: Icon(_prayerIcon(p)),
                     title: Wrap(
                       spacing: 4,
@@ -325,17 +335,17 @@ class HomePage extends ConsumerWidget {
                       children: [
                         Text(label(p)),
                         if (isCurrent)
-                          const Text(
-                            'ŞİMDİ',
-                            style: TextStyle(
+                          Text(
+                            l10n.text('home.now'),
+                            style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 11,
                             ),
                           ),
                         if (isNext)
-                          const Text(
-                            'SIRADA',
-                            style: TextStyle(
+                          Text(
+                            l10n.text('home.next'),
+                            style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 11,
                             ),
@@ -354,17 +364,17 @@ class HomePage extends ConsumerWidget {
           ListTile(
             dense: true,
             leading: const Icon(Icons.wb_sunny_outlined),
-            title: const Text('Güneş doğuşu · namaz vakti değildir'),
+            title: Text(l10n.text('home.sunrise')),
             trailing: Text(fmt(times.times[Prayer.sunrise]!)),
           ),
           FutureBuilder<bool>(
             future: contentRepository.isFavorite(daily.id),
             builder: (context, snapshot) => DailyContentCard(
               title: daily is VerseContent
-                  ? 'Günün ayeti'
+                  ? l10n.text('home.verse')
                   : daily is HadithContent
-                  ? 'Günün hadisi'
-                  : 'Günün duası',
+                  ? l10n.text('home.hadith')
+                  : l10n.text('home.prayer'),
               content: daily,
               initiallyFavorite: snapshot.data ?? false,
               onFavoriteChanged: (value) =>
@@ -390,34 +400,24 @@ class HomePage extends ConsumerWidget {
     DateTime now,
     PrayerTimes times,
     String Function(DateTime) fmt,
+    AppLocalizations l10n,
   ) {
     final fajr = times.times[Prayer.fajr]!;
     final maghrib = times.times[Prayer.maghrib]!;
     if (now.isBefore(fajr)) {
-      return 'Sahur sonu: ${fmt(fajr)} · seçili hesaplama yöntemindeki Fajr vakti';
+      return l10n.text('ramadan.suhoor', {'time': fmt(fajr)});
     }
     if (now.isBefore(maghrib)) {
       final remaining = maghrib.difference(now);
-      return 'İftara ${remaining.inHours} sa ${remaining.inMinutes.remainder(60)} dk · ${fmt(maghrib)}';
+      return l10n.text('ramadan.iftarRemaining', {
+        'hours': remaining.inHours,
+        'minutes': remaining.inMinutes.remainder(60),
+        'time': fmt(maghrib),
+      });
     }
-    return 'İftar vakti: ${fmt(maghrib)}';
+    return l10n.text('ramadan.iftar', {'time': fmt(maghrib)});
   }
 
-  String _month(int m) => const [
-    '',
-    'Ocak',
-    'Şubat',
-    'Mart',
-    'Nisan',
-    'Mayıs',
-    'Haziran',
-    'Temmuz',
-    'Ağustos',
-    'Eylül',
-    'Ekim',
-    'Kasım',
-    'Aralık',
-  ][m];
   IconData _prayerIcon(Prayer p) => switch (p) {
     Prayer.fajr => Icons.wb_twilight,
     Prayer.sunrise => Icons.wb_sunny_outlined,
@@ -432,34 +432,48 @@ class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final async = ref.watch(prayerSettingsProvider);
     final showLocation = ref.watch(widgetLocationVisibilityProvider);
     return async.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, stack) => _Page(
-        title: 'Ayarlar',
+        title: l10n.text('settings.title'),
         children: [
-          const Text(
-            'Ayarlar yüklenemedi. Güvenli varsayılanlar kullanılabilir.',
-          ),
-          _Tile('Bildirimler', onTap: () => context.push('/notifications')),
+          Text(l10n.text('settings.loadError')),
+          _languageSelector(context, ref),
           _Tile(
-            'Diyanet’e Soru Sor',
+            l10n.text('settings.notifications'),
+            onTap: () => context.push('/notifications'),
+          ),
+          _Tile(
+            l10n.text('settings.askDiyanet'),
             onTap: () async {
               await DiyanetFlow.openQuestionFlow();
             },
           ),
-          _Tile('Hakkında ve kaynaklar', onTap: () => context.push('/about')),
-          _Tile('Premium', onTap: () => context.push('/premium')),
-          _Tile('Gizlilik Merkezi', onTap: () => context.push('/privacy')),
+          _Tile(
+            l10n.text('settings.about'),
+            onTap: () => context.push('/about'),
+          ),
+          _Tile(
+            l10n.text('settings.premium'),
+            onTap: () => context.push('/premium'),
+          ),
+          _Tile(
+            l10n.text('settings.privacy'),
+            onTap: () => context.push('/privacy'),
+          ),
         ],
       ),
       data: (settings) => _Page(
-        title: 'Ayarlar',
+        title: l10n.text('settings.title'),
         children: [
           DropdownButtonFormField<PrayerCalculationMethod>(
             initialValue: settings.method,
-            decoration: const InputDecoration(labelText: 'Hesaplama yöntemi'),
+            decoration: InputDecoration(
+              labelText: l10n.text('settings.calculation'),
+            ),
             items: PrayerCalculationMethod.values
                 .map((m) => DropdownMenuItem(value: m, child: Text(m.name)))
                 .toList(),
@@ -471,7 +485,9 @@ class SettingsPage extends ConsumerWidget {
           ),
           DropdownButtonFormField<AsrMethod>(
             initialValue: settings.asrMethod,
-            decoration: const InputDecoration(labelText: 'İkindi yöntemi'),
+            decoration: InputDecoration(
+              labelText: l10n.text('settings.asrMethod'),
+            ),
             items: AsrMethod.values
                 .map((m) => DropdownMenuItem(value: m, child: Text(m.name)))
                 .toList(),
@@ -482,35 +498,27 @@ class SettingsPage extends ConsumerWidget {
             },
           ),
           SwitchListTile(
-            title: const Text('24 saat biçimi'),
+            title: Text(l10n.text('settings.clock24')),
             value: settings.use24Hour,
             onChanged: (v) =>
                 _saveSettings(ref, settings.copyWith(use24Hour: v)),
           ),
           _Tile(
-            'Tema',
+            l10n.text('settings.theme'),
             onTap: () =>
                 ref.read(themeModeProvider.notifier).state = ThemeMode.dark,
           ),
-          _Tile(
-            'Dil',
-            onTap: () =>
-                ref.read(localeProvider.notifier).state = const Locale('en'),
-          ),
-          const Card(
+          _languageSelector(context, ref),
+          Card(
             child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Text(
-                'Hicri tarih offline tabular hesaplama ile gösterilir; yerel ay gözlemi ve resmi ilanlarla bir gün farklılık gösterebilir.',
-              ),
+              padding: const EdgeInsets.all(16),
+              child: Text(l10n.text('settings.hijriNotice')),
             ),
           ),
           showLocation.when(
             data: (value) => SwitchListTile(
-              title: const Text('Widget’ta konum adını göster'),
-              subtitle: const Text(
-                'Kapalıyken prayer verileri gösterilir, şehir adı paylaşılmaz.',
-              ),
+              title: Text(l10n.text('settings.widgetLocation')),
+              subtitle: Text(l10n.text('settings.widgetLocationHint')),
               value: value,
               onChanged: (next) async {
                 await WidgetPreferencesRepository(
@@ -521,24 +529,77 @@ class SettingsPage extends ConsumerWidget {
               },
             ),
             loading: () =>
-                const ListTile(title: Text('Widget privacy yükleniyor…')),
-            error: (_, _) => const ListTile(
-              title: Text('Widget privacy varsayılan olarak kapalı.'),
-            ),
+                ListTile(title: Text(l10n.text('settings.widgetLoading'))),
+            error: (_, _) =>
+                ListTile(title: Text(l10n.text('settings.widgetDefault'))),
           ),
-          _Tile('Bildirimler', onTap: () => context.push('/notifications')),
           _Tile(
-            'Diyanet’e Soru Sor',
+            l10n.text('settings.notifications'),
+            onTap: () => context.push('/notifications'),
+          ),
+          _Tile(
+            l10n.text('settings.askDiyanet'),
             onTap: () async {
               await DiyanetFlow.openQuestionFlow();
             },
           ),
-          _Tile('Hakkında ve kaynaklar', onTap: () => context.push('/about')),
-          _Tile('Premium', onTap: () => context.push('/premium')),
-          _Tile('Gizlilik Merkezi', onTap: () => context.push('/privacy')),
+          _Tile(
+            l10n.text('settings.about'),
+            onTap: () => context.push('/about'),
+          ),
+          _Tile(
+            l10n.text('settings.premium'),
+            onTap: () => context.push('/premium'),
+          ),
+          _Tile(
+            l10n.text('settings.privacy'),
+            onTap: () => context.push('/privacy'),
+          ),
         ],
       ),
     );
+  }
+
+  Widget _languageSelector(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final selected = ref.watch(localeProvider).languageCode;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l10n.text('settings.language'),
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              l10n.text('settings.languageHint'),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 12),
+            SegmentedButton<String>(
+              showSelectedIcon: false,
+              segments: const [
+                ButtonSegment(value: 'tr', label: Text('Türkçe')),
+                ButtonSegment(value: 'en', label: Text('English')),
+                ButtonSegment(value: 'ar', label: Text('العربية')),
+              ],
+              selected: {selected},
+              onSelectionChanged: (value) => _setLocale(ref, value.single),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _setLocale(WidgetRef ref, String languageCode) async {
+    ref.read(localeProvider.notifier).state = Locale(languageCode);
+    await ref
+        .read(sharedPreferencesProvider)
+        .setString(localePreferenceKey, languageCode);
   }
 
   Future<void> _saveSettings(WidgetRef ref, PrayerSettings value) async {
@@ -575,7 +636,8 @@ class PremiumPage extends StatelessWidget {
       const Text('Temel dini özellikler herkes için ücretsiz kalır.'),
       _Card(
         title: 'Premium ekleri',
-        body: 'Ek cami temaları, gelişmiş widget tasarımları ve ileri istatistikler.',
+        body:
+            'Ek cami temaları, gelişmiş widget tasarımları ve ileri istatistikler.',
       ),
       FilledButton(
         onPressed: null,
@@ -589,29 +651,25 @@ class PrivacyPage extends ConsumerWidget {
   const PrivacyPage({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) => _Page(
-    title: 'Gizlilik Merkezi',
+    title: context.l10n.text('settings.privacy'),
     children: [
-      const Text(
-        'Namaz vakitleri ve konum kullanımı cihazda yereldir. Namaz takibi, tesbih, favoriler ve bildirim planlaması cihazda tutulur. Widget snapshot’ı yalnızca işletim sistemi uzantısıyla paylaşılır. Satın alma işlemleri Apple/Google mağaza altyapısı üzerinden yürür; mağazaların transaction verilerini almadığını iddia etmeyiz. Custom backend, reklam takibi ve analytics yoktur.',
-      ),
+      Text(context.l10n.text('privacy.body')),
       const SizedBox(height: 12),
       OutlinedButton(
         onPressed: () async {
           final confirmed = await showDialog<bool>(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('Tüm yerel veriler silinsin mi?'),
-              content: const Text(
-                'Ayarlar, takip geçmişi, tesbih durumu, favoriler, bildirim tercihleri ve widget snapshot’ı silinir. Bundled dini içerikler korunur.',
-              ),
+              title: Text(context.l10n.text('privacy.deleteTitle')),
+              content: Text(context.l10n.text('privacy.deleteBody')),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Vazgeç'),
+                  child: Text(context.l10n.text('privacy.cancel')),
                 ),
                 FilledButton(
                   onPressed: () => Navigator.pop(context, true),
-                  child: const Text('Sil'),
+                  child: Text(context.l10n.text('privacy.confirm')),
                 ),
               ],
             ),
@@ -622,15 +680,11 @@ class PrivacyPage extends ConsumerWidget {
           await const WidgetSnapshotService().clearSnapshot();
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Yerel veriler silindi. Güvenli varsayılanlar kullanılacak.',
-                ),
-              ),
+              SnackBar(content: Text(context.l10n.text('privacy.deleted'))),
             );
           }
         },
-        child: const Text('Tüm yerel verileri sil'),
+        child: Text(context.l10n.text('privacy.delete')),
       ),
     ],
   );
@@ -640,37 +694,32 @@ class AboutPage extends StatelessWidget {
   const AboutPage({super.key});
   @override
   Widget build(BuildContext context) => _Page(
-    title: 'Hakkında ve kaynaklar',
-    children: const [
-      Text('Sürüm 1.0.0+1'),
-      SizedBox(height: 12),
-      Text(
-        'Namaz vakitleri offline yerel hesaplama ile üretilir. Hicri tarihler tabular hesaplamadır; yerel ay gözlemi ve resmi ilanlarla farklılık gösterebilir.',
-      ),
-      SizedBox(height: 12),
-      Text(
-        'Günlük ayet, hadis ve dua içerikleri bundled kaynak metadatasıyla gelir. Satın almalar Apple App Store veya Google Play altyapısında işlenir; local entitlement cache mağaza doğrulamasının kaynağı değildir.',
-      ),
-      SizedBox(height: 12),
-      Text(
-        'Diyanet soru akışı resmi dış servisi tarayıcıda açmayı amaçlar. Güncel resmi URL release öncesi ayrıca doğrulanmalıdır; uygulama Diyanet değildir ve dini hüküm vermez.',
-      ),
+    title: context.l10n.text('settings.about'),
+    children: [
+      Text(context.l10n.text('about.version')),
+      const SizedBox(height: 12),
+      Text(context.l10n.text('about.prayer')),
+      const SizedBox(height: 12),
+      Text(context.l10n.text('about.content')),
+      const SizedBox(height: 12),
+      Text(context.l10n.text('about.diyanet')),
     ],
   );
 }
 
 class PlaceholderPage extends StatelessWidget {
-  final String title;
-  const PlaceholderPage({required this.title, super.key});
+  final String titleKey;
+  const PlaceholderPage({required this.titleKey, super.key});
   @override
-  Widget build(BuildContext context) => _Page(
-    title: title,
-    children: [
-      Text(
-        '$title foundation ekranı hazır; işlevsel feature sonraki adımda eklenecek.',
-      ),
-    ],
-  );
+  Widget build(BuildContext context) {
+    final title = context.l10n.text(titleKey);
+    return _Page(
+      title: title,
+      children: [
+        Text(context.l10n.text('placeholder', {'title': title})),
+      ],
+    );
+  }
 }
 
 class _Page extends StatelessWidget {

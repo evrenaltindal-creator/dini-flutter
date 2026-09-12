@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/storage/storage_provider.dart';
 import '../data/prayer_tracker_repository.dart';
 import '../domain/prayer_tracker.dart';
@@ -39,12 +40,15 @@ class _PrayerTrackerPageState extends ConsumerState<PrayerTrackerPage> {
         padding: const EdgeInsets.all(20),
         children: [
           Text(
-            'Namaz Takibi',
+            context.l10n.text('tracker.title'),
             style: Theme.of(context).textTheme.headlineMedium,
           ),
           const SizedBox(height: 8),
           Text(
-            '${current.completedCount} / ${trackedPrayers.length} tamamlandı',
+            context.l10n.text('tracker.completed', {
+              'completed': current.completedCount,
+              'total': trackedPrayers.length,
+            }),
           ),
           const SizedBox(height: 16),
           Card(
@@ -53,7 +57,7 @@ class _PrayerTrackerPageState extends ConsumerState<PrayerTrackerPage> {
                 final checked = current.isCompleted(prayer);
                 return CheckboxListTile(
                   secondary: Icon(_icon(prayer)),
-                  title: Text(_label(prayer)),
+                  title: Text(context.l10n.prayer(prayer.name)),
                   value: checked,
                   onChanged: (value) async {
                     final next = current.toggle(prayer);
@@ -66,22 +70,12 @@ class _PrayerTrackerPageState extends ConsumerState<PrayerTrackerPage> {
             ),
           ),
           const SizedBox(height: 12),
-          const Text(
-            'Takip verileri seçili günün yerel tarihine göre yalnızca cihazda saklanır.',
-          ),
+          Text(context.l10n.text('tracker.privacy')),
         ],
       ),
     );
   }
 
-  String _label(Prayer p) => switch (p) {
-    Prayer.fajr => 'Sabah',
-    Prayer.dhuhr => 'Öğle',
-    Prayer.asr => 'İkindi',
-    Prayer.maghrib => 'Akşam',
-    Prayer.isha => 'Yatsı',
-    Prayer.sunrise => 'Güneş doğuşu',
-  };
   IconData _icon(Prayer p) => switch (p) {
     Prayer.fajr => Icons.wb_twilight,
     Prayer.dhuhr => Icons.wb_sunny,

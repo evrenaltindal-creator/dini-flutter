@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/storage/storage_provider.dart';
 import '../../prayer_times/domain/prayer_engine.dart';
 import '../../prayer_times/domain/timezone_service.dart';
@@ -47,13 +48,11 @@ class _NotificationSettingsPageState
         padding: const EdgeInsets.all(20),
         children: [
           Text(
-            'Bildirimler',
+            context.l10n.text('settings.notifications'),
             style: Theme.of(context).textTheme.headlineMedium,
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Namaz vakitlerini cihazınızda hesaplayarak size yerel bildirim gönderebiliriz.',
-          ),
+          Text(context.l10n.text('notifications.description')),
           const SizedBox(height: 16),
           ...notificationPrayers.map(
             (prayer) => _PrayerNotificationTile(
@@ -66,12 +65,14 @@ class _NotificationSettingsPageState
           ),
           DropdownButtonFormField<NotificationSound>(
             initialValue: value.sound,
-            decoration: const InputDecoration(labelText: 'Bildirim sesi'),
+            decoration: InputDecoration(
+              labelText: context.l10n.text('notifications.sound'),
+            ),
             items: NotificationSound.values
                 .map(
                   (sound) => DropdownMenuItem(
                     value: sound,
-                    child: Text(_soundLabel(sound)),
+                    child: Text(_soundLabel(context, sound)),
                   ),
                 )
                 .toList(),
@@ -80,19 +81,19 @@ class _NotificationSettingsPageState
             },
           ),
           SwitchListTile(
-            title: const Text('Cuma hatırlatıcısı'),
+            title: Text(context.l10n.text('notifications.friday')),
             value: value.fridayReminder,
             onChanged: (enabled) =>
                 _update(value.copyWith(fridayReminder: enabled)),
           ),
           SwitchListTile(
-            title: const Text('Ramazan sahur/Fajr yaklaşma'),
+            title: Text(context.l10n.text('notifications.suhoor')),
             value: value.ramadanSuhoorReminder,
             onChanged: (enabled) =>
                 _update(value.copyWith(ramadanSuhoorReminder: enabled)),
           ),
           SwitchListTile(
-            title: const Text('Ramazan iftar/Maghrib yaklaşma'),
+            title: Text(context.l10n.text('notifications.iftar')),
             value: value.ramadanIftarReminder,
             onChanged: (enabled) =>
                 _update(value.copyWith(ramadanIftarReminder: enabled)),
@@ -103,14 +104,12 @@ class _NotificationSettingsPageState
             icon: const Icon(Icons.notifications_outlined),
             label: Text(
               permissionRequested
-                  ? 'İzin durumu işlendi'
-                  : 'Bildirim izinlerini yönet',
+                  ? context.l10n.text('notifications.permissionDone')
+                  : context.l10n.text('notifications.managePermission'),
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Bildirimler yerel olarak planlanır. Tam uzunlukta ezan sesinin arka planda her platformda garanti edilemeyeceğini unutmayın.',
-          ),
+          Text(context.l10n.text('notifications.notice')),
         ],
       ),
     );
@@ -120,18 +119,16 @@ class _NotificationSettingsPageState
     final allowed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Yerel bildirim izni'),
-        content: const Text(
-          'Namaz vakitlerini cihazınızda hesaplayarak size yerel bildirim gönderebiliriz.',
-        ),
+        title: Text(context.l10n.text('notifications.permissionTitle')),
+        content: Text(context.l10n.text('notifications.description')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Şimdi değil'),
+            child: Text(context.l10n.text('notifications.notNow')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Devam et'),
+            child: Text(context.l10n.text('notifications.continue')),
           ),
         ],
       ),
@@ -143,8 +140,9 @@ class _NotificationSettingsPageState
       await _reschedule(preferences!);
     }
     if (mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(_permissionLabel(status))));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_permissionLabel(context, status))),
+      );
     }
   }
 
@@ -175,20 +173,33 @@ class _NotificationSettingsPageState
     );
   }
 
-  String _soundLabel(NotificationSound sound) => switch (sound) {
-    NotificationSound.defaultSound => 'Varsayılan',
-    NotificationSound.bundled => 'Bundled ses (platform izin verirse)',
-    NotificationSound.silent => 'Sessiz',
-  };
-  String _permissionLabel(NotificationPermissionStatus status) =>
-      switch (status) {
-        NotificationPermissionStatus.granted => 'Bildirim izni verildi.',
-        NotificationPermissionStatus.denied => 'Bildirim izni verilmedi.',
-        NotificationPermissionStatus.permanentlyDenied =>
-          'Bildirim izni ayarlardan etkinleştirilmeli.',
-        NotificationPermissionStatus.unknown =>
-          'Bildirim izin durumu bilinmiyor.',
+  String _soundLabel(BuildContext context, NotificationSound sound) =>
+      switch (sound) {
+        NotificationSound.defaultSound => context.l10n.text(
+          'notifications.defaultSound',
+        ),
+        NotificationSound.bundled => context.l10n.text(
+          'notifications.bundledSound',
+        ),
+        NotificationSound.silent => context.l10n.text('notifications.silent'),
       };
+  String _permissionLabel(
+    BuildContext context,
+    NotificationPermissionStatus status,
+  ) => switch (status) {
+    NotificationPermissionStatus.granted => context.l10n.text(
+      'notifications.granted',
+    ),
+    NotificationPermissionStatus.denied => context.l10n.text(
+      'notifications.denied',
+    ),
+    NotificationPermissionStatus.permanentlyDenied => context.l10n.text(
+      'notifications.permanentlyDenied',
+    ),
+    NotificationPermissionStatus.unknown => context.l10n.text(
+      'notifications.unknown',
+    ),
+  };
 }
 
 class _PrayerNotificationTile extends StatelessWidget {
@@ -207,19 +218,29 @@ class _PrayerNotificationTile extends StatelessWidget {
       child: Column(
         children: [
           SwitchListTile(
-            title: Text(_label(prayer)),
+            title: Text(context.l10n.prayer(prayer.name)),
             value: value.enabled,
             onChanged: (enabled) => onChanged(value.copyWith(enabled: enabled)),
           ),
           DropdownButtonFormField<int?>(
             initialValue: value.reminderMinutes,
-            decoration: const InputDecoration(labelText: 'Önceden hatırlat'),
-            items: const [
-              DropdownMenuItem<int?>(value: null, child: Text('Yok')),
-              DropdownMenuItem(value: 5, child: Text('5 dakika')),
-              DropdownMenuItem(value: 10, child: Text('10 dakika')),
-              DropdownMenuItem(value: 15, child: Text('15 dakika')),
-              DropdownMenuItem(value: 30, child: Text('30 dakika')),
+            decoration: InputDecoration(
+              labelText: context.l10n.text('notifications.advance'),
+            ),
+            items: [
+              DropdownMenuItem<int?>(
+                value: null,
+                child: Text(context.l10n.text('notifications.none')),
+              ),
+              for (final minutes in [5, 10, 15, 30])
+                DropdownMenuItem(
+                  value: minutes,
+                  child: Text(
+                    context.l10n.text('notifications.minutes', {
+                      'minutes': minutes,
+                    }),
+                  ),
+                ),
             ],
             onChanged: (minutes) => onChanged(
               value.copyWith(
@@ -232,12 +253,4 @@ class _PrayerNotificationTile extends StatelessWidget {
       ),
     ),
   );
-  String _label(Prayer prayer) => switch (prayer) {
-    Prayer.fajr => 'Sabah',
-    Prayer.dhuhr => 'Öğle',
-    Prayer.asr => 'İkindi',
-    Prayer.maghrib => 'Akşam',
-    Prayer.isha => 'Yatsı',
-    Prayer.sunrise => 'Güneş doğuşu',
-  };
 }

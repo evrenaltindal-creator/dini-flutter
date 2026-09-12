@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
+import '../../../core/localization/app_localizations.dart';
 import '../domain/qibla_calculator.dart';
 import '../../prayer_times/domain/prayer_engine.dart';
 
@@ -47,7 +48,7 @@ class _QiblaPageState extends State<QiblaPage> {
         ? null
         : ((_bearing - _heading! + 540) % 360) - 180;
     return Scaffold(
-      appBar: AppBar(title: const Text('Kıble')),
+      appBar: AppBar(title: Text(context.l10n.text('home.qibla'))),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -61,13 +62,18 @@ class _QiblaPageState extends State<QiblaPage> {
               ),
               Text(
                 _heading == null
-                    ? 'Pusula sensörü kullanılamıyor. Telefonu düz tutup kalibrasyon hareketini deneyin.'
-                    : 'Cihaz yönü: ${_heading!.toStringAsFixed(0)}°${difference!.abs() < 5 ? ' · Hizalı' : ''}',
+                    ? context.l10n.text('qibla.sensorUnavailable')
+                    : context.l10n.text('qibla.heading', {
+                        'degrees': _heading!.toStringAsFixed(0),
+                        'aligned': difference!.abs() < 5
+                            ? context.l10n.text('qibla.aligned')
+                            : '',
+                      }),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
               Text(
-                'Konum cihazda tutulur; dışarı gönderilmez.',
+                context.l10n.text('qibla.privacy'),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/storage/storage_provider.dart';
 import '../data/entitlement_repository.dart';
 import '../data/purchase_service.dart';
@@ -48,39 +49,35 @@ class _PremiumStorePageState extends ConsumerState<PremiumStorePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Dini Premium')),
+      appBar: AppBar(title: Text('${context.l10n.text('appTitle')} Premium')),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
           Text(
-            'Temel ibadet özellikleri ücretsizdir.',
+            context.l10n.text('premium.freeTitle'),
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 12),
-          const Text(
-            'Ücretsiz: namaz vakitleri, kıble, temel bildirimler, Hicri takvim, günlük içerik, temel takip, tesbih, temel widget ve varsayılan cami sahnesi.',
-          ),
+          Text(context.l10n.text('premium.freeFeatures')),
           const SizedBox(height: 12),
-          const Text(
-            'Premium: ek sahne ve widget görünümleri, görünüm kişiselleştirme ve yerel gelişmiş istatistikler.',
-          ),
+          Text(context.l10n.text('premium.features')),
           const SizedBox(height: 20),
           FutureBuilder<List<StoreProduct>>(
             future: products,
             builder: (context, snapshot) {
               if (snapshot.connectionState != ConnectionState.done) {
-                return const Card(
-                  child: ListTile(title: Text('Mağaza ürünleri yükleniyor…')),
+                return Card(
+                  child: ListTile(
+                    title: Text(context.l10n.text('premium.loading')),
+                  ),
                 );
               }
               final values = snapshot.data ?? [];
               if (values.isEmpty) {
-                return const Card(
+                return Card(
                   child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Text(
-                      'Mağaza ürünleri şu anda kullanılamıyor. Fiyat gösterilmedi. Ücretsiz özellikler kullanılmaya devam eder.',
-                    ),
+                    padding: const EdgeInsets.all(16),
+                    child: Text(context.l10n.text('premium.unavailable')),
                   ),
                 );
               }
@@ -110,20 +107,18 @@ class _PremiumStorePageState extends ConsumerState<PremiumStorePage> {
               await service.restorePurchases();
               if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Restore isteği mağazaya gönderildi.'),
+                SnackBar(
+                  content: Text(context.l10n.text('premium.restoreSent')),
                 ),
               );
             },
-            child: const Text('Restore Purchases'),
+            child: Text(context.l10n.text('premium.restore')),
           ),
           if (entitlement.isPremium)
-            const ListTile(
-              leading: Icon(Icons.check_circle),
-              title: Text('Premium etkin'),
-              subtitle: Text(
-                'Mağaza state’i yerel UX cache’iyle gösteriliyor.',
-              ),
+            ListTile(
+              leading: const Icon(Icons.check_circle),
+              title: Text(context.l10n.text('premium.active')),
+              subtitle: Text(context.l10n.text('premium.cache')),
             ),
         ],
       ),

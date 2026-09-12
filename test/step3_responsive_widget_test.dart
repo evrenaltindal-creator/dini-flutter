@@ -1,5 +1,6 @@
 import 'package:dini_flutter/app/router.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -9,7 +10,16 @@ Widget _homeAt(double width, {double textScale = 1}) => MediaQuery(
     textScaler: TextScaler.linear(textScale),
   ),
   child: const ProviderScope(
-    child: MaterialApp(home: Scaffold(body: HomePage())),
+    child: MaterialApp(
+      locale: Locale('tr'),
+      supportedLocales: [Locale('tr')],
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      home: Scaffold(body: HomePage()),
+    ),
   ),
 );
 

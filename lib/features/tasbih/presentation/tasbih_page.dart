@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/storage/storage_provider.dart';
 import '../data/tasbih_repository.dart';
 import '../domain/tasbih.dart';
@@ -48,15 +49,22 @@ class _TasbihPageState extends ConsumerState<TasbihPage> {
       child: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          Text('Tesbih', style: Theme.of(context).textTheme.headlineMedium),
+          Text(
+            context.l10n.text('home.tasbih'),
+            style: Theme.of(context).textTheme.headlineMedium,
+          ),
           const SizedBox(height: 16),
           DropdownButtonFormField<String>(
             initialValue: option.id,
-            decoration: const InputDecoration(labelText: 'Zikir seçimi'),
+            decoration: InputDecoration(
+              labelText: context.l10n.text('tasbih.select'),
+            ),
             items: defaultDhikr
                 .map(
-                  (item) =>
-                      DropdownMenuItem(value: item.id, child: Text(item.label)),
+                  (item) => DropdownMenuItem(
+                    value: item.id,
+                    child: Text(context.l10n.text('dhikr.${item.id}')),
+                  ),
                 )
                 .toList(),
             onChanged: (id) async {
@@ -73,13 +81,17 @@ class _TasbihPageState extends ConsumerState<TasbihPage> {
               style: Theme.of(context).textTheme.displayLarge,
             ),
           ),
-          Center(child: Text('Hedef: ${current.target}')),
+          Center(
+            child: Text(
+              '${context.l10n.text('tasbih.target')}: ${current.target}',
+            ),
+          ),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               IconButton.filled(
-                tooltip: 'Bir azalt',
+                tooltip: context.l10n.text('tasbih.decrease'),
                 onPressed: current.count == 0
                     ? null
                     : () => _change(current.decrement()),
@@ -87,13 +99,13 @@ class _TasbihPageState extends ConsumerState<TasbihPage> {
               ),
               const SizedBox(width: 16),
               IconButton.filled(
-                tooltip: 'Bir artır',
+                tooltip: context.l10n.text('tasbih.increase'),
                 onPressed: () => _increment(current),
                 icon: const Icon(Icons.add),
               ),
               const SizedBox(width: 16),
               IconButton(
-                tooltip: 'Sıfırla',
+                tooltip: context.l10n.text('tasbih.reset'),
                 onPressed: () => _change(current.reset()),
                 icon: const Icon(Icons.refresh),
               ),
@@ -103,7 +115,9 @@ class _TasbihPageState extends ConsumerState<TasbihPage> {
           TextFormField(
             initialValue: '${current.target}',
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'Hedef'),
+            decoration: InputDecoration(
+              labelText: context.l10n.text('tasbih.target'),
+            ),
             onFieldSubmitted: (value) async {
               final target = int.tryParse(value);
               if (target == null || target < 1) return;
@@ -113,7 +127,7 @@ class _TasbihPageState extends ConsumerState<TasbihPage> {
             },
           ),
           SwitchListTile(
-            title: const Text('Hafif dokunsal geri bildirim'),
+            title: Text(context.l10n.text('tasbih.haptic')),
             value: current.hapticEnabled,
             onChanged: (value) async {
               final next = current.copyWith(hapticEnabled: value);
@@ -129,7 +143,7 @@ class _TasbihPageState extends ConsumerState<TasbihPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Son oturumlar',
+                      context.l10n.text('tasbih.history'),
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     ...history
