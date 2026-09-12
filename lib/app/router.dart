@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -37,34 +38,62 @@ final appRouter = GoRouter(
     StatefulShellRoute.indexedStack(
       builder: (context, state, shell) {
         final l10n = context.l10n;
+        final onHome = shell.currentIndex == 0;
         return Scaffold(
+          extendBody: onHome,
           body: shell,
-          bottomNavigationBar: NavigationBar(
-            selectedIndex: shell.currentIndex,
-            onDestinationSelected: shell.goBranch,
-            destinations: [
-              NavigationDestination(
-                icon: const Icon(Icons.home_outlined),
-                selectedIcon: const Icon(Icons.home),
-                label: l10n.text('nav.home'),
-              ),
-              NavigationDestination(
-                icon: const Icon(Icons.menu_book_outlined),
-                label: l10n.text('nav.quran'),
-              ),
-              NavigationDestination(
-                icon: const Icon(Icons.mosque_outlined),
-                label: l10n.text('nav.worship'),
-              ),
-              NavigationDestination(
-                icon: const Icon(Icons.calendar_month_outlined),
-                label: l10n.text('nav.calendar'),
-              ),
-              NavigationDestination(
-                icon: const Icon(Icons.settings_outlined),
-                label: l10n.text('nav.settings'),
-              ),
-            ],
+          bottomNavigationBar: NavigationBarTheme(
+            data: onHome
+                ? NavigationBarThemeData(
+                    backgroundColor: const Color(0xF20A2425),
+                    indicatorColor: const Color(0x40FFD88A),
+                    iconTheme: WidgetStateProperty.resolveWith(
+                      (states) => IconThemeData(
+                        color: states.contains(WidgetState.selected)
+                            ? const Color(0xFFFFD88A)
+                            : const Color(0xFFDCE7E4),
+                      ),
+                    ),
+                    labelTextStyle: WidgetStateProperty.resolveWith(
+                      (states) => TextStyle(
+                        color: states.contains(WidgetState.selected)
+                            ? const Color(0xFFFFD88A)
+                            : const Color(0xFFDCE7E4),
+                        fontWeight: states.contains(WidgetState.selected)
+                            ? FontWeight.w700
+                            : FontWeight.w500,
+                        fontSize: 12,
+                      ),
+                    ),
+                  )
+                : const NavigationBarThemeData(),
+            child: NavigationBar(
+              selectedIndex: shell.currentIndex,
+              onDestinationSelected: shell.goBranch,
+              destinations: [
+                NavigationDestination(
+                  icon: const Icon(Icons.home_outlined),
+                  selectedIcon: const Icon(Icons.home),
+                  label: l10n.text('nav.home'),
+                ),
+                NavigationDestination(
+                  icon: const Icon(Icons.menu_book_outlined),
+                  label: l10n.text('nav.quran'),
+                ),
+                NavigationDestination(
+                  icon: const Icon(Icons.mosque_outlined),
+                  label: l10n.text('nav.worship'),
+                ),
+                NavigationDestination(
+                  icon: const Icon(Icons.calendar_month_outlined),
+                  label: l10n.text('nav.calendar'),
+                ),
+                NavigationDestination(
+                  icon: const Icon(Icons.settings_outlined),
+                  label: l10n.text('nav.settings'),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -135,250 +164,202 @@ class HomePage extends ConsumerWidget {
     String fmt(DateTime d) =>
         '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
     final viewport = MediaQuery.sizeOf(context);
-    final sceneHeight = viewport.width <= 340
-        ? 420.0
-        : (viewport.height * .68).clamp(520.0, 680.0).toDouble();
+    final topBreathingRoom = (viewport.height * .52)
+        .clamp(380.0, 500.0)
+        .toDouble();
     final remaining = l10n.text('home.remaining', {
       'hours': next.remaining.inHours,
       'minutes': next.remaining.inMinutes.remainder(60),
     });
-    return SafeArea(
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Stack(
+        fit: StackFit.expand,
         children: [
-          Stack(
-            children: [
-              RepaintBoundary(
-                child: MosqueScene(state: scene, height: sceneHeight),
+          RepaintBoundary(
+            child: MosqueScene(
+              state: scene,
+              height: viewport.height,
+              borderRadius: BorderRadius.zero,
+              showShadow: false,
+            ),
+          ),
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0x8C000000),
+                  Color(0x12000000),
+                  Color(0x70020D0E),
+                  Color(0xD9082021),
+                ],
+                stops: [0, .22, .56, 1],
               ),
-              Positioned(
-                top: 24,
-                left: 22,
-                right: 22,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.text('home.greeting'),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 29,
-                        height: 1.05,
-                        fontWeight: FontWeight.w700,
-                        shadows: [
-                          Shadow(blurRadius: 12, color: Color(0x99000000)),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '${settings.location.city ?? l10n.text('home.selectedLocation')} · ${now.day} ${l10n.month(now.month)} ${now.year}',
-                      style: const TextStyle(
-                        color: Color(0xFFF7F3E9),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        shadows: [
-                          Shadow(blurRadius: 10, color: Color(0xB0000000)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Positioned(
-                left: 16,
-                right: 16,
-                bottom: 16,
-                child: Container(
-                  padding: const EdgeInsets.fromLTRB(18, 15, 18, 15),
-                  decoration: BoxDecoration(
-                    color: const Color(0xB20A2425),
-                    borderRadius: BorderRadius.circular(22),
-                    border: Border.all(color: const Color(0x55FFFFFF)),
-                    boxShadow: const [
-                      BoxShadow(
-                        blurRadius: 22,
-                        offset: Offset(0, 8),
-                        color: Color(0x40000000),
-                      ),
-                    ],
+            ),
+          ),
+          SafeArea(
+            bottom: false,
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(16, 18, 16, 116),
+              children: [
+                Text(
+                  l10n.text('home.greeting'),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 30,
+                    height: 1.05,
+                    fontWeight: FontWeight.w700,
+                    shadows: [Shadow(blurRadius: 14, color: Color(0xCC000000))],
                   ),
-                  child: Row(
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '${settings.location.city ?? l10n.text('home.selectedLocation')} · ${now.day} ${l10n.month(now.month)} ${now.year}',
+                  style: const TextStyle(
+                    color: Color(0xFFF7F3E9),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    shadows: [Shadow(blurRadius: 12, color: Color(0xE0000000))],
+                  ),
+                ),
+                SizedBox(height: topBreathingRoom),
+                _NextPrayerPanel(
+                  icon: _prayerIcon(next.next!),
+                  title: l10n.text('home.nextPrayer'),
+                  prayerAndRemaining: '${label(next.next!)} · $remaining',
+                  time: fmt(next.nextTime),
+                ),
+                const SizedBox(height: 12),
+                _GlassPanel(
+                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: const BoxDecoration(
-                          color: Color(0x33FFFFFF),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          _prayerIcon(next.next!),
-                          color: const Color(0xFFFFD88A),
-                        ),
-                      ),
-                      const SizedBox(width: 13),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              l10n.text('home.nextPrayer'),
-                              style: const TextStyle(
-                                color: Color(0xFFC9DDD8),
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 1.1,
-                              ),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _GlassTag(
+                            icon: Icons.calendar_today_outlined,
+                            label: l10n.text('home.hijri', {
+                              'date': hijri.label,
+                            }),
+                          ),
+                          if (scene.friday)
+                            _GlassTag(
+                              icon: Icons.star_outline,
+                              label: l10n.text('home.friday'),
                             ),
-                            const SizedBox(height: 3),
-                            Text(
-                              '${label(next.next!)} · $remaining',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 17,
-                                fontWeight: FontWeight.w700,
-                              ),
+                          if (scene.ramadan)
+                            _GlassTag(
+                              icon: Icons.nightlight_outlined,
+                              label: l10n.text('home.ramadan'),
                             ),
-                          ],
-                        ),
+                        ],
                       ),
-                      Text(
-                        fmt(next.nextTime),
-                        style: const TextStyle(
-                          color: Color(0xFFFFD88A),
-                          fontSize: 21,
-                          fontWeight: FontWeight.w700,
+                      if (scene.ramadan) ...[
+                        const SizedBox(height: 12),
+                        Text(
+                          _ramadanMessage(now, times, fmt, l10n),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            height: 1.4,
+                          ),
                         ),
+                      ],
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _QuickAction(
+                            icon: Icons.explore_outlined,
+                            label: l10n.text('home.qibla'),
+                            onPressed: () => context.push('/qibla'),
+                          ),
+                          _QuickAction(
+                            icon: Icons.touch_app_outlined,
+                            label: l10n.text('home.tasbih'),
+                            onPressed: () => context.push('/tasbih'),
+                          ),
+                          _QuickAction(
+                            icon: Icons.check_circle_outline,
+                            label: l10n.text('home.tracker'),
+                            onPressed: () => context.push('/tracker'),
+                          ),
+                          _QuickAction(
+                            icon: Icons.calendar_month_outlined,
+                            label: l10n.text('home.calendar'),
+                            onPressed: () => context.go('/calendar'),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 8,
-            children: [
-              Chip(
-                avatar: const Icon(Icons.calendar_today, size: 16),
-                label: Text(l10n.text('home.hijri', {'date': hijri.label})),
-              ),
-              if (scene.friday)
-                Chip(
-                  avatar: const Icon(Icons.star, size: 16),
-                  label: Text(l10n.text('home.friday')),
-                ),
-              if (scene.ramadan)
-                Chip(
-                  avatar: const Icon(Icons.nightlight, size: 16),
-                  label: Text(l10n.text('home.ramadan')),
-                ),
-            ],
-          ),
-          if (scene.ramadan)
-            _Card(
-              title: l10n.text('home.ramadan'),
-              body: _ramadanMessage(now, times, fmt, l10n),
-            ),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              OutlinedButton.icon(
-                onPressed: () => context.push('/qibla'),
-                icon: const Icon(Icons.explore_outlined),
-                label: Text(l10n.text('home.qibla')),
-              ),
-              OutlinedButton.icon(
-                onPressed: () => context.push('/tasbih'),
-                icon: const Icon(Icons.touch_app_outlined),
-                label: Text(l10n.text('home.tasbih')),
-              ),
-              OutlinedButton.icon(
-                onPressed: () => context.push('/tracker'),
-                icon: const Icon(Icons.check_circle_outline),
-                label: Text(l10n.text('home.tracker')),
-              ),
-              OutlinedButton.icon(
-                onPressed: () => context.go('/calendar'),
-                icon: const Icon(Icons.calendar_month_outlined),
-                label: Text(l10n.text('home.calendar')),
-              ),
-            ],
-          ),
-          Text(
-            l10n.text('home.todayTimes'),
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                children: Prayer.values.where((p) => p != Prayer.sunrise).map((
-                  p,
-                ) {
-                  final isCurrent = next.current == p;
-                  final isNext = next.next == p;
-                  return ListTile(
-                    dense: true,
-                    selected: isNext,
-                    selectedTileColor: Theme.of(context)
-                        .colorScheme
-                        .primaryContainer,
-                    leading: Icon(_prayerIcon(p)),
-                    title: Wrap(
-                      spacing: 4,
-                      runSpacing: 2,
-                      children: [
-                        Text(label(p)),
-                        if (isCurrent)
-                          Text(
-                            l10n.text('home.now'),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 11,
-                            ),
+                const SizedBox(height: 12),
+                _GlassPanel(
+                  padding: const EdgeInsets.fromLTRB(12, 16, 12, 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Text(
+                          l10n.text('home.todayTimes'),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 19,
+                            fontWeight: FontWeight.w700,
                           ),
-                        if (isNext)
-                          Text(
-                            l10n.text('home.next'),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 11,
-                            ),
-                          ),
-                      ],
-                    ),
-                    trailing: Text(
-                      fmt(times.times[p]!),
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-          ),
-          ListTile(
-            dense: true,
-            leading: const Icon(Icons.wb_sunny_outlined),
-            title: Text(l10n.text('home.sunrise')),
-            trailing: Text(fmt(times.times[Prayer.sunrise]!)),
-          ),
-          FutureBuilder<bool>(
-            future: contentRepository.isFavorite(daily.id),
-            builder: (context, snapshot) => DailyContentCard(
-              title: daily is VerseContent
-                  ? l10n.text('home.verse')
-                  : daily is HadithContent
-                  ? l10n.text('home.hadith')
-                  : l10n.text('home.prayer'),
-              content: daily,
-              initiallyFavorite: snapshot.data ?? false,
-              onFavoriteChanged: (value) =>
-                  contentRepository.setFavorite(daily.id, value),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      ...Prayer.values.where((p) => p != Prayer.sunrise).map((
+                        p,
+                      ) {
+                        final isCurrent = next.current == p;
+                        final isNext = next.next == p;
+                        return _PrayerTimeRow(
+                          icon: _prayerIcon(p),
+                          label: label(p),
+                          time: fmt(times.times[p]!),
+                          badge: isCurrent
+                              ? l10n.text('home.now')
+                              : isNext
+                              ? l10n.text('home.next')
+                              : null,
+                          highlighted: isNext,
+                        );
+                      }),
+                      const Divider(color: Color(0x35FFFFFF), height: 10),
+                      _PrayerTimeRow(
+                        icon: Icons.wb_sunny_outlined,
+                        label: l10n.text('home.sunrise'),
+                        time: fmt(times.times[Prayer.sunrise]!),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                FutureBuilder<bool>(
+                  future: contentRepository.isFavorite(daily.id),
+                  builder: (context, snapshot) => DailyContentCard(
+                    title: daily is VerseContent
+                        ? l10n.text('home.verse')
+                        : daily is HadithContent
+                        ? l10n.text('home.hadith')
+                        : l10n.text('home.prayer'),
+                    content: daily,
+                    initiallyFavorite: snapshot.data ?? false,
+                    glass: true,
+                    onFavoriteChanged: (value) =>
+                        contentRepository.setFavorite(daily.id, value),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -426,6 +407,231 @@ class HomePage extends ConsumerWidget {
     Prayer.maghrib => Icons.wb_twilight,
     Prayer.isha => Icons.nightlight_round,
   };
+}
+
+class _NextPrayerPanel extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String prayerAndRemaining;
+  final String time;
+
+  const _NextPrayerPanel({
+    required this.icon,
+    required this.title,
+    required this.prayerAndRemaining,
+    required this.time,
+  });
+
+  @override
+  Widget build(BuildContext context) => _GlassPanel(
+    child: Row(
+      children: [
+        Container(
+          width: 44,
+          height: 44,
+          decoration: const BoxDecoration(
+            color: Color(0x28FFFFFF),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: const Color(0xFFFFD88A)),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: Color(0xFFC9DDD8),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.05,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                prayerAndRemaining,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  height: 1.2,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          time,
+          style: const TextStyle(
+            color: Color(0xFFFFD88A),
+            fontSize: 21,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _GlassPanel extends StatelessWidget {
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+
+  const _GlassPanel({
+    required this.child,
+    this.padding = const EdgeInsets.fromLTRB(16, 15, 16, 15),
+  });
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: padding,
+    decoration: BoxDecoration(
+      color: const Color(0xC20A2425),
+      borderRadius: BorderRadius.circular(24),
+      border: Border.all(color: const Color(0x45FFFFFF)),
+      boxShadow: const [
+        BoxShadow(
+          blurRadius: 22,
+          offset: Offset(0, 8),
+          color: Color(0x3D000000),
+        ),
+      ],
+    ),
+    child: child,
+  );
+}
+
+class _GlassTag extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _GlassTag({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+    decoration: BoxDecoration(
+      color: const Color(0x20FFFFFF),
+      borderRadius: BorderRadius.circular(999),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 16, color: const Color(0xFFFFD88A)),
+        const SizedBox(width: 7),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _QuickAction extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onPressed;
+
+  const _QuickAction({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) => OutlinedButton.icon(
+    style: OutlinedButton.styleFrom(
+      foregroundColor: Colors.white,
+      backgroundColor: const Color(0x14000000),
+      side: const BorderSide(color: Color(0x5CFFFFFF)),
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
+      visualDensity: VisualDensity.compact,
+    ),
+    onPressed: onPressed,
+    icon: Icon(icon, size: 18, color: const Color(0xFFFFD88A)),
+    label: Text(label),
+  );
+}
+
+class _PrayerTimeRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String time;
+  final String? badge;
+  final bool highlighted;
+
+  const _PrayerTimeRow({
+    required this.icon,
+    required this.label,
+    required this.time,
+    this.badge,
+    this.highlighted = false,
+  });
+
+  @override
+  Widget build(BuildContext context) => Container(
+    margin: const EdgeInsets.symmetric(vertical: 2),
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+    decoration: BoxDecoration(
+      color: highlighted ? const Color(0x2BFFD88A) : Colors.transparent,
+      borderRadius: BorderRadius.circular(14),
+    ),
+    child: Row(
+      children: [
+        Icon(
+          icon,
+          size: 22,
+          color: highlighted
+              ? const Color(0xFFFFD88A)
+              : const Color(0xFFDCE7E4),
+        ),
+        const SizedBox(width: 13),
+        Expanded(
+          child: Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 6,
+            runSpacing: 2,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              if (badge != null)
+                Text(
+                  badge!,
+                  style: const TextStyle(
+                    color: Color(0xFFFFD88A),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          time,
+          style: TextStyle(
+            color: highlighted ? const Color(0xFFFFD88A) : Colors.white,
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 class SettingsPage extends ConsumerWidget {
@@ -636,7 +842,8 @@ class PremiumPage extends StatelessWidget {
       const Text('Temel dini özellikler herkes için ücretsiz kalır.'),
       _Card(
         title: 'Premium ekleri',
-        body: 'Ek cami temaları, gelişmiş widget tasarımları ve ileri istatistikler.',
+        body:
+            'Ek cami temaları, gelişmiş widget tasarımları ve ileri istatistikler.',
       ),
       FilledButton(
         onPressed: null,

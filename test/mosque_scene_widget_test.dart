@@ -35,7 +35,14 @@ void main() {
         ),
       );
 
-      expect(find.byKey(ValueKey(entry.value)), findsOneWidget);
+      final sceneAsset = find.byKey(ValueKey(entry.value));
+      final image = find.descendant(
+        of: sceneAsset,
+        matching: find.byType(Image),
+      );
+      expect(sceneAsset, findsOneWidget);
+      expect(image, findsOneWidget);
+      expect(tester.getSize(image), tester.getSize(sceneAsset));
       expect(tester.takeException(), isNull);
     });
   }

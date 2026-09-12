@@ -33,6 +33,11 @@ void main() {
       await tester.pumpWidget(_homeAt(width));
       await tester.pump();
       expect(tester.takeException(), isNull);
+      await tester.scrollUntilVisible(
+        find.text('Bugünün vakitleri'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
       expect(find.text('Bugünün vakitleri'), findsOneWidget);
       await tester.scrollUntilVisible(
         find.text('Güneş doğuşu · namaz vakti değildir'),

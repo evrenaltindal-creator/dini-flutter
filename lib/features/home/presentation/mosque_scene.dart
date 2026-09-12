@@ -8,11 +8,13 @@ class MosqueScene extends StatefulWidget {
   final MosqueSceneState state;
   final double height;
   final BorderRadius borderRadius;
+  final bool showShadow;
 
   const MosqueScene({
     required this.state,
     this.height = 560,
     this.borderRadius = const BorderRadius.all(Radius.circular(32)),
+    this.showShadow = true,
     super.key,
   });
 
@@ -67,13 +69,15 @@ class _MosqueSceneState extends State<MosqueScene>
         child: DecoratedBox(
           decoration: BoxDecoration(
             borderRadius: widget.borderRadius,
-            boxShadow: const [
-              BoxShadow(
-                blurRadius: 28,
-                offset: Offset(0, 12),
-                color: Color(0x33030D13),
-              ),
-            ],
+            boxShadow: widget.showShadow
+                ? const [
+                    BoxShadow(
+                      blurRadius: 28,
+                      offset: Offset(0, 12),
+                      color: Color(0x33030D13),
+                    ),
+                  ]
+                : null,
           ),
           child: ClipRRect(
             borderRadius: widget.borderRadius,
@@ -95,13 +99,25 @@ class _MosqueSceneState extends State<MosqueScene>
                           : const Duration(milliseconds: 1100),
                       switchInCurve: Curves.easeOut,
                       switchOutCurve: Curves.easeIn,
-                      child: Image.asset(
-                        asset,
+                      layoutBuilder: (currentChild, previousChildren) => Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          ...previousChildren.map(
+                            (child) => Positioned.fill(child: child),
+                          ),
+                          if (currentChild != null)
+                            Positioned.fill(child: currentChild),
+                        ],
+                      ),
+                      child: SizedBox.expand(
                         key: ValueKey(asset),
-                        fit: BoxFit.cover,
-                        alignment: Alignment.topCenter,
-                        gaplessPlayback: true,
-                        excludeFromSemantics: true,
+                        child: Image.asset(
+                          asset,
+                          fit: BoxFit.cover,
+                          alignment: Alignment.topCenter,
+                          gaplessPlayback: true,
+                          excludeFromSemantics: true,
+                        ),
                       ),
                     ),
                     const DecoratedBox(
