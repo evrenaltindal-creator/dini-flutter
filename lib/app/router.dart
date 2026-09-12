@@ -129,142 +129,250 @@ class HomePage extends ConsumerWidget {
     String label(Prayer p) => p.name[0].toUpperCase() + p.name.substring(1);
     String fmt(DateTime d) =>
         '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
-    return _Page(
-      title: 'Huzurlu bir gün',
-      children: [
-        Text(
-          '${settings.location.city ?? 'Seçili konum'} · ${now.day} ${_month(now.month)} ${now.year}',
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
-        const SizedBox(height: 14),
-        RepaintBoundary(child: MosqueScene(state: scene)),
-        const SizedBox(height: 14),
-        Wrap(
-          spacing: 8,
-          children: [
-            Chip(
-              avatar: const Icon(Icons.calendar_today, size: 16),
-              label: Text('Hicri ${hijri.label}'),
-            ),
-            if (scene.friday)
-              const Chip(
-                avatar: Icon(Icons.star, size: 16),
-                label: Text('Cuma'),
+    final viewport = MediaQuery.sizeOf(context);
+    final sceneHeight = viewport.width <= 340
+        ? 420.0
+        : (viewport.height * .68).clamp(520.0, 680.0).toDouble();
+    final remaining =
+        '${next.remaining.inHours} sa ${next.remaining.inMinutes.remainder(60)} dk';
+    return SafeArea(
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+        children: [
+          Stack(
+            children: [
+              RepaintBoundary(
+                child: MosqueScene(state: scene, height: sceneHeight),
               ),
-            if (scene.ramadan)
-              const Chip(
-                avatar: Icon(Icons.nightlight, size: 16),
-                label: Text('Ramazan'),
+              Positioned(
+                top: 24,
+                left: 22,
+                right: 22,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Huzurlu bir gün',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 29,
+                        height: 1.05,
+                        fontWeight: FontWeight.w700,
+                        shadows: [
+                          Shadow(blurRadius: 12, color: Color(0x99000000)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '${settings.location.city ?? 'Seçili konum'} · ${now.day} ${_month(now.month)} ${now.year}',
+                      style: const TextStyle(
+                        color: Color(0xFFF7F3E9),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        shadows: [
+                          Shadow(blurRadius: 10, color: Color(0xB0000000)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-          ],
-        ),
-        if (scene.ramadan)
-          _Card(title: 'Ramazan', body: _ramadanMessage(now, times, fmt)),
-        _Card(
-          title: 'Sıradaki namaz',
-          body:
-              '${label(next.next!)} ${fmt(next.nextTime)} · ${next.remaining.inHours} sa ${next.remaining.inMinutes.remainder(60)} dk kaldı',
-        ),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            OutlinedButton.icon(
-              onPressed: () => context.push('/qibla'),
-              icon: const Icon(Icons.explore_outlined),
-              label: const Text('Kıble'),
-            ),
-            OutlinedButton.icon(
-              onPressed: () => context.push('/tasbih'),
-              icon: const Icon(Icons.touch_app_outlined),
-              label: const Text('Tesbih'),
-            ),
-            OutlinedButton.icon(
-              onPressed: () => context.push('/tracker'),
-              icon: const Icon(Icons.check_circle_outline),
-              label: const Text('Namaz takibi'),
-            ),
-            OutlinedButton.icon(
-              onPressed: () => context.go('/calendar'),
-              icon: const Icon(Icons.calendar_month_outlined),
-              label: const Text('Takvim'),
-            ),
-          ],
-        ),
-        Text(
-          'Bugünün vakitleri',
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        const SizedBox(height: 8),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              children: Prayer.values.where((p) => p != Prayer.sunrise).map((
-                p,
-              ) {
-                final isCurrent = next.current == p;
-                final isNext = next.next == p;
-                return ListTile(
-                  dense: true,
-                  selected: isNext,
-                  selectedTileColor: Theme.of(context)
-                      .colorScheme
-                      .primaryContainer,
-                  leading: Icon(_prayerIcon(p)),
-                  title: Wrap(
-                    spacing: 4,
-                    runSpacing: 2,
-                    children: [
-                      Text(label(p)),
-                      if (isCurrent)
-                        const Text(
-                          'ŞİMDİ',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11,
-                          ),
-                        ),
-                      if (isNext)
-                        const Text(
-                          'SIRADA',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11,
-                          ),
-                        ),
+              Positioned(
+                left: 16,
+                right: 16,
+                bottom: 16,
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(18, 15, 18, 15),
+                  decoration: BoxDecoration(
+                    color: const Color(0xB20A2425),
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(color: const Color(0x55FFFFFF)),
+                    boxShadow: const [
+                      BoxShadow(
+                        blurRadius: 22,
+                        offset: Offset(0, 8),
+                        color: Color(0x40000000),
+                      ),
                     ],
                   ),
-                  trailing: Text(
-                    fmt(times.times[p]!),
-                    style: Theme.of(context).textTheme.titleMedium,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: const BoxDecoration(
+                          color: Color(0x33FFFFFF),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          _prayerIcon(next.next!),
+                          color: const Color(0xFFFFD88A),
+                        ),
+                      ),
+                      const SizedBox(width: 13),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Sıradaki namaz',
+                              style: TextStyle(
+                                color: Color(0xFFC9DDD8),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 1.1,
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              '${label(next.next!)} · $remaining kaldı',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 17,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Text(
+                        fmt(next.nextTime),
+                        style: const TextStyle(
+                          color: Color(0xFFFFD88A),
+                          fontSize: 21,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
                   ),
-                );
-              }).toList(),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
+            children: [
+              Chip(
+                avatar: const Icon(Icons.calendar_today, size: 16),
+                label: Text('Hicri ${hijri.label}'),
+              ),
+              if (scene.friday)
+                const Chip(
+                  avatar: Icon(Icons.star, size: 16),
+                  label: Text('Cuma'),
+                ),
+              if (scene.ramadan)
+                const Chip(
+                  avatar: Icon(Icons.nightlight, size: 16),
+                  label: Text('Ramazan'),
+                ),
+            ],
+          ),
+          if (scene.ramadan)
+            _Card(title: 'Ramazan', body: _ramadanMessage(now, times, fmt)),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              OutlinedButton.icon(
+                onPressed: () => context.push('/qibla'),
+                icon: const Icon(Icons.explore_outlined),
+                label: const Text('Kıble'),
+              ),
+              OutlinedButton.icon(
+                onPressed: () => context.push('/tasbih'),
+                icon: const Icon(Icons.touch_app_outlined),
+                label: const Text('Tesbih'),
+              ),
+              OutlinedButton.icon(
+                onPressed: () => context.push('/tracker'),
+                icon: const Icon(Icons.check_circle_outline),
+                label: const Text('Namaz takibi'),
+              ),
+              OutlinedButton.icon(
+                onPressed: () => context.go('/calendar'),
+                icon: const Icon(Icons.calendar_month_outlined),
+                label: const Text('Takvim'),
+              ),
+            ],
+          ),
+          Text(
+            'Bugünün vakitleri',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                children: Prayer.values.where((p) => p != Prayer.sunrise).map((
+                  p,
+                ) {
+                  final isCurrent = next.current == p;
+                  final isNext = next.next == p;
+                  return ListTile(
+                    dense: true,
+                    selected: isNext,
+                    selectedTileColor: Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer,
+                    leading: Icon(_prayerIcon(p)),
+                    title: Wrap(
+                      spacing: 4,
+                      runSpacing: 2,
+                      children: [
+                        Text(label(p)),
+                        if (isCurrent)
+                          const Text(
+                            'ŞİMDİ',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                            ),
+                          ),
+                        if (isNext)
+                          const Text(
+                            'SIRADA',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                            ),
+                          ),
+                      ],
+                    ),
+                    trailing: Text(
+                      fmt(times.times[p]!),
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  );
+                }).toList(),
+              ),
             ),
           ),
-        ),
-        ListTile(
-          dense: true,
-          leading: const Icon(Icons.wb_sunny_outlined),
-          title: const Text('Güneş doğuşu · namaz vakti değildir'),
-          trailing: Text(fmt(times.times[Prayer.sunrise]!)),
-        ),
-        FutureBuilder<bool>(
-          future: contentRepository.isFavorite(daily.id),
-          builder: (context, snapshot) => DailyContentCard(
-            title: daily is VerseContent
-                ? 'Günün ayeti'
-                : daily is HadithContent
-                ? 'Günün hadisi'
-                : 'Günün duası',
-            content: daily,
-            initiallyFavorite: snapshot.data ?? false,
-            onFavoriteChanged: (value) =>
-                contentRepository.setFavorite(daily.id, value),
+          ListTile(
+            dense: true,
+            leading: const Icon(Icons.wb_sunny_outlined),
+            title: const Text('Güneş doğuşu · namaz vakti değildir'),
+            trailing: Text(fmt(times.times[Prayer.sunrise]!)),
           ),
-        ),
-      ],
+          FutureBuilder<bool>(
+            future: contentRepository.isFavorite(daily.id),
+            builder: (context, snapshot) => DailyContentCard(
+              title: daily is VerseContent
+                  ? 'Günün ayeti'
+                  : daily is HadithContent
+                  ? 'Günün hadisi'
+                  : 'Günün duası',
+              content: daily,
+              initiallyFavorite: snapshot.data ?? false,
+              onFavoriteChanged: (value) =>
+                  contentRepository.setFavorite(daily.id, value),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
