@@ -1,7 +1,7 @@
 # HANDOFF — Neler yaptık, nerede kaldık
 
 Son güncelleme: 2026-09-12 · Oturum: Claude Code (remote, Linux konteyner)
-Branch: `claude/worship-stabilization` · Taban: `codex/worship-guide` (`e7ec770`)
+Branch: `claude/worship-stabilization` (`e8d3f8c`) · Taban: `codex/worship-guide` (`e7ec770`)
 
 ---
 
@@ -72,9 +72,9 @@ Flutter 3.47.1 / Dart 3.13.1 ile:
 
 | Adım | Sonuç |
 | --- | --- |
-| `dart format --output=none --set-exit-if-changed .` | 60 dosya, **0 değişiklik** |
+| `dart format --output=none --set-exit-if-changed .` | 61 dosya, **0 değişiklik** |
 | `flutter analyze` | **No issues found** |
-| `flutter test` | **82/82 geçti** (70 mevcut + 12 yeni) |
+| `flutter test` | **91/91 geçti** (70 mevcut + 21 yeni) |
 
 ## 6. Cihaz testi — YAPILAMADI
 
@@ -104,11 +104,15 @@ yani elle numara seçmeye gerek yok. Tetiklenmesi kullanıcı onayı ister.
    merge edilmeli; `main` hâlâ `8459840`'ta.
 2. Gerçek cihaz testleri (madde 6).
 3. TestFlight yüklemesi (madde 7).
-4. **Namaz rehberi derinleştirme ve yeni başlayanlar rehberi** — rekât rekât
-   akış, okunacak sûre/dua adları, Arapça metin + okunuş + anlam. Veri modeli
-   hazırlanabilir; **içerik kaynak kararı verilmeden yazılmamalıdır.** Dinî
-   metin ezberden üretilmemelidir.
-5. **Kuran ekranı** — `/quran` hâlâ `PlaceholderPage`. Kapsam raporu için
+4. **Okunacak metinler boş.** `recitationLibrary` (bkz.
+   `lib/features/worship/domain/prayer_flow.dart`) bilinçli olarak boştur ve
+   ekran bunu kullanıcıya açıkça söyler. Her kayıt `name`, `arabic`,
+   `transliteration`, `meaning` ve `source` alanlarını taşır; **kaynaksız kayıt
+   testte düşer.** İçerik doğrulanmış bir kaynaktan elle eklenecektir.
+   Rekât rekât akış ve ekran iskeleti hazır.
+5. **Yeni başlayanlar rehberi** (namazın şartları, gusül, teyemmüm, oruç/zekât/
+   hac) henüz başlanmadı; aynı içerik kuralı geçerlidir.
+6. **Kuran ekranı** — `/quran` hâlâ `PlaceholderPage`. Kapsam raporu için
    aşağıya bakın.
 
 ## 9. Kuran ekranı — kapsam raporu (kod yazılmadı)
@@ -138,8 +142,11 @@ lib/features/worship/presentation/worship_hub_page.dart   (TabBar + kısa etiket
 lib/features/worship/presentation/wudu_guide_view.dart    (sayfa başlığı)
 lib/features/notifications/data/flutter_local_notification_service.dart (init koruması)
 lib/features/audio/presentation/opening_takbir.dart       (AudioContext + temizlik)
-lib/core/localization/app_localizations.dart              (2 anahtar x 3 dil)
-test/worship_responsive_test.dart                         (YENİ, 12 test)
+lib/features/worship/domain/prayer_flow.dart              (YENİ, veri modeli)
+lib/features/worship/presentation/prayer_guide_view.dart  (rekât rekât akış)
+lib/core/localization/app_localizations.dart              (8 anahtar x 3 dil)
+test/worship_responsive_test.dart                         (YENİ, 18 test)
+test/worship_guide_test.dart                              (3 akış testi)
 HANDOFF.md
 ```
 
