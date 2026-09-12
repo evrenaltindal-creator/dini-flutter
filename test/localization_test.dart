@@ -14,6 +14,41 @@ void main() {
     expect(arabic.prayer('maghrib'), 'المغرب');
   });
 
+  test('every language defines exactly the same keys', () {
+    final turkish = AppLocalizations.keysFor('tr');
+    final english = AppLocalizations.keysFor('en');
+    final arabic = AppLocalizations.keysFor('ar');
+
+    expect(turkish, isNotEmpty);
+    expect(
+      english,
+      turkish,
+      reason:
+          'English is missing ${turkish.difference(english)} and has extra '
+          '${english.difference(turkish)}. Her metin tr/en/ar icin birlikte eklenmelidir.',
+    );
+    expect(
+      arabic,
+      turkish,
+      reason:
+          'Arabic is missing ${turkish.difference(arabic)} and has extra '
+          '${arabic.difference(turkish)}. Her metin tr/en/ar icin birlikte eklenmelidir.',
+    );
+  });
+
+  test('no language leaves a key empty', () {
+    for (final code in ['tr', 'en', 'ar']) {
+      final localizations = AppLocalizations(Locale(code));
+      for (final key in AppLocalizations.keysFor(code)) {
+        expect(
+          localizations.text(key).trim(),
+          isNotEmpty,
+          reason: '$code dilinde "$key" bos.',
+        );
+      }
+    }
+  });
+
   testWidgets('Arabic locale renders the application right-to-left', (
     tester,
   ) async {

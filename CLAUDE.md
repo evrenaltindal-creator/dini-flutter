@@ -60,7 +60,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 64 test var; hepsi geçmelidir.
+- Depoda şu an 66 test var; hepsi geçmelidir.
 
 ## Git akışı
 

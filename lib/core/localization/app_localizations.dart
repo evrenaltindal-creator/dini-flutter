@@ -26,6 +26,12 @@ class AppLocalizations {
     return value;
   }
 
+  /// Bir dilin tanımlı anahtar kümesi. Üç dil arasındaki pariteyi test eden
+  /// `localization_test.dart` tarafından kullanılır.
+  @visibleForTesting
+  static Set<String> keysFor(String languageCode) =>
+      _strings[languageCode]?.keys.toSet() ?? const <String>{};
+
   String prayer(String name) => text('prayer.$name');
 
   String month(int month) => text('month.$month');
