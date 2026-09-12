@@ -65,8 +65,7 @@ class AppLocalizations {
       'settings.theme': 'Tema',
       'settings.language': 'Uygulama dili',
       'settings.languageHint': 'Dil değişikliği anında uygulanır.',
-      'settings.hijriNotice':
-          'Hicri tarih offline tabular hesaplama ile gösterilir; yerel ay gözlemi ve resmi ilanlarla bir gün farklılık gösterebilir.',
+      'settings.hijriNotice': 'Hicri tarih offline tabular hesaplama ile gösterilir; yerel ay gözlemi ve resmi ilanlarla bir gün farklılık gösterebilir.',
       'settings.widgetLocation': 'Widget’ta konum adını göster',
       'settings.widgetLocationHint':
           'Kapalıyken namaz vakitleri gösterilir, şehir adı paylaşılmaz.',
@@ -98,16 +97,14 @@ class AppLocalizations {
       'month.10': 'Ekim',
       'month.11': 'Kasım',
       'month.12': 'Aralık',
-      'calendar.disclaimer':
-          'Hicri tarih offline tabular hesaplama ile gösterilir; gözlemlenen tarihler bölgeye ve otoriteye göre değişebilir.',
+      'calendar.disclaimer': 'Hicri tarih offline tabular hesaplama ile gösterilir; gözlemlenen tarihler bölgeye ve otoriteye göre değişebilir.',
       'calendar.previousMonth': 'Önceki ay',
       'calendar.nextMonth': 'Sonraki ay',
       'calendar.today': 'Bugün',
       'calendar.religiousDay': 'dini gün',
       'calendar.selectedDay': 'Seçili gün',
       'calendar.noEvent': 'Bu gün için kayıtlı dini etkinlik yok.',
-      'calendar.dateNotice':
-          'Tarihler hesaplanmış İslami takvim tarihidir; yerel ilanlarla farklılık gösterebilir.',
+      'calendar.dateNotice': 'Tarihler hesaplanmış İslami takvim tarihidir; yerel ilanlarla farklılık gösterebilir.',
       'weekday.1': 'Pzt',
       'weekday.2': 'Sal',
       'weekday.3': 'Çar',
@@ -140,30 +137,24 @@ class AppLocalizations {
       'dhikr.alhamdulillah': 'Elhamdülillah',
       'dhikr.allahu-akbar': 'Allahu Ekber',
       'dhikr.salawat': 'Salavat',
-      'qibla.sensorUnavailable':
-          'Pusula sensörü kullanılamıyor. Telefonu düz tutup kalibrasyon hareketini deneyin.',
+      'qibla.sensorUnavailable': 'Pusula sensörü kullanılamıyor. Telefonu düz tutup kalibrasyon hareketini deneyin.',
       'qibla.heading': 'Cihaz yönü: {degrees}°{aligned}',
       'qibla.aligned': ' · Hizalı',
       'qibla.privacy': 'Konum cihazda tutulur; dışarı gönderilmez.',
       'tracker.title': 'Namaz Takibi',
       'tracker.completed': '{completed} / {total} tamamlandı',
-      'tracker.privacy':
-          'Takip verileri seçili günün yerel tarihine göre yalnızca cihazda saklanır.',
+      'tracker.privacy': 'Takip verileri seçili günün yerel tarihine göre yalnızca cihazda saklanır.',
       'premium.freeTitle': 'Temel ibadet özellikleri ücretsizdir.',
-      'premium.freeFeatures':
-          'Ücretsiz: namaz vakitleri, kıble, temel bildirimler, Hicri takvim, günlük içerik, temel takip, tesbih, temel widget ve varsayılan cami sahnesi.',
-      'premium.features':
-          'Premium: ek sahne ve widget görünümleri, görünüm kişiselleştirme ve yerel gelişmiş istatistikler.',
+      'premium.freeFeatures': 'Ücretsiz: namaz vakitleri, kıble, temel bildirimler, Hicri takvim, günlük içerik, temel takip, tesbih, temel widget ve varsayılan cami sahnesi.',
+      'premium.features': 'Premium: ek sahne ve widget görünümleri, görünüm kişiselleştirme ve yerel gelişmiş istatistikler.',
       'premium.loading': 'Mağaza ürünleri yükleniyor…',
-      'premium.unavailable':
-          'Mağaza ürünleri şu anda kullanılamıyor. Fiyat gösterilmedi. Ücretsiz özellikler kullanılmaya devam eder.',
+      'premium.unavailable': 'Mağaza ürünleri şu anda kullanılamıyor. Fiyat gösterilmedi. Ücretsiz özellikler kullanılmaya devam eder.',
       'premium.restore': 'Satın alımları geri yükle',
       'premium.restoreSent': 'Geri yükleme isteği mağazaya gönderildi.',
       'premium.active': 'Premium etkin',
       'premium.cache':
           'Mağaza durumu yerel kullanıcı deneyimi önbelleğiyle gösteriliyor.',
-      'notifications.description':
-          'Namaz vakitlerini cihazınızda hesaplayarak size yerel bildirim gönderebiliriz.',
+      'notifications.description': 'Namaz vakitlerini cihazınızda hesaplayarak size yerel bildirim gönderebiliriz.',
       'notifications.sound': 'Bildirim sesi',
       'notifications.defaultSound': 'Varsayılan',
       'notifications.bundledSound': 'Hazır ses (platform izin verirse)',
@@ -173,8 +164,7 @@ class AppLocalizations {
       'notifications.iftar': 'Ramazan iftar/akşam yaklaşma',
       'notifications.permissionDone': 'İzin durumu işlendi',
       'notifications.managePermission': 'Bildirim izinlerini yönet',
-      'notifications.notice':
-          'Bildirimler yerel olarak planlanır. Tam uzunlukta ezan sesinin arka planda her platformda garanti edilemeyeceğini unutmayın.',
+      'notifications.notice': 'Bildirimler yerel olarak planlanır. Tam uzunlukta ezan sesinin arka planda her platformda garanti edilemeyeceğini unutmayın.',
       'notifications.permissionTitle': 'Yerel bildirim izni',
       'notifications.notNow': 'Şimdi değil',
       'notifications.continue': 'Devam et',
@@ -186,25 +176,19 @@ class AppLocalizations {
       'notifications.permanentlyDenied':
           'Bildirim izni ayarlardan etkinleştirilmeli.',
       'notifications.unknown': 'Bildirim izin durumu bilinmiyor.',
-      'privacy.body':
-          'Namaz vakitleri ve konum kullanımı cihazda yereldir. Namaz takibi, tesbih, favoriler ve bildirim planlaması cihazda tutulur. Widget verisi yalnızca işletim sistemi uzantısıyla paylaşılır. Satın alma işlemleri Apple/Google mağaza altyapısı üzerinden yürür. Özel sunucu, reklam takibi ve analiz yoktur.',
+      'privacy.body': 'Namaz vakitleri ve konum kullanımı cihazda yereldir. Namaz takibi, tesbih, favoriler ve bildirim planlaması cihazda tutulur. Widget verisi yalnızca işletim sistemi uzantısıyla paylaşılır. Satın alma işlemleri Apple/Google mağaza altyapısı üzerinden yürür. Özel sunucu, reklam takibi ve analiz yoktur.',
       'privacy.delete': 'Tüm yerel verileri sil',
       'privacy.deleteTitle': 'Tüm yerel veriler silinsin mi?',
-      'privacy.deleteBody':
-          'Ayarlar, takip geçmişi, tesbih durumu, favoriler, bildirim tercihleri ve widget verisi silinir. Uygulamayla gelen dini içerikler korunur.',
+      'privacy.deleteBody': 'Ayarlar, takip geçmişi, tesbih durumu, favoriler, bildirim tercihleri ve widget verisi silinir. Uygulamayla gelen dini içerikler korunur.',
       'privacy.cancel': 'Vazgeç',
       'privacy.confirm': 'Sil',
       'privacy.deleted':
           'Yerel veriler silindi. Güvenli varsayılanlar kullanılacak.',
       'about.version': 'Sürüm 1.0.0',
-      'about.prayer':
-          'Namaz vakitleri çevrimdışı yerel hesaplama ile üretilir. Hicri tarihler tabular hesaplamadır; yerel ay gözlemi ve resmi ilanlarla farklılık gösterebilir.',
-      'about.content':
-          'Günlük ayet, hadis ve dua içerikleri uygulamayla gelen kaynak metadatasını kullanır. Satın almalar Apple App Store veya Google Play altyapısında işlenir.',
-      'about.diyanet':
-          'Diyanet soru akışı resmi dış servisi tarayıcıda açar. Uygulama Diyanet değildir ve dini hüküm vermez.',
-      'placeholder':
-          '{title} temel ekranı hazır; işlevsel özellik sonraki adımda eklenecek.',
+      'about.prayer': 'Namaz vakitleri çevrimdışı yerel hesaplama ile üretilir. Hicri tarihler tabular hesaplamadır; yerel ay gözlemi ve resmi ilanlarla farklılık gösterebilir.',
+      'about.content': 'Günlük ayet, hadis ve dua içerikleri uygulamayla gelen kaynak metadatasını kullanır. Satın almalar Apple App Store veya Google Play altyapısında işlenir.',
+      'about.diyanet': 'Diyanet soru akışı resmi dış servisi tarayıcıda açar. Uygulama Diyanet değildir ve dini hüküm vermez.',
+      'placeholder': '{title} temel ekranı hazır; işlevsel özellik sonraki adımda eklenecek.',
       'ramadan.suhoor':
           'Sahur sonu: {time} · seçili hesaplama yöntemindeki sabah vakti',
       'ramadan.iftarRemaining': 'İftara {hours} sa {minutes} dk · {time}',
@@ -244,11 +228,9 @@ class AppLocalizations {
       'settings.theme': 'Theme',
       'settings.language': 'App language',
       'settings.languageHint': 'The language changes immediately.',
-      'settings.hijriNotice':
-          'The Hijri date uses an offline tabular calculation and may differ by one day from local moon sightings and official announcements.',
+      'settings.hijriNotice': 'The Hijri date uses an offline tabular calculation and may differ by one day from local moon sightings and official announcements.',
       'settings.widgetLocation': 'Show location name on widget',
-      'settings.widgetLocationHint':
-          'Prayer times remain visible when off, but the city name is not shared.',
+      'settings.widgetLocationHint': 'Prayer times remain visible when off, but the city name is not shared.',
       'settings.widgetLoading': 'Loading widget privacy setting…',
       'settings.widgetDefault': 'Widget location is hidden by default.',
       'settings.notifications': 'Notifications',
@@ -277,16 +259,14 @@ class AppLocalizations {
       'month.10': 'October',
       'month.11': 'November',
       'month.12': 'December',
-      'calendar.disclaimer':
-          'The Hijri date uses an offline tabular calculation; observed dates may vary by region and authority.',
+      'calendar.disclaimer': 'The Hijri date uses an offline tabular calculation; observed dates may vary by region and authority.',
       'calendar.previousMonth': 'Previous month',
       'calendar.nextMonth': 'Next month',
       'calendar.today': 'Today',
       'calendar.religiousDay': 'religious day',
       'calendar.selectedDay': 'Selected day',
       'calendar.noEvent': 'No religious event is recorded for this day.',
-      'calendar.dateNotice':
-          'Dates are calculated Islamic calendar dates and may differ from local announcements.',
+      'calendar.dateNotice': 'Dates are calculated Islamic calendar dates and may differ from local announcements.',
       'weekday.1': 'Mon',
       'weekday.2': 'Tue',
       'weekday.3': 'Wed',
@@ -319,30 +299,24 @@ class AppLocalizations {
       'dhikr.alhamdulillah': 'Alhamdulillah',
       'dhikr.allahu-akbar': 'Allahu Akbar',
       'dhikr.salawat': 'Salawat',
-      'qibla.sensorUnavailable':
-          'The compass sensor is unavailable. Hold the phone flat and try the calibration motion.',
+      'qibla.sensorUnavailable': 'The compass sensor is unavailable. Hold the phone flat and try the calibration motion.',
       'qibla.heading': 'Device heading: {degrees}°{aligned}',
       'qibla.aligned': ' · Aligned',
       'qibla.privacy':
           'Your location stays on this device and is not sent out.',
       'tracker.title': 'Prayer Tracker',
       'tracker.completed': '{completed} / {total} completed',
-      'tracker.privacy':
-          'Tracking data is stored only on this device using the selected day’s local date.',
+      'tracker.privacy': 'Tracking data is stored only on this device using the selected day’s local date.',
       'premium.freeTitle': 'Core worship features are free.',
-      'premium.freeFeatures':
-          'Free: prayer times, Qibla, basic notifications, Hijri calendar, daily content, basic tracking, tasbih, basic widget and the default mosque scene.',
-      'premium.features':
-          'Premium: additional scene and widget styles, appearance customization and advanced on-device statistics.',
+      'premium.freeFeatures': 'Free: prayer times, Qibla, basic notifications, Hijri calendar, daily content, basic tracking, tasbih, basic widget and the default mosque scene.',
+      'premium.features': 'Premium: additional scene and widget styles, appearance customization and advanced on-device statistics.',
       'premium.loading': 'Loading store products…',
-      'premium.unavailable':
-          'Store products are currently unavailable, so no price is shown. Free features remain available.',
+      'premium.unavailable': 'Store products are currently unavailable, so no price is shown. Free features remain available.',
       'premium.restore': 'Restore purchases',
       'premium.restoreSent': 'The restore request was sent to the store.',
       'premium.active': 'Premium active',
       'premium.cache': 'Store status is displayed using a local UX cache.',
-      'notifications.description':
-          'We can calculate prayer times on your device and send local notifications.',
+      'notifications.description': 'We can calculate prayer times on your device and send local notifications.',
       'notifications.sound': 'Notification sound',
       'notifications.defaultSound': 'Default',
       'notifications.bundledSound': 'Bundled sound (when supported)',
@@ -352,8 +326,7 @@ class AppLocalizations {
       'notifications.iftar': 'Ramadan iftar/Maghrib reminder',
       'notifications.permissionDone': 'Permission status processed',
       'notifications.managePermission': 'Manage notification permissions',
-      'notifications.notice':
-          'Notifications are scheduled locally. A full-length adhan cannot be guaranteed in the background on every platform.',
+      'notifications.notice': 'Notifications are scheduled locally. A full-length adhan cannot be guaranteed in the background on every platform.',
       'notifications.permissionTitle': 'Local notification permission',
       'notifications.notNow': 'Not now',
       'notifications.continue': 'Continue',
@@ -365,24 +338,18 @@ class AppLocalizations {
       'notifications.permanentlyDenied':
           'Notification permission must be enabled in Settings.',
       'notifications.unknown': 'Notification permission status is unknown.',
-      'privacy.body':
-          'Prayer times and location use stay on the device. Prayer tracking, tasbih, favorites and notification schedules are stored locally. Widget data is shared only with the operating-system extension. Purchases use Apple or Google store infrastructure. There is no custom backend, ad tracking or analytics.',
+      'privacy.body': 'Prayer times and location use stay on the device. Prayer tracking, tasbih, favorites and notification schedules are stored locally. Widget data is shared only with the operating-system extension. Purchases use Apple or Google store infrastructure. There is no custom backend, ad tracking or analytics.',
       'privacy.delete': 'Delete all local data',
       'privacy.deleteTitle': 'Delete all local data?',
-      'privacy.deleteBody':
-          'Settings, tracking history, tasbih state, favorites, notification preferences and widget data will be deleted. Bundled religious content is preserved.',
+      'privacy.deleteBody': 'Settings, tracking history, tasbih state, favorites, notification preferences and widget data will be deleted. Bundled religious content is preserved.',
       'privacy.cancel': 'Cancel',
       'privacy.confirm': 'Delete',
       'privacy.deleted': 'Local data deleted. Safe defaults will be used.',
       'about.version': 'Version 1.0.0',
-      'about.prayer':
-          'Prayer times are produced with offline on-device calculations. Hijri dates use a tabular calculation and may differ from local moon sightings and official announcements.',
-      'about.content':
-          'Daily verse, hadith and prayer content uses bundled source metadata. Purchases are processed through Apple App Store or Google Play infrastructure.',
-      'about.diyanet':
-          'The Diyanet question flow opens the official external service in a browser. This app is not Diyanet and does not issue religious rulings.',
-      'placeholder':
-          'The {title} foundation screen is ready; its full feature will be added next.',
+      'about.prayer': 'Prayer times are produced with offline on-device calculations. Hijri dates use a tabular calculation and may differ from local moon sightings and official announcements.',
+      'about.content': 'Daily verse, hadith and prayer content uses bundled source metadata. Purchases are processed through Apple App Store or Google Play infrastructure.',
+      'about.diyanet': 'The Diyanet question flow opens the official external service in a browser. This app is not Diyanet and does not issue religious rulings.',
+      'placeholder': 'The {title} foundation screen is ready; its full feature will be added next.',
       'ramadan.suhoor':
           'Suhoor ends: {time} · Fajr under the selected calculation method',
       'ramadan.iftarRemaining': '{hours} hr {minutes} min until iftar · {time}',
@@ -422,8 +389,7 @@ class AppLocalizations {
       'settings.theme': 'المظهر',
       'settings.language': 'لغة التطبيق',
       'settings.languageHint': 'يتم تغيير اللغة فورًا.',
-      'settings.hijriNotice':
-          'يعرض التاريخ الهجري بحساب جدولي دون اتصال، وقد يختلف يومًا واحدًا حسب رؤية الهلال والإعلانات الرسمية.',
+      'settings.hijriNotice': 'يعرض التاريخ الهجري بحساب جدولي دون اتصال، وقد يختلف يومًا واحدًا حسب رؤية الهلال والإعلانات الرسمية.',
       'settings.widgetLocation': 'إظهار اسم الموقع في الأداة',
       'settings.widgetLocationHint':
           'عند إيقافه تظهر مواقيت الصلاة دون مشاركة اسم المدينة.',
@@ -455,16 +421,14 @@ class AppLocalizations {
       'month.10': 'أكتوبر',
       'month.11': 'نوفمبر',
       'month.12': 'ديسمبر',
-      'calendar.disclaimer':
-          'يعرض التاريخ الهجري بحساب جدولي دون اتصال، وقد تختلف التواريخ المرصودة حسب المنطقة والجهة الرسمية.',
+      'calendar.disclaimer': 'يعرض التاريخ الهجري بحساب جدولي دون اتصال، وقد تختلف التواريخ المرصودة حسب المنطقة والجهة الرسمية.',
       'calendar.previousMonth': 'الشهر السابق',
       'calendar.nextMonth': 'الشهر التالي',
       'calendar.today': 'اليوم',
       'calendar.religiousDay': 'مناسبة دينية',
       'calendar.selectedDay': 'اليوم المحدد',
       'calendar.noEvent': 'لا توجد مناسبة دينية مسجلة لهذا اليوم.',
-      'calendar.dateNotice':
-          'هذه تواريخ محسوبة وفق التقويم الإسلامي وقد تختلف عن الإعلانات المحلية.',
+      'calendar.dateNotice': 'هذه تواريخ محسوبة وفق التقويم الإسلامي وقد تختلف عن الإعلانات المحلية.',
       'weekday.1': 'ن',
       'weekday.2': 'ث',
       'weekday.3': 'ر',
@@ -497,23 +461,18 @@ class AppLocalizations {
       'dhikr.alhamdulillah': 'الحمد لله',
       'dhikr.allahu-akbar': 'الله أكبر',
       'dhikr.salawat': 'الصلاة على النبي',
-      'qibla.sensorUnavailable':
-          'مستشعر البوصلة غير متاح. أمسك الهاتف بشكل مستوٍ وجرّب حركة المعايرة.',
+      'qibla.sensorUnavailable': 'مستشعر البوصلة غير متاح. أمسك الهاتف بشكل مستوٍ وجرّب حركة المعايرة.',
       'qibla.heading': 'اتجاه الجهاز: {degrees}°{aligned}',
       'qibla.aligned': ' · بمحاذاة القبلة',
       'qibla.privacy': 'يبقى موقعك على هذا الجهاز ولا يتم إرساله.',
       'tracker.title': 'متابعة الصلاة',
       'tracker.completed': 'تم إكمال {completed} من {total}',
-      'tracker.privacy':
-          'تُحفظ بيانات المتابعة على هذا الجهاز فقط وفق التاريخ المحلي لليوم المحدد.',
+      'tracker.privacy': 'تُحفظ بيانات المتابعة على هذا الجهاز فقط وفق التاريخ المحلي لليوم المحدد.',
       'premium.freeTitle': 'ميزات العبادة الأساسية مجانية.',
-      'premium.freeFeatures':
-          'مجانًا: مواقيت الصلاة والقبلة والإشعارات الأساسية والتقويم الهجري والمحتوى اليومي والمتابعة الأساسية والتسبيح والأداة الأساسية ومشهد المسجد الافتراضي.',
-      'premium.features':
-          'المميز: مشاهد وأشكال إضافية للأداة وتخصيص المظهر وإحصاءات محلية متقدمة.',
+      'premium.freeFeatures': 'مجانًا: مواقيت الصلاة والقبلة والإشعارات الأساسية والتقويم الهجري والمحتوى اليومي والمتابعة الأساسية والتسبيح والأداة الأساسية ومشهد المسجد الافتراضي.',
+      'premium.features': 'المميز: مشاهد وأشكال إضافية للأداة وتخصيص المظهر وإحصاءات محلية متقدمة.',
       'premium.loading': 'جارٍ تحميل منتجات المتجر…',
-      'premium.unavailable':
-          'منتجات المتجر غير متاحة حاليًا، لذلك لا يظهر السعر. تبقى الميزات المجانية متاحة.',
+      'premium.unavailable': 'منتجات المتجر غير متاحة حاليًا، لذلك لا يظهر السعر. تبقى الميزات المجانية متاحة.',
       'premium.restore': 'استعادة المشتريات',
       'premium.restoreSent': 'تم إرسال طلب الاستعادة إلى المتجر.',
       'premium.active': 'الاشتراك المميز نشط',
@@ -529,8 +488,7 @@ class AppLocalizations {
       'notifications.iftar': 'تذكير إفطار رمضان والمغرب',
       'notifications.permissionDone': 'تمت معالجة حالة الإذن',
       'notifications.managePermission': 'إدارة أذونات الإشعارات',
-      'notifications.notice':
-          'تُجدول الإشعارات محليًا. لا يمكن ضمان تشغيل الأذان كاملًا في الخلفية على جميع المنصات.',
+      'notifications.notice': 'تُجدول الإشعارات محليًا. لا يمكن ضمان تشغيل الأذان كاملًا في الخلفية على جميع المنصات.',
       'notifications.permissionTitle': 'إذن الإشعارات المحلية',
       'notifications.notNow': 'ليس الآن',
       'notifications.continue': 'متابعة',
@@ -542,23 +500,18 @@ class AppLocalizations {
       'notifications.permanentlyDenied':
           'يجب تفعيل إذن الإشعارات من الإعدادات.',
       'notifications.unknown': 'حالة إذن الإشعارات غير معروفة.',
-      'privacy.body':
-          'تبقى مواقيت الصلاة واستخدام الموقع على الجهاز. تُحفظ متابعة الصلاة والتسبيح والمفضلة وجدولة الإشعارات محليًا. لا تُشارك بيانات الأداة إلا مع امتداد نظام التشغيل. تتم المشتريات عبر بنية متجر Apple أو Google. لا توجد خوادم خاصة أو تحليلات أو تتبع إعلاني.',
+      'privacy.body': 'تبقى مواقيت الصلاة واستخدام الموقع على الجهاز. تُحفظ متابعة الصلاة والتسبيح والمفضلة وجدولة الإشعارات محليًا. لا تُشارك بيانات الأداة إلا مع امتداد نظام التشغيل. تتم المشتريات عبر بنية متجر Apple أو Google. لا توجد خوادم خاصة أو تحليلات أو تتبع إعلاني.',
       'privacy.delete': 'حذف جميع البيانات المحلية',
       'privacy.deleteTitle': 'هل تريد حذف جميع البيانات المحلية؟',
-      'privacy.deleteBody':
-          'ستُحذف الإعدادات وسجل المتابعة وحالة التسبيح والمفضلة وتفضيلات الإشعارات وبيانات الأداة. سيُحفظ المحتوى الديني المضمّن.',
+      'privacy.deleteBody': 'ستُحذف الإعدادات وسجل المتابعة وحالة التسبيح والمفضلة وتفضيلات الإشعارات وبيانات الأداة. سيُحفظ المحتوى الديني المضمّن.',
       'privacy.cancel': 'إلغاء',
       'privacy.confirm': 'حذف',
       'privacy.deleted':
           'تم حذف البيانات المحلية. ستُستخدم الإعدادات الآمنة الافتراضية.',
       'about.version': 'الإصدار 1.0.0',
-      'about.prayer':
-          'تُحسب مواقيت الصلاة محليًا دون اتصال. يستخدم التاريخ الهجري حسابًا جدوليًا وقد يختلف عن رؤية الهلال والإعلانات الرسمية.',
-      'about.content':
-          'يستخدم محتوى الآية والحديث والدعاء اليومي بيانات المصادر المضمّنة. تتم المشتريات عبر Apple App Store أو Google Play.',
-      'about.diyanet':
-          'يفتح مسار سؤال رئاسة الشؤون الدينية الخدمة الرسمية الخارجية في المتصفح. هذا التطبيق ليس تابعًا للرئاسة ولا يصدر أحكامًا دينية.',
+      'about.prayer': 'تُحسب مواقيت الصلاة محليًا دون اتصال. يستخدم التاريخ الهجري حسابًا جدوليًا وقد يختلف عن رؤية الهلال والإعلانات الرسمية.',
+      'about.content': 'يستخدم محتوى الآية والحديث والدعاء اليومي بيانات المصادر المضمّنة. تتم المشتريات عبر Apple App Store أو Google Play.',
+      'about.diyanet': 'يفتح مسار سؤال رئاسة الشؤون الدينية الخدمة الرسمية الخارجية في المتصفح. هذا التطبيق ليس تابعًا للرئاسة ولا يصدر أحكامًا دينية.',
       'placeholder':
           'شاشة {title} الأساسية جاهزة؛ ستُضاف الوظيفة الكاملة لاحقًا.',
       'ramadan.suhoor':

@@ -325,9 +325,9 @@ class HomePage extends ConsumerWidget {
                   return ListTile(
                     dense: true,
                     selected: isNext,
-                    selectedTileColor: Theme.of(
-                      context,
-                    ).colorScheme.primaryContainer,
+                    selectedTileColor: Theme.of(context)
+                        .colorScheme
+                        .primaryContainer,
                     leading: Icon(_prayerIcon(p)),
                     title: Wrap(
                       spacing: 4,
@@ -636,8 +636,7 @@ class PremiumPage extends StatelessWidget {
       const Text('Temel dini özellikler herkes için ücretsiz kalır.'),
       _Card(
         title: 'Premium ekleri',
-        body:
-            'Ek cami temaları, gelişmiş widget tasarımları ve ileri istatistikler.',
+        body: 'Ek cami temaları, gelişmiş widget tasarımları ve ileri istatistikler.',
       ),
       FilledButton(
         onPressed: null,
