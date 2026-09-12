@@ -1,5 +1,7 @@
 import 'package:dini_flutter/core/localization/app_localizations.dart';
 import 'package:dini_flutter/features/qibla/presentation/qibla_page.dart';
+import 'package:dini_flutter/features/worship/domain/worship_guide.dart';
+import 'package:dini_flutter/features/worship/presentation/prayer_guide_view.dart';
 import 'package:dini_flutter/features/worship/presentation/worship_hub_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -145,6 +147,76 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(
         Directionality.of(tester.element(find.byType(QiblaPage))),
+        TextDirection.rtl,
+      );
+    });
+  });
+
+  group('prayer guide detail', () {
+    /// Rehber görseli uzun olduğu için akış bölümü ilk ekranın altında kalır;
+    /// tembel ListView onu ancak kaydırınca oluşturur.
+    Future<void> scrollToFlow(WidgetTester tester) => tester.scrollUntilVisible(
+      find.text('Bir rekâtın temel akışı'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+
+    for (final width in _widths) {
+      testWidgets('renders rakat flow at ${width.toInt()}dp', (tester) async {
+        await tester.binding.setSurfaceSize(Size(width, 900));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        await tester.pumpWidget(
+          _app(
+            PrayerGuideDetailPage(guide: dailyPrayerGuides.last),
+            width: width,
+          ),
+        );
+        await tester.pump(const Duration(milliseconds: 400));
+        await scrollToFlow(tester);
+
+        expect(tester.takeException(), isNull);
+        expect(find.byType(ExpansionTile), findsWidgets);
+      });
+    }
+
+    testWidgets('expanding a part reveals its rakats', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(390, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        _app(PrayerGuideDetailPage(guide: dailyPrayerGuides.first)),
+      );
+      await tester.pump(const Duration(milliseconds: 400));
+      await scrollToFlow(tester);
+
+      final before = tester.widgetList(find.byType(ExpansionTile)).length;
+      await tester.tap(find.byType(ExpansionTile).first);
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      // Açılan bölüm kendi rekâtlarını iç içe açılır başlıklar olarak getirir.
+      expect(
+        tester.widgetList(find.byType(ExpansionTile)).length,
+        greaterThan(before),
+      );
+    });
+
+    testWidgets('renders right-to-left in Arabic', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(390, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        _app(
+          PrayerGuideDetailPage(guide: dailyPrayerGuides.first),
+          languageCode: 'ar',
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(tester.takeException(), isNull);
+      expect(
+        Directionality.of(tester.element(find.byType(PrayerGuideDetailPage))),
         TextDirection.rtl,
       );
     });

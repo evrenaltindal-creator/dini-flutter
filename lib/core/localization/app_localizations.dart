@@ -193,6 +193,12 @@ class AppLocalizations {
       'guide.prayerStep7':
           'İkinci secdeyi yapın; sonraki rekât varsa ayağa kalkın.',
       'guide.prayerStep8': 'Son oturuşta Tahiyyat, salavat ve duaları okuyup iki yana selâm verin.',
+      'guide.rakatLabel': '{index}. rekât',
+      'guide.finalSitting': 'Son oturuş',
+      'guide.recitationsTitle': 'Okunacak metinler',
+      'guide.recitationsEmpty': 'Bu bölüm için Arapça metin, okunuş ve anlam henüz eklenmedi. İçerik doğrulanmış bir kaynaktan eklenecektir.',
+      'guide.transliteration': 'Okunuş',
+      'guide.meaning': 'Anlam',
       'guide.beginnerTitle': 'Başlamadan önce',
       'guide.beginnerEssentials': 'Namaz vaktinin girmiş olması, abdest, temiz kıyafet ve yer, örtünme, kıble ve niyet temel hazırlıklardır.',
       'guide.wuduIntro': 'Niyet edip besmele çekin. Suyu israf etmeden aşağıdaki sırayı uygulayın.',
@@ -412,6 +418,12 @@ class AppLocalizations {
       'guide.prayerStep7':
           'Perform the second sujud; stand for the next rakah when required.',
       'guide.prayerStep8': 'In the final sitting recite Tashahhud, salawat and supplications, then give salam to both sides.',
+      'guide.rakatLabel': 'Rakat {index}',
+      'guide.finalSitting': 'Final sitting',
+      'guide.recitationsTitle': 'What is recited',
+      'guide.recitationsEmpty': 'The Arabic text, transliteration and meaning for this section have not been added yet. Content will be added from a verified source.',
+      'guide.transliteration': 'Transliteration',
+      'guide.meaning': 'Meaning',
       'guide.beginnerTitle': 'Before you begin',
       'guide.beginnerEssentials': 'The prayer time, wudu, a clean place and clothing, proper covering, the Qibla and intention are the basic preparations.',
       'guide.wuduIntro': 'Make the intention and say Bismillah. Follow the steps below without wasting water.',
@@ -633,6 +645,12 @@ class AppLocalizations {
           'اسجد السجدة الثانية ثم قم للركعة التالية عند الحاجة.',
       'guide.prayerStep8':
           'في الجلوس الأخير اقرأ التشهد والصلاة والدعاء ثم سلّم عن الجانبين.',
+      'guide.rakatLabel': 'الركعة {index}',
+      'guide.finalSitting': 'الجلوس الأخير',
+      'guide.recitationsTitle': 'ما يُقرأ',
+      'guide.recitationsEmpty': 'لم تُضَف بعد النصوص العربية والنطق والمعنى لهذا القسم. ستُضاف من مصدر موثوق.',
+      'guide.transliteration': 'النطق',
+      'guide.meaning': 'المعنى',
       'guide.beginnerTitle': 'قبل البدء',
       'guide.beginnerEssentials': 'دخول الوقت والوضوء وطهارة الثوب والمكان وستر العورة واستقبال القبلة والنية هي الاستعدادات الأساسية.',
       'guide.wuduIntro':

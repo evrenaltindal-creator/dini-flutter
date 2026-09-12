@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../domain/prayer_flow.dart';
 import '../domain/worship_guide.dart';
 
 class PrayerGuideView extends StatelessWidget {
@@ -112,11 +113,14 @@ class PrayerGuideDetailPage extends StatelessWidget {
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),
-          for (var index = 1; index <= 8; index++)
-            _NumberedStep(
-              number: index,
-              text: l10n.text('guide.prayerStep$index'),
-            ),
+          ...prayerFlow(guide).map((part) => _PartFlowCard(flow: part)),
+          const SizedBox(height: 12),
+          Text(
+            l10n.text('guide.recitationsTitle'),
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 8),
+          const _RecitationSection(),
           const SizedBox(height: 12),
           _IntroCard(
             icon: Icons.info_outline,
@@ -203,3 +207,118 @@ String _partLabel(BuildContext context, PrayerPartKind kind) => switch (kind) {
   PrayerPartKind.finalSunnah => context.l10n.text('guide.finalSunnah'),
   PrayerPartKind.witr => context.l10n.text('guide.witr'),
 };
+
+/// Bir namaz bölümünü rekât rekât açar.
+class _PartFlowCard extends StatelessWidget {
+  final PrayerPartFlow flow;
+
+  const _PartFlowCard({required this.flow});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Card(
+      child: ExpansionTile(
+        title: Text(_partLabel(context, flow.kind)),
+        subtitle: Text(
+          l10n.text('guide.rakatCount', {'count': flow.rakats.length}),
+        ),
+        childrenPadding: const EdgeInsetsDirectional.fromSTEB(12, 0, 12, 12),
+        children: [
+          ...flow.rakats.map(
+            (rakat) => ExpansionTile(
+              tilePadding: EdgeInsetsDirectional.zero,
+              title: Text(
+                l10n.text('guide.rakatLabel', {'index': rakat.index}),
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              children: [
+                for (final (index, key) in rakat.movementKeys.indexed)
+                  _NumberedStep(number: index + 1, text: l10n.text(key)),
+              ],
+            ),
+          ),
+          ListTile(
+            contentPadding: EdgeInsetsDirectional.zero,
+            leading: const Icon(Icons.self_improvement_outlined),
+            title: Text(l10n.text('guide.finalSitting')),
+            subtitle: Text(l10n.text(finalSittingKey)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Okunacak metinler. Kütüphane boşken tahmini metin göstermek yerine
+/// içeriğin henüz eklenmediğini açıkça söyler.
+class _RecitationSection extends StatelessWidget {
+  const _RecitationSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    if (recitationLibrary.isEmpty) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsetsDirectional.all(16),
+          child: Text(
+            l10n.text('guide.recitationsEmpty'),
+            style: const TextStyle(height: 1.45),
+          ),
+        ),
+      );
+    }
+    return Column(
+      children: [
+        for (final recitation in recitationLibrary.values)
+          if (!recitation.isEmpty)
+            Card(
+              child: Padding(
+                padding: const EdgeInsetsDirectional.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (recitation.name.isNotEmpty)
+                      Text(
+                        recitation.name,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    if (recitation.arabic.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        recitation.arabic,
+                        textDirection: TextDirection.rtl,
+                        style: const TextStyle(fontSize: 22, height: 1.9),
+                      ),
+                    ],
+                    if (recitation.transliteration.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        '${l10n.text('guide.transliteration')}: '
+                        '${recitation.transliteration}',
+                        style: const TextStyle(height: 1.45),
+                      ),
+                    ],
+                    if (recitation.meaning.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        '${l10n.text('guide.meaning')}: ${recitation.meaning}',
+                        style: const TextStyle(height: 1.45),
+                      ),
+                    ],
+                    if (recitation.source.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        recitation.source,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+      ],
+    );
+  }
+}
