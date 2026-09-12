@@ -1,0 +1,83 @@
+# CLAUDE.md — Dini Flutter için çalışma kuralları
+
+Bu dosya, bu depoda çalışan her Claude oturumu için bağlayıcı kısa kılavuzdur.
+Projenin tam haritası için `ARCHITECTURE.md` dosyasını oku.
+
+## Proje özeti
+
+`dini_flutter`, Türkçe/İngilizce/Arapça namaz vakitleri uygulamasıdır.
+Flutter + Riverpod + go_router. **Tamamen cihaz içi (offline-first) çalışır.**
+
+## Değişmez kurallar (ihlal etme, önce sor)
+
+1. **Backend yok.** Custom backend, Firebase, Supabase, analytics, reklam SDK'sı,
+   crash reporting veya uzak API çağrısı eklenmez. Namaz vakitleri, kıble, hicri
+   takvim ve günlük içerik cihazda hesaplanır/paketlenir. Tek istisna:
+   `url_launcher` ile açılan Diyanet soru sayfası ve mağaza (StoreKit / Play Billing).
+2. **Konum cihazdan çıkmaz.** Koordinatlar hiçbir yere gönderilmez; geocoding yok.
+3. **Üç dil zorunlu.** Kullanıcıya görünen her metin
+   `lib/core/localization/app_localizations.dart` içindeki `_strings` haritasına
+   **`tr`, `en` ve `ar` için birlikte** eklenir. Şu an üç dilde de tam olarak
+   155 anahtar var ve bu parite korunmalıdır. Widget'ta düz string yazma;
+   `context.l10n.text('key')` kullan.
+4. **RTL bozulmaz.** Arapça yön desteği `MaterialApp.supportedLocales` içindeki
+   `Locale('ar')` + `GlobalWidgetsLocalizations.delegate` üzerinden otomatik gelir.
+   `EdgeInsets.only(left/right)` yerine `EdgeInsetsDirectional`, `Alignment` yerine
+   `AlignmentDirectional`, `Row`'da sabit hizalama yerine yön duyarlı çözüm kullan.
+   `TextDirection`'ı elle sabitleme.
+5. **Kapsam dışına çıkma.** Görev "sadece X ekranı" diyorsa diğer feature
+   klasörlerine, temaya, router'a ve native (ios/android) dosyalarına dokunma.
+6. **Sürüm/imza dosyaları.** `ios/Runner.xcodeproj/project.pbxproj`,
+   entitlements, bundle id'ler ve `.github/workflows/*` istenmedikçe değiştirilmez.
+
+## Kalite kapısı — CI'ın çalıştırdığı tam komutlar
+
+```bash
+flutter pub get
+dart format --output=none --set-exit-if-changed .   # EN SIK CI HATASI
+flutter analyze
+flutter test --reporter expanded
+```
+
+- CI Flutter sürümü **3.47.1 (stable)**, Dart SDK kısıtı `^3.13.1`.
+- `dart format` bir kapıdır: push'tan önce **mutlaka `dart format .` çalıştır**.
+  Formatlanmamış tek bir satır tüm CI'ı kırar.
+- Remote container'da Flutter SDK kurulu değildir. Kuruluysa yukarıdaki komutları
+  çalıştır; değilse **testleri çalıştıramadığını raporunda açıkça yaz**, "geçti"
+  deme. Kod yazarken mevcut test dosyalarındaki stili örnek al.
+
+## Git akışı
+
+1. İşe başlamadan `git fetch origin main` ile son kodu al.
+2. Ayrı bir branch'te çalış (oturuma atanan `claude/...` branch'i).
+3. `dart format .` → analiz/test → commit → `git push -u origin <branch>`.
+4. **Açıkça istenmedikçe pull request açma.** Kullanıcı değişikliği kendisi inceler.
+5. Commit mesajları: `feat(quran): ...`, `fix(ci): ...`, `style: ...` biçimindedir.
+
+## Nereye ne yazılır
+
+| İhtiyaç | Dosya |
+| --- | --- |
+| Yeni metin (3 dil) | `lib/core/localization/app_localizations.dart` |
+| Yeni sayfa / rota / alt menü | `lib/app/router.dart` |
+| Renk, tipografi, kart/nav teması | `lib/core/theme/app_theme.dart` |
+| Namaz hesap mantığı | `lib/features/prayer_times/domain/` |
+| Kalıcı veri | `lib/core/storage/local_storage.dart` soyutlaması üzerinden |
+| Ortak model/enum | `lib/shared/models/domain.dart` |
+| Test | `test/` |
+
+## Bilinmesi gereken tuzaklar
+
+- `lib/app/router.dart` 979 satırdır; `HomePage`, `SettingsPage`, `PrivacyPage`,
+  `AboutPage` ve `PlaceholderPage` bu dosyanın içindedir. Yeni büyük ekranı
+  buraya gömme, `lib/features/<alan>/presentation/` altına aç ve router'dan bağla.
+- **`/quran` rotası hâlâ `PlaceholderPage`'tir.** Kuran ekranı henüz yazılmadı.
+- `main.dart` özel bir `LocalizationsDelegate` kaydetmez; `AppLocalizations`
+  doğrudan `Localizations.localeOf(context)` okur. Bu tasarımı bozma.
+- `SharedPreferences` doğrudan widget'larda kullanılmaz; `LocalStorage` üzerinden
+  gidilir. Test ortamında `MemoryStorage` devreye girer.
+- Native widget köprüsü (`MethodChannel('dini/widget_snapshot')`) testte
+  `MissingPluginException` fırlatır ve sessizce yutulur — bu bilinçlidir.
+- Mağaza ürün kimlikleri `--dart-define` ile gelir; `.dev` ile biten placeholder
+  değerler TestFlight workflow'unda reddedilir.
+- Yeni asset eklersen `pubspec.yaml` içindeki `assets:` listesini güncelle.
