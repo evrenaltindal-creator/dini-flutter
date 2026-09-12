@@ -36,7 +36,25 @@ class _OpeningTakbirGateState extends ConsumerState<OpeningTakbirGate> {
       if (!enabled || !mounted) return;
       final player = AudioPlayer();
       _player = player;
+      // Açılış tekbiri kullanıcının ortamına saygılı olmalı:
+      // - respectSilence: telefon sessiz moddayken hiç çalmaz.
+      // - mixWithOthers: hâlihazırda çalan müziği kesmez veya duraklatmaz
+      //   (Android'de audio focus istenmez, iOS'ta ambient kategori kullanılır).
+      // Varsayılan yapılandırma bunun tersini yapar: sessiz modu yok sayar ve
+      // tek ses kaynağı olmak için odağı devralır.
+      await player.setAudioContext(
+        AudioContextConfig(
+          focus: AudioContextConfigFocus.mixWithOthers,
+          respectSilence: true,
+        ).build(),
+      );
       await player.setVolume(.18);
+      // Çalma bitince yerel kaynakları bırak; tekbir tek seferlik çalar.
+      // _player'ı da temizle ki dispose() aynı player'ı ikinci kez kapatmasın.
+      player.onPlayerComplete.listen((_) {
+        if (identical(_player, player)) _player = null;
+        player.dispose();
+      });
       await player.play(AssetSource('audio/opening_takbir.mp3'));
     } catch (_) {
       // Ses desteği olmayan cihazlarda uygulamanın açılışı etkilenmez.

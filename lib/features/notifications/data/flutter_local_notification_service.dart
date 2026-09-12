@@ -13,7 +13,13 @@ class FlutterLocalNotificationService implements LocalNotificationService {
       android: AndroidInitializationSettings('@mipmap/ic_launcher'),
       iOS: DarwinInitializationSettings(),
     );
-    await plugin.initialize(settings);
+    try {
+      await plugin.initialize(settings);
+    } catch (_) {
+      // Bildirim eklentisi kayıtlı olmayan ortamlarda (widget testleri,
+      // desteklenmeyen platformlar) alarm ekranı yine de açılabilmeli.
+      // Tercihler yerel olarak saklanmaya devam eder; yalnızca planlama yapılmaz.
+    }
   }
 
   @override

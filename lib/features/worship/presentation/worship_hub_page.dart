@@ -29,9 +29,10 @@ class WorshipHubPage extends StatelessWidget {
               icon: const Icon(Icons.touch_app_outlined),
             ),
           ],
+          // Dört sekme her genişlikte görünür kalmalı: kaydırmalı bir sekme
+          // çubuğunda son sekme ekran dışında kalıyor ve kullanıcı onu
+          // bulamıyordu. Uzun açıklamalar sayfa içi başlık olarak duruyor.
           bottom: TabBar(
-            isScrollable: true,
-            tabAlignment: TabAlignment.start,
             tabs: [
               Tab(
                 icon: const Icon(Icons.check_circle_outline),
@@ -39,11 +40,11 @@ class WorshipHubPage extends StatelessWidget {
               ),
               Tab(
                 icon: const Icon(Icons.menu_book_outlined),
-                text: l10n.text('worship.prayerGuide'),
+                text: l10n.text('worship.tabPrayer'),
               ),
               Tab(
                 icon: const Icon(Icons.water_drop_outlined),
-                text: l10n.text('worship.wudu'),
+                text: l10n.text('worship.tabWudu'),
               ),
               Tab(
                 icon: const Icon(Icons.alarm_outlined),

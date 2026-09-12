@@ -11,6 +11,11 @@ class WuduGuideView extends StatelessWidget {
     return ListView(
       padding: const EdgeInsetsDirectional.fromSTEB(16, 18, 16, 28),
       children: [
+        Text(
+          l10n.text('worship.wudu'),
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        const SizedBox(height: 8),
         Text(l10n.text('guide.wuduIntro'), style: const TextStyle(height: 1.5)),
         const SizedBox(height: 14),
         ClipRRect(
