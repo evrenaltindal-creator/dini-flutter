@@ -90,9 +90,12 @@ class _CalendarPageState extends State<CalendarPage> {
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            // Hücre yüksekliği yazı ölçeğiyle birlikte artmalı. Sabit oranda
+            // büyük yazıda gün numarası, hicri gün ve yıldız hücreye sığmayıp
+            // dikeyde taşıyordu.
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 7,
-              childAspectRatio: .78,
+              childAspectRatio: .78 / _textScale(context).clamp(1.0, 2.0),
             ),
             itemCount: ((cells + 6) ~/ 7) * 7,
             itemBuilder: (context, index) {
@@ -119,19 +122,25 @@ class _CalendarPageState extends State<CalendarPage> {
                           : null,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '$dayNumber',
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                        Text(
-                          '${hijri.day}',
-                          style: Theme.of(context).textTheme.labelSmall,
-                        ),
-                        if (marked) const Icon(Icons.star, size: 12),
-                      ],
+                    // Hücre oranı yazı ölçeğiyle büyüse de uç ölçeklerde
+                    // içerik yine sığmayabiliyor; scaleDown taşmayı kesin
+                    // olarak engeller, kırpmaz.
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '$dayNumber',
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          Text(
+                            '${hijri.day}',
+                            style: Theme.of(context).textTheme.labelSmall,
+                          ),
+                          if (marked) const Icon(Icons.star, size: 12),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -144,6 +153,10 @@ class _CalendarPageState extends State<CalendarPage> {
       ),
     );
   }
+
+  /// Kullanıcının seçtiği yazı ölçeği katsayısı.
+  double _textScale(BuildContext context) =>
+      MediaQuery.textScalerOf(context).scale(14) / 14;
 
   Widget _selectedPanel(BuildContext context) {
     final h = calendar.hijri(selected);

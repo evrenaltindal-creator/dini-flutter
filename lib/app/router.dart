@@ -683,12 +683,19 @@ class SettingsPage extends ConsumerWidget {
         title: l10n.text('settings.title'),
         children: [
           DropdownButtonFormField<PrayerCalculationMethod>(
+            // Dar ekran ve büyük yazı ölçeğinde yatay taşmayı önler.
+            isExpanded: true,
             initialValue: settings.method,
             decoration: InputDecoration(
               labelText: l10n.text('settings.calculation'),
             ),
             items: PrayerCalculationMethod.values
-                .map((m) => DropdownMenuItem(value: m, child: Text(m.name)))
+                .map(
+                  (m) => DropdownMenuItem(
+                    value: m,
+                    child: Text(m.name, overflow: TextOverflow.ellipsis),
+                  ),
+                )
                 .toList(),
             onChanged: (m) {
               if (m != null) {
@@ -697,12 +704,18 @@ class SettingsPage extends ConsumerWidget {
             },
           ),
           DropdownButtonFormField<AsrMethod>(
+            isExpanded: true,
             initialValue: settings.asrMethod,
             decoration: InputDecoration(
               labelText: l10n.text('settings.asrMethod'),
             ),
             items: AsrMethod.values
-                .map((m) => DropdownMenuItem(value: m, child: Text(m.name)))
+                .map(
+                  (m) => DropdownMenuItem(
+                    value: m,
+                    child: Text(m.name, overflow: TextOverflow.ellipsis),
+                  ),
+                )
                 .toList(),
             onChanged: (m) {
               if (m != null) {

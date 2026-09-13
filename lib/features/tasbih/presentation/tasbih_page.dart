@@ -57,6 +57,10 @@ class _TasbihPageState extends ConsumerState<TasbihPage> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
+              // Dar ekranda, Arapça etiketlerde ve büyük yazı ölçeğinde
+              // açılır liste yatayda taşıyordu; isExpanded onu mevcut
+              // genişliğe sığdırır, ellipsis ise uzun adı keser.
+              isExpanded: true,
               initialValue: option.id,
               decoration: InputDecoration(
                 labelText: context.l10n.text('tasbih.select'),
@@ -65,7 +69,10 @@ class _TasbihPageState extends ConsumerState<TasbihPage> {
                   .map(
                     (item) => DropdownMenuItem(
                       value: item.id,
-                      child: Text(context.l10n.text('dhikr.${item.id}')),
+                      child: Text(
+                        context.l10n.text('dhikr.${item.id}'),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   )
                   .toList(),

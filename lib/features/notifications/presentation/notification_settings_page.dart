@@ -71,6 +71,8 @@ class _NotificationSettingsViewState
           ),
         ),
         DropdownButtonFormField<NotificationSound>(
+          // Dar ekran ve büyük yazı ölçeğinde yatay taşmayı önler.
+          isExpanded: true,
           initialValue: value.sound,
           decoration: InputDecoration(
             labelText: context.l10n.text('notifications.sound'),
@@ -79,7 +81,10 @@ class _NotificationSettingsViewState
               .map(
                 (sound) => DropdownMenuItem(
                   value: sound,
-                  child: Text(_soundLabel(context, sound)),
+                  child: Text(
+                    _soundLabel(context, sound),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               )
               .toList(),
@@ -236,6 +241,7 @@ class _PrayerNotificationTile extends StatelessWidget {
             onChanged: (enabled) => onChanged(value.copyWith(enabled: enabled)),
           ),
           DropdownButtonFormField<int?>(
+            isExpanded: true,
             initialValue: value.reminderMinutes,
             decoration: InputDecoration(
               labelText: context.l10n.text('notifications.advance'),
@@ -243,7 +249,10 @@ class _PrayerNotificationTile extends StatelessWidget {
             items: [
               DropdownMenuItem<int?>(
                 value: null,
-                child: Text(context.l10n.text('notifications.none')),
+                child: Text(
+                  context.l10n.text('notifications.none'),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
               for (final minutes in [5, 10, 15, 30])
                 DropdownMenuItem(
@@ -252,6 +261,7 @@ class _PrayerNotificationTile extends StatelessWidget {
                     context.l10n.text('notifications.minutes', {
                       'minutes': minutes,
                     }),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
             ],
