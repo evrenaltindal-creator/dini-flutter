@@ -1,7 +1,7 @@
 # HANDOFF — Neler yaptık, nerede kaldık
 
 Son güncelleme: 2026-09-12 · Oturum: Claude Code (remote, Linux konteyner)
-Branch: `claude/worship-stabilization` (`e8d3f8c`) · Taban: `codex/worship-guide` (`e7ec770`)
+Branch: `claude/worship-stabilization` (`c53cb9a`) · Taban: `codex/worship-guide` (`e7ec770`)
 
 ---
 
@@ -72,9 +72,9 @@ Flutter 3.47.1 / Dart 3.13.1 ile:
 
 | Adım | Sonuç |
 | --- | --- |
-| `dart format --output=none --set-exit-if-changed .` | 61 dosya, **0 değişiklik** |
+| `dart format --output=none --set-exit-if-changed .` | 62 dosya, **0 değişiklik** |
 | `flutter analyze` | **No issues found** |
-| `flutter test` | **91/91 geçti** (70 mevcut + 21 yeni) |
+| `flutter test` | **96/96 geçti** (70 mevcut + 26 yeni) |
 
 ## 6. Cihaz testi — YAPILAMADI
 
@@ -104,12 +104,29 @@ yani elle numara seçmeye gerek yok. Tetiklenmesi kullanıcı onayı ister.
    merge edilmeli; `main` hâlâ `8459840`'ta.
 2. Gerçek cihaz testleri (madde 6).
 3. TestFlight yüklemesi (madde 7).
-4. **Okunacak metinler boş.** `recitationLibrary` (bkz.
-   `lib/features/worship/domain/prayer_flow.dart`) bilinçli olarak boştur ve
-   ekran bunu kullanıcıya açıkça söyler. Her kayıt `name`, `arabic`,
-   `transliteration`, `meaning` ve `source` alanlarını taşır; **kaynaksız kayıt
-   testte düşer.** İçerik doğrulanmış bir kaynaktan elle eklenecektir.
-   Rekât rekât akış ve ekran iskeleti hazır.
+### Diyanet erişimi — BU ORTAMDAN MÜMKÜN DEĞİL
+
+Kullanıcı Diyanet'i kaynak olarak onayladı, ancak bu konteynerin ağ çıkış
+politikası tüm `diyanet.gov.tr` alt alan adlarını engelliyor:
+`kuran.diyanet.gov.tr`, `dijital.diyanet.gov.tr` ve `www.diyanet.gov.tr`
+için WebFetch `EGRESS_BLOCKED`, `curl` ise `000` dönüyor. Bu yüzden metin
+**çekilip doğrulanamadı** ve ezberden yazılmadı.
+
+Devralan ajan için iki yol var: (a) ortamın ağ politikasına Diyanet alan
+adları eklenirse metin doğrudan çekilebilir, (b) kullanıcı metinleri
+yapıştırır. Her iki durumda da aşağıdaki testler girişin doğruluğunu korur.
+
+4. **Okunacak metinler boş ama yapı hazır.** `recitationLibrary` (bkz.
+   `lib/features/worship/domain/prayer_flow.dart`) sekiz kaydın hepsini adıyla
+   tanımlar: Sübhâneke, Fâtiha, Ettehiyyâtü, Allâhümme salli, Allâhümme bârik,
+   Rabbenâ âtinâ, Rabbenâğfirlî, Kunut. Metin alanları boştur; ekran hangi
+   metnin beklendiğini adıyla listeler, uydurma yer tutucu göstermez.
+   Doldurmak için dosyadaki örnek yorumu izleyin.
+
+   `test/recitation_content_test.dart` girişi güvenli kılar: kaynaksız metin
+   olamaz, yarım kayıt olamaz, `arabic` alanı gerçek Arap harfi içermeli ve
+   Latin harfi içermemeli, okunuş/anlam alanlarına Arapça yazılamaz.
+   Bu koruma bilerek hatalı kayıt girilerek doğrulandı (üç testten düştü).
 5. **Yeni başlayanlar rehberi** (namazın şartları, gusül, teyemmüm, oruç/zekât/
    hac) henüz başlanmadı; aynı içerik kuralı geçerlidir.
 6. **Kuran ekranı** — `/quran` hâlâ `PlaceholderPage`. Kapsam raporu için
@@ -147,6 +164,7 @@ lib/features/worship/presentation/prayer_guide_view.dart  (rekât rekât akış)
 lib/core/localization/app_localizations.dart              (8 anahtar x 3 dil)
 test/worship_responsive_test.dart                         (YENİ, 18 test)
 test/worship_guide_test.dart                              (3 akış testi)
+test/recitation_content_test.dart                         (YENİ, 5 içerik koruması)
 HANDOFF.md
 ```
 
