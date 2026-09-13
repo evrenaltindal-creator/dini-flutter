@@ -31,13 +31,33 @@ class Recitation {
   bool get isEmpty =>
       arabic.isEmpty && transliteration.isEmpty && meaning.isEmpty;
 
+  /// Arapça metin, okunuş, anlam ve kaynağın tamamı girilmişse true.
+  bool get isComplete =>
+      arabic.isNotEmpty &&
+      transliteration.isNotEmpty &&
+      meaning.isNotEmpty &&
+      source.isNotEmpty;
+
   /// İçerik var ama kaynağı belirtilmemiş: yayına çıkmadan yakalanmalı.
   bool get isMissingSource => !isEmpty && source.isEmpty;
+
+  /// Bazı alanlar dolu, bazıları boş: yarım kalmış giriş.
+  bool get isPartial => !isEmpty && !isComplete;
 }
 
-/// Namaz içindeki konum. Dinî bir hüküm değil, yalnızca metnin nereye
-/// yerleştirileceğini belirten yapısal bir etikettir.
-enum RecitationSlot { opening, standing, bowing, rising, prostration, sitting }
+/// Namazda okunan metinlerin listesi. Bunlar Diyanet'in "Namaz Duaları"
+/// yayınlarında geçen yaygın adlardır; burada yalnızca hangi metinlerin
+/// doldurulacağını belirten bir dizindir, dinî bir hüküm içermez.
+enum RecitationId {
+  subhaneke,
+  fatiha,
+  ettehiyyatu,
+  allahummeSalli,
+  allahummeBarik,
+  rabbenaAtina,
+  rabbenagfirli,
+  kunut,
+}
 
 /// Bir rekâtın akışı. [movementKeys], zaten üç dilde hazır olan
 /// `guide.prayerStepN` yerelleştirme anahtarlarını taşır; bu sınıf yeni bir
@@ -87,6 +107,33 @@ List<PrayerPartFlow> prayerFlow(DailyPrayerGuide guide) => [
 
 /// Okunacak metinlerin kütüphanesi.
 ///
-/// BİLİNÇLİ OLARAK BOŞTUR. İçerik, doğrulanmış bir kaynaktan eklenecektir.
-/// Buraya ezberden veya tahminle metin yazılmamalıdır.
-const recitationLibrary = <RecitationSlot, Recitation>{};
+/// Yapı hazırdır, METİNLER BİLİNÇLİ OLARAK BOŞTUR. Her kayda Diyanet'in
+/// ilgili yayınından Arapça metin, okunuş, anlam ve kaynak künyesi ELLE
+/// eklenecektir. Buraya ezberden veya tahminle metin yazılmamalıdır:
+/// dinî metinde tek harflik bir sapma ciddi bir kusurdur.
+///
+/// Bir kaydı doldurmak için o satırdaki boş alanları doldurun, örneğin:
+///
+/// ```dart
+/// RecitationId.subhaneke: Recitation(
+///   name: 'Sübhâneke',
+///   arabic: '…',
+///   transliteration: '…',
+///   meaning: '…',
+///   source: 'Diyanet İşleri Başkanlığı, Namaz Duaları',
+/// ),
+/// ```
+///
+/// `recitation_content_test.dart` şunları zorunlu kılar: kaynaksız metin
+/// olamaz, Arapça alan gerçekten Arap harfleri içermelidir ve bir kayıt ya
+/// tamamen boş ya da tam olmalıdır (yarım metin yayına çıkamaz).
+const recitationLibrary = <RecitationId, Recitation>{
+  RecitationId.subhaneke: Recitation(name: 'Sübhâneke'),
+  RecitationId.fatiha: Recitation(name: 'Fâtiha sûresi'),
+  RecitationId.ettehiyyatu: Recitation(name: 'Ettehiyyâtü'),
+  RecitationId.allahummeSalli: Recitation(name: 'Allâhümme salli'),
+  RecitationId.allahummeBarik: Recitation(name: 'Allâhümme bârik'),
+  RecitationId.rabbenaAtina: Recitation(name: 'Rabbenâ âtinâ'),
+  RecitationId.rabbenagfirli: Recitation(name: 'Rabbenâğfirlî'),
+  RecitationId.kunut: Recitation(name: 'Kunut duaları'),
+};

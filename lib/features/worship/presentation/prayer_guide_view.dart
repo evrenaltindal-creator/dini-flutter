@@ -250,42 +250,36 @@ class _PartFlowCard extends StatelessWidget {
   }
 }
 
-/// Okunacak metinler. Kütüphane boşken tahmini metin göstermek yerine
-/// içeriğin henüz eklenmediğini açıkça söyler.
+/// Okunacak metinler. Metin girilmemiş kayıtlar için tahmini bir metin
+/// uydurmak yerine hangi metnin eklenmeyi beklediğini açıkça gösterir.
 class _RecitationSection extends StatelessWidget {
   const _RecitationSection();
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    if (recitationLibrary.isEmpty) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsetsDirectional.all(16),
-          child: Text(
-            l10n.text('guide.recitationsEmpty'),
-            style: const TextStyle(height: 1.45),
-          ),
-        ),
-      );
-    }
     return Column(
       children: [
         for (final recitation in recitationLibrary.values)
-          if (!recitation.isEmpty)
-            Card(
-              child: Padding(
-                padding: const EdgeInsetsDirectional.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (recitation.name.isNotEmpty)
-                      Text(
-                        recitation.name,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
+          Card(
+            child: Padding(
+              padding: const EdgeInsetsDirectional.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    recitation.name,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  if (recitation.isEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      l10n.text('guide.recitationsEmpty'),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ] else ...[
                     if (recitation.arabic.isNotEmpty) ...[
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
                       Text(
                         recitation.arabic,
                         textDirection: TextDirection.rtl,
@@ -315,9 +309,10 @@ class _RecitationSection extends StatelessWidget {
                       ),
                     ],
                   ],
-                ),
+                ],
               ),
             ),
+          ),
       ],
     );
   }
