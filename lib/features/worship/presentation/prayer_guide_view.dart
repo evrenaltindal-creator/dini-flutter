@@ -115,13 +115,17 @@ class PrayerGuideDetailPage extends StatelessWidget {
           const SizedBox(height: 8),
           ...prayerFlow(guide).map((part) => _PartFlowCard(flow: part)),
           const SizedBox(height: 12),
-          Text(
-            l10n.text('guide.recitationsTitle'),
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 8),
-          const _RecitationSection(),
-          const SizedBox(height: 12),
+          // Doğrulanmış metin girilene kadar bu bölüm hiç gösterilmez:
+          // kalıcı bir "yakında" kutusu göstermektense sessiz kalmak yeğdir.
+          if (recitationLibrary.values.any((r) => r.isComplete)) ...[
+            Text(
+              l10n.text('guide.recitationsTitle'),
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 8),
+            const _RecitationSection(),
+            const SizedBox(height: 12),
+          ],
           _IntroCard(
             icon: Icons.info_outline,
             title: l10n.text('guide.beginnerTitle'),
@@ -250,8 +254,8 @@ class _PartFlowCard extends StatelessWidget {
   }
 }
 
-/// Okunacak metinler. Metin girilmemiş kayıtlar için tahmini bir metin
-/// uydurmak yerine hangi metnin eklenmeyi beklediğini açıkça gösterir.
+/// Okunacak metinler. Yalnızca Arapça metin, okunuş, anlam ve kaynağı
+/// eksiksiz girilmiş kayıtlar çizilir; yarım veya boş kayıt gösterilmez.
 class _RecitationSection extends StatelessWidget {
   const _RecitationSection();
 
@@ -261,58 +265,43 @@ class _RecitationSection extends StatelessWidget {
     return Column(
       children: [
         for (final recitation in recitationLibrary.values)
-          Card(
-            child: Padding(
-              padding: const EdgeInsetsDirectional.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    recitation.name,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  if (recitation.isEmpty) ...[
+          if (recitation.isComplete)
+            Card(
+              child: Padding(
+                padding: const EdgeInsetsDirectional.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      recitation.name,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      recitation.arabic,
+                      textDirection: TextDirection.rtl,
+                      style: const TextStyle(fontSize: 22, height: 1.9),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '${l10n.text('guide.transliteration')}: '
+                      '${recitation.transliteration}',
+                      style: const TextStyle(height: 1.45),
+                    ),
                     const SizedBox(height: 6),
                     Text(
-                      l10n.text('guide.recitationsEmpty'),
+                      '${l10n.text('guide.meaning')}: ${recitation.meaning}',
+                      style: const TextStyle(height: 1.45),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      recitation.source,
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
-                  ] else ...[
-                    if (recitation.arabic.isNotEmpty) ...[
-                      const SizedBox(height: 10),
-                      Text(
-                        recitation.arabic,
-                        textDirection: TextDirection.rtl,
-                        style: const TextStyle(fontSize: 22, height: 1.9),
-                      ),
-                    ],
-                    if (recitation.transliteration.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        '${l10n.text('guide.transliteration')}: '
-                        '${recitation.transliteration}',
-                        style: const TextStyle(height: 1.45),
-                      ),
-                    ],
-                    if (recitation.meaning.isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        '${l10n.text('guide.meaning')}: ${recitation.meaning}',
-                        style: const TextStyle(height: 1.45),
-                      ),
-                    ],
-                    if (recitation.source.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        recitation.source,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
                   ],
-                ],
+                ),
               ),
             ),
-          ),
       ],
     );
   }

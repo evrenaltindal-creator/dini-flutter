@@ -5,6 +5,8 @@ import '../../../core/localization/app_localizations.dart';
 import '../../../core/storage/storage_provider.dart';
 import '../data/prayer_tracker_repository.dart';
 import '../domain/prayer_tracker.dart';
+import '../../prayer_times/domain/timezone_service.dart';
+import '../../prayer_times/presentation/providers.dart';
 import '../../../shared/models/domain.dart';
 
 class PrayerTrackerPage extends StatelessWidget {
@@ -27,23 +29,43 @@ class PrayerTrackerView extends ConsumerStatefulWidget {
 class _PrayerTrackerViewState extends ConsumerState<PrayerTrackerView> {
   late final LocalPrayerTrackerRepository repository;
   PrayerTrackerDay? day;
-  final now = DateTime.now();
+
+  /// Yüklenmiş verinin ait olduğu gün. Tarih değişince yeniden yüklenir.
+  DateTime? _loadedFor;
+
   @override
   void initState() {
     super.initState();
     repository = LocalPrayerTrackerRepository(ref.read(localStorageProvider));
-    _load();
   }
 
-  Future<void> _load() async {
-    final value = await repository.load(now);
+  /// Takip, cihazın saat dilimini değil, namaz vakitlerinin bağlı olduğu
+  /// konumun yerel tarihini kullanır — ekrandaki gizlilik notu da bunu söyler.
+  /// Her çizimde yeniden hesaplanır; böylece uygulama açık kalıp gece yarısı
+  /// geçilse bile kayıt bir önceki güne yazılmaz.
+  DateTime _effectiveDate() {
+    final times = ref.watch(prayerTimesProvider);
+    return TimezoneService.inLocation(
+      times.timezoneId ?? 'Europe/Istanbul',
+      DateTime.now(),
+    );
+  }
+
+  Future<void> _load(DateTime date) async {
+    final value = await repository.load(date);
     if (mounted) setState(() => day = value);
   }
 
   @override
   Widget build(BuildContext context) {
+    final now = _effectiveDate();
+    final today = DateUtils.dateOnly(now);
+    if (_loadedFor != today) {
+      _loadedFor = today;
+      _load(now);
+    }
     final current = day;
-    if (current == null) {
+    if (current == null || !DateUtils.isSameDay(current.date, today)) {
       return const Center(child: CircularProgressIndicator());
     }
     final content = ListView(
