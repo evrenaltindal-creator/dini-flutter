@@ -1,7 +1,7 @@
 # HANDOFF — Neler yaptık, nerede kaldık
 
 Son güncelleme: 2026-09-12 · Oturum: Claude Code (remote, Linux konteyner)
-Branch: `claude/worship-stabilization` (`c53cb9a`) · Taban: `codex/worship-guide` (`e7ec770`)
+Branch: `claude/worship-stabilization` (`87c10f9`) · Taban: `codex/worship-guide` (`e7ec770`)
 
 ---
 
@@ -72,9 +72,9 @@ Flutter 3.47.1 / Dart 3.13.1 ile:
 
 | Adım | Sonuç |
 | --- | --- |
-| `dart format --output=none --set-exit-if-changed .` | 62 dosya, **0 değişiklik** |
+| `dart format --output=none --set-exit-if-changed .` | 63 dosya, **0 değişiklik** |
 | `flutter analyze` | **No issues found** |
-| `flutter test` | **96/96 geçti** (70 mevcut + 26 yeni) |
+| `flutter test` | **98/98 geçti** (70 mevcut + 28 yeni) |
 
 ## 6. Cihaz testi — YAPILAMADI
 
@@ -104,6 +104,22 @@ yani elle numara seçmeye gerek yok. Tetiklenmesi kullanıcı onayı ister.
    merge edilmeli; `main` hâlâ `8459840`'ta.
 2. Gerçek cihaz testleri (madde 6).
 3. TestFlight yüklemesi (madde 7).
+### İÇERİK KARARI: telifli metin alınmıyor, meal kapsam dışı
+
+Kullanıcı kararı: **telifli hiçbir içerik uygulamaya alınmayacak** ve
+**Kur'an meali şimdilik kapsam dışı** — kendi ifadesiyle bu konuda akademik
+bir dayanağı yok, dolayısıyla dinî metni denetleyecek konumda değil.
+
+Sonuçları:
+- `recitationLibrary` boş kalır. Namaz rehberindeki "okunacak metinler"
+  bölümü, bir kayıt Arapça + okunuş + anlam + kaynak olarak **eksiksiz**
+  girilene kadar **hiç çizilmez**. Uygulamada kalıcı "yakında" kutusu yoktur.
+- Kuran ekranı için meal geliştirmesi durdu. `/quran` hâlâ `PlaceholderPage`.
+  **Açık soru:** içerik gelmeyecekse alt menüdeki "Kuran" sekmesi yayına
+  ölü sekme olarak çıkmamalı; ya gizlenmeli ya da kapsamı yeniden
+  tanımlanmalı. Bu bir ürün kararıdır, kullanıcıya sorulmalıdır.
+- Dinî metin eklenecekse kaynak ve izin önce netleşmelidir.
+
 ### Diyanet erişimi — BU ORTAMDAN MÜMKÜN DEĞİL
 
 Kullanıcı Diyanet'i kaynak olarak onayladı, ancak bu konteynerin ağ çıkış
@@ -159,6 +175,8 @@ lib/features/worship/presentation/worship_hub_page.dart   (TabBar + kısa etiket
 lib/features/worship/presentation/wudu_guide_view.dart    (sayfa başlığı)
 lib/features/notifications/data/flutter_local_notification_service.dart (init koruması)
 lib/features/audio/presentation/opening_takbir.dart       (AudioContext + temizlik)
+lib/features/tracker/presentation/prayer_tracker_page.dart (tarih/saat dilimi düzeltmesi)
+test/tracker_date_test.dart                               (YENİ, 2 regresyon testi)
 lib/features/worship/domain/prayer_flow.dart              (YENİ, veri modeli)
 lib/features/worship/presentation/prayer_guide_view.dart  (rekât rekât akış)
 lib/core/localization/app_localizations.dart              (8 anahtar x 3 dil)
