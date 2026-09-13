@@ -20,16 +20,43 @@ class _QiblaPageState extends ConsumerState<QiblaPage> {
   StreamSubscription<CompassEvent>? _subscription;
   double? _heading;
 
+  /// Okun birikimli dönüşü. Ham fark ±180 sınırında işaret değiştirdiği için
+  /// doğrudan animasyona verilemez; bkz. [QiblaNeedle].
+  QiblaNeedle _needle = const QiblaNeedle();
+
   @override
   void initState() {
     super.initState();
     _subscription = FlutterCompass.events?.listen(
       (event) {
-        if (mounted) setState(() => _heading = event.heading);
+        if (!mounted) return;
+        setState(() {
+          _heading = event.heading;
+          final heading = event.heading;
+          if (heading != null) {
+            _needle = _needle.update(
+              const QiblaCalculator().turnDifference(
+                bearing: _bearing,
+                heading: heading,
+              ),
+            );
+          }
+        });
       },
       onError: (_) {
         if (mounted) setState(() => _heading = null);
       },
+    );
+  }
+
+  /// Kıble açısı, kullanıcının kayıtlı koordinatlarından hesaplanır.
+  double get _bearing {
+    final settings = ref.read(effectivePrayerSettingsProvider);
+    return const QiblaCalculator().bearing(
+      Coordinates(
+        settings.location.latitude ?? 41.0082,
+        settings.location.longitude ?? 28.9784,
+      ),
     );
   }
 
@@ -49,6 +76,8 @@ class _QiblaPageState extends ConsumerState<QiblaPage> {
         settings.location.longitude ?? 28.9784,
       ),
     );
+    // Metin ve hizalama anlık farkı kullanır; animasyon ise birikimli dönüşü.
+
     final difference = _heading == null
         ? null
         : calculator.turnDifference(bearing: bearing, heading: _heading!);
@@ -68,7 +97,7 @@ class _QiblaPageState extends ConsumerState<QiblaPage> {
             const SizedBox(height: 24),
             Center(
               child: AnimatedRotation(
-                turns: (difference ?? 0) / 360,
+                turns: _needle.turns,
                 duration: const Duration(milliseconds: 350),
                 curve: Curves.easeOut,
                 child: _CompassFace(aligned: aligned),
