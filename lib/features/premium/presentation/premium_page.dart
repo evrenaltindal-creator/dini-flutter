@@ -15,6 +15,8 @@ class PremiumStorePage extends ConsumerStatefulWidget {
 }
 
 class _PremiumStorePageState extends ConsumerState<PremiumStorePage> {
+  static const _launch = PremiumLaunchPolicy();
+
   late final InAppPurchaseService service;
   late final EntitlementRepository cache;
   Future<List<StoreProduct>>? products;
@@ -62,58 +64,82 @@ class _PremiumStorePageState extends ConsumerState<PremiumStorePage> {
           const SizedBox(height: 12),
           Text(context.l10n.text('premium.features')),
           const SizedBox(height: 20),
-          FutureBuilder<List<StoreProduct>>(
-            future: products,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState != ConnectionState.done) {
-                return Card(
-                  child: ListTile(
-                    title: Text(context.l10n.text('premium.loading')),
-                  ),
-                );
-              }
-              final values = snapshot.data ?? [];
-              if (values.isEmpty) {
-                return Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(context.l10n.text('premium.unavailable')),
-                  ),
-                );
-              }
-              return Column(
-                children: values
-                    .map(
-                      (value) => Card(
-                        child: ListTile(
-                          title: Text(value.title),
-                          subtitle: Text(value.description),
-                          trailing: TextButton(
-                            onPressed: () async {
-                              await service.purchase(value.product);
-                            },
-                            child: Text(value.price),
+          // Lansman döneminde her şey açık; hiçbir şey açmayan bir ürünü
+          // satmamak için mağaza ve geri yükleme gizlenir.
+          if (!_launch.showsStore) ...[
+            Card(
+              child: Padding(
+                padding: const EdgeInsetsDirectional.all(18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      context.l10n.text('premium.launchTitle'),
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      context.l10n.text('premium.launchBody'),
+                      style: const TextStyle(height: 1.45),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ] else ...[
+            FutureBuilder<List<StoreProduct>>(
+              future: products,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState != ConnectionState.done) {
+                  return Card(
+                    child: ListTile(
+                      title: Text(context.l10n.text('premium.loading')),
+                    ),
+                  );
+                }
+                final values = snapshot.data ?? [];
+                if (values.isEmpty) {
+                  return Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(context.l10n.text('premium.unavailable')),
+                    ),
+                  );
+                }
+                return Column(
+                  children: values
+                      .map(
+                        (value) => Card(
+                          child: ListTile(
+                            title: Text(value.title),
+                            subtitle: Text(value.description),
+                            trailing: TextButton(
+                              onPressed: () async {
+                                await service.purchase(value.product);
+                              },
+                              child: Text(value.price),
+                            ),
                           ),
                         ),
-                      ),
-                    )
-                    .toList(),
-              );
-            },
-          ),
-          const SizedBox(height: 12),
-          OutlinedButton(
-            onPressed: () async {
-              await service.restorePurchases();
-              if (!context.mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(context.l10n.text('premium.restoreSent')),
-                ),
-              );
-            },
-            child: Text(context.l10n.text('premium.restore')),
-          ),
+                      )
+                      .toList(),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton(
+              onPressed: () async {
+                await service.restorePurchases();
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(context.l10n.text('premium.restoreSent')),
+                  ),
+                );
+              },
+              child: Text(context.l10n.text('premium.restore')),
+            ),
+          ],
           if (entitlement.isPremium)
             ListTile(
               leading: const Icon(Icons.check_circle),

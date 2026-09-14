@@ -27,6 +27,7 @@ import '../features/notifications/data/notification_scheduler.dart';
 import '../features/widgets/data/widget_preferences_repository.dart';
 import '../features/widgets/domain/widget_snapshot.dart';
 import '../features/premium/presentation/premium_page.dart';
+import '../features/quran/presentation/quran_coming_soon_page.dart';
 import '../features/info/diyanet_flow.dart';
 import '../features/audio/presentation/opening_takbir.dart';
 import '../features/worship/presentation/worship_hub_page.dart';
@@ -104,7 +105,7 @@ final appRouter = GoRouter(
           routes: [
             GoRoute(
               path: '/quran',
-              builder: (_, _) => const PlaceholderPage(titleKey: 'nav.quran'),
+              builder: (_, _) => const QuranComingSoonPage(),
             ),
           ],
         ),
@@ -914,21 +915,6 @@ class AboutPage extends StatelessWidget {
       Text(context.l10n.text('about.diyanet')),
     ],
   );
-}
-
-class PlaceholderPage extends StatelessWidget {
-  final String titleKey;
-  const PlaceholderPage({required this.titleKey, super.key});
-  @override
-  Widget build(BuildContext context) {
-    final title = context.l10n.text(titleKey);
-    return _Page(
-      title: title,
-      children: [
-        Text(context.l10n.text('placeholder', {'title': title})),
-      ],
-    );
-  }
 }
 
 class _Page extends StatelessWidget {

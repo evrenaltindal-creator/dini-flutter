@@ -91,3 +91,32 @@ class FreeFeaturePolicy {
     'default_mosque_theme',
   }.contains(feature);
 }
+
+/// Lansman dönemi politikası.
+///
+/// Uygulama önce herkese tam sürüm olarak veriliyor; abonelik daha sonra
+/// açılacak. Bu dönemde premium özellikler satın alma olmadan açıktır ve
+/// mağaza ürünleri gösterilmez — hiçbir şey açmayan bir ürünü satmamak için.
+///
+/// Ücretli döneme geçmek için tek yapılacak, derlemede
+/// `--dart-define=DINI_PREMIUM_LAUNCH_FREE=false` vermektir; mağaza, satın
+/// alma ve hak sahipliği altyapısı yerinde durur.
+class PremiumLaunchPolicy {
+  static const _defaultFree = bool.fromEnvironment(
+    'DINI_PREMIUM_LAUNCH_FREE',
+    defaultValue: true,
+  );
+
+  /// Lansman dönemi açık mı. Testler bunu açıkça verebilir.
+  final bool everythingFree;
+
+  const PremiumLaunchPolicy({this.everythingFree = _defaultFree});
+
+  /// Kullanıcı premium özelliklere erişebiliyor mu?
+  /// Lansman döneminde satın alma aranmaz.
+  bool isUnlocked(PremiumEntitlement entitlement) =>
+      everythingFree || entitlement.isPremium;
+
+  /// Mağaza ürünleri ve satın alma düğmeleri gösterilmeli mi?
+  bool get showsStore => !everythingFree;
+}
