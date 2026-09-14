@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +9,9 @@ import 'app/router.dart';
 import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'features/audio/presentation/opening_takbir.dart';
+import 'core/storage/local_storage.dart';
+import 'features/notifications/data/notification_scheduler.dart';
+import 'features/prayer_times/data/prayer_settings_repository.dart';
 import 'features/prayer_times/presentation/settings_controller.dart';
 
 final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
@@ -23,6 +28,12 @@ Future<void> main() async {
       )
       ? Locale(savedLanguage!)
       : const Locale('tr');
+  // Bildirimler yalnızca sekiz günlük bir pencere için planlanır ve daha önce
+  // hiçbir yerde açılışta tazelenmiyordu. Açılışta yeniden planlamak hem bu
+  // pencereyi kaydırır hem de önceki oturumda kaydedilmiş ama kurulmamış
+  // alarmları devreye alır. Hata olursa uygulamanın açılışını engellemez.
+  unawaited(_rescheduleNotifications(SharedPreferencesStorage(prefs)));
+
   runApp(
     ProviderScope(
       overrides: [
@@ -32,6 +43,15 @@ Future<void> main() async {
       child: const DiniApp(),
     ),
   );
+}
+
+Future<void> _rescheduleNotifications(LocalStorage storage) async {
+  try {
+    final settings = await PrayerSettingsRepository(storage).load();
+    await reschedulePrayerNotifications(storage: storage, settings: settings);
+  } catch (_) {
+    // Bildirim eklentisi veya kayıtlı ayar olmayan ortamlarda sessiz geç.
+  }
 }
 
 class DiniApp extends ConsumerWidget {

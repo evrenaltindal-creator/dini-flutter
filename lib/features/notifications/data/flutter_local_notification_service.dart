@@ -7,6 +7,14 @@ class FlutterLocalNotificationService implements LocalNotificationService {
   final FlutterLocalNotificationsPlugin plugin;
   FlutterLocalNotificationService([FlutterLocalNotificationsPlugin? plugin])
     : plugin = plugin ?? FlutterLocalNotificationsPlugin();
+
+  /// Eklentinin bu platformda kayıtlı olup olmadığı. [initialize] başarıyla
+  /// tamamlanana kadar false kalır; eklentisiz ortamlarda (widget testleri,
+  /// desteklenmeyen platformlar) bütün çağrılar sessizce atlanır, böylece
+  /// planlama hatası arayüze sızmaz. Tercihler yerel olarak saklanmaya devam
+  /// eder; yalnızca işletim sistemine bildirim kurulmaz.
+  bool _available = false;
+
   @override
   Future<void> initialize() async {
     const settings = InitializationSettings(
@@ -15,15 +23,15 @@ class FlutterLocalNotificationService implements LocalNotificationService {
     );
     try {
       await plugin.initialize(settings);
+      _available = true;
     } catch (_) {
-      // Bildirim eklentisi kayıtlı olmayan ortamlarda (widget testleri,
-      // desteklenmeyen platformlar) alarm ekranı yine de açılabilmeli.
-      // Tercihler yerel olarak saklanmaya devam eder; yalnızca planlama yapılmaz.
+      _available = false;
     }
   }
 
   @override
   Future<NotificationPermissionStatus> requestPermission() async {
+    if (!_available) return NotificationPermissionStatus.unknown;
     final ios = plugin
         .resolvePlatformSpecificImplementation<
           IOSFlutterLocalNotificationsPlugin
@@ -48,12 +56,17 @@ class FlutterLocalNotificationService implements LocalNotificationService {
   }
 
   @override
-  Future<void> cancelAll() => plugin.cancelAll();
+  Future<void> cancelAll() async {
+    if (!_available) return;
+    await plugin.cancelAll();
+  }
+
   @override
   Future<void> schedule(
     PlannedNotification notification,
     NotificationSound sound,
   ) async {
+    if (!_available) return;
     final channel = AndroidNotificationChannel(
       'dini_prayers',
       'Namaz vakitleri',

@@ -9,7 +9,6 @@ import '../features/prayer_times/presentation/providers.dart';
 import '../features/prayer_times/presentation/settings_controller.dart';
 import '../features/prayer_times/domain/timezone_service.dart';
 import '../features/prayer_times/domain/prayer_settings.dart';
-import '../features/prayer_times/domain/prayer_engine.dart';
 import '../shared/models/domain.dart';
 import '../features/qibla/presentation/qibla_page.dart';
 import '../features/home/domain/mosque_scene_state.dart';
@@ -24,8 +23,7 @@ import '../features/calendar/presentation/calendar_page.dart';
 import '../features/tasbih/presentation/tasbih_page.dart';
 import '../features/notifications/presentation/notification_settings_page.dart';
 import '../features/notifications/data/flutter_local_notification_service.dart';
-import '../features/notifications/data/notification_preferences_repository.dart';
-import '../features/notifications/domain/notification_system.dart';
+import '../features/notifications/data/notification_scheduler.dart';
 import '../features/widgets/data/widget_preferences_repository.dart';
 import '../features/widgets/domain/widget_snapshot.dart';
 import '../features/premium/presentation/premium_page.dart';
@@ -832,24 +830,9 @@ class SettingsPage extends ConsumerWidget {
   Future<void> _saveSettings(WidgetRef ref, PrayerSettings value) async {
     await ref.read(prayerSettingsProvider.notifier).saveSettings(value);
     await const WidgetSnapshotService().refresh();
-    final storage = ref.read(localStorageProvider);
-    final preferences = await NotificationPreferencesRepository(storage).load();
-    final service = FlutterLocalNotificationService();
-    await service.initialize();
-    await PrayerNotificationCoordinator(
-      service: service,
-      calculator: const LocalPrayerTimesCalculator(),
-    ).reschedule(
-      start: TimezoneService.inLocation(
-        value.location.timezoneId ?? 'Europe/Istanbul',
-        DateTime.now(),
-      ),
-      coordinates: Coordinates(
-        value.location.latitude ?? 41.0082,
-        value.location.longitude ?? 28.9784,
-      ),
+    await reschedulePrayerNotifications(
+      storage: ref.read(localStorageProvider),
       settings: value,
-      preferences: preferences,
     );
   }
 }

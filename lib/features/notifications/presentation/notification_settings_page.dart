@@ -3,12 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/storage/storage_provider.dart';
-import '../../prayer_times/domain/prayer_engine.dart';
-import '../../prayer_times/domain/timezone_service.dart';
 import '../../prayer_times/presentation/providers.dart';
 import '../../../shared/models/domain.dart';
-import '../data/flutter_local_notification_service.dart';
 import '../data/notification_preferences_repository.dart';
+import '../data/notification_scheduler.dart';
 import '../domain/notification_system.dart';
 
 class NotificationSettingsPage extends StatelessWidget {
@@ -32,7 +30,7 @@ class NotificationSettingsView extends ConsumerStatefulWidget {
 class _NotificationSettingsViewState
     extends ConsumerState<NotificationSettingsView> {
   late final NotificationPreferencesRepository repository;
-  final service = FlutterLocalNotificationService();
+  late final LocalNotificationService service;
   NotificationPreferences? preferences;
   bool permissionRequested = false;
   @override
@@ -41,13 +39,18 @@ class _NotificationSettingsViewState
     repository = NotificationPreferencesRepository(
       ref.read(localStorageProvider),
     );
+    service = ref.read(notificationServiceProvider);
     service.initialize();
     _load();
   }
 
   Future<void> _load() async {
     final value = await repository.load();
-    if (mounted) setState(() => preferences = value);
+    if (!mounted) return;
+    setState(() => preferences = value);
+    // Daha önce kaydedilmiş tercihler hiçbir yerde yeniden planlanmıyordu.
+    // Ekranı açmak, kayan sekiz günlük pencereyi de tazeler.
+    await _reschedule(value);
   }
 
   @override
@@ -163,29 +166,19 @@ class _NotificationSettingsViewState
   Future<void> _update(NotificationPreferences next) async {
     setState(() => preferences = next);
     await repository.save(next);
-    if (permissionRequested) await _reschedule(next);
+    // Planlama izne bağlanmamalı: permissionRequested yalnızca kullanıcı bu
+    // oturumda izin düğmesine bastıysa true oluyordu, dolayısıyla açılan bir
+    // alarm çoğu zaman hiç kurulmuyordu.
+    await _reschedule(next);
   }
 
-  Future<void> _reschedule(NotificationPreferences value) async {
-    final settings = ref.read(effectivePrayerSettingsProvider);
-    final coordinates = Coordinates(
-      settings.location.latitude ?? 41.0082,
-      settings.location.longitude ?? 28.9784,
-    );
-    final start = TimezoneService.inLocation(
-      settings.location.timezoneId ?? 'Europe/Istanbul',
-      DateTime.now(),
-    );
-    await PrayerNotificationCoordinator(
-      service: service,
-      calculator: const LocalPrayerTimesCalculator(),
-    ).reschedule(
-      start: start,
-      coordinates: coordinates,
-      settings: settings,
-      preferences: value,
-    );
-  }
+  Future<void> _reschedule(NotificationPreferences value) =>
+      reschedulePrayerNotifications(
+        storage: ref.read(localStorageProvider),
+        settings: ref.read(effectivePrayerSettingsProvider),
+        preferences: value,
+        service: service,
+      );
 
   String _soundLabel(BuildContext context, NotificationSound sound) =>
       switch (sound) {
