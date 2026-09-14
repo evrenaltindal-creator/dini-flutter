@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
@@ -159,7 +161,8 @@ class _TasbihPageState extends ConsumerState<TasbihPage> {
                           .take(5)
                           .map(
                             (item) => Text(
-                              '${item.count} · ${item.completedAt.toLocal()}',
+                              '${item.count} · '
+                              '${_formatCompletedAt(context, item.completedAt)}',
                             ),
                           ),
                     ],
@@ -175,9 +178,16 @@ class _TasbihPageState extends ConsumerState<TasbihPage> {
   Future<void> _increment(TasbihSession current) async {
     final next = current.increment();
     setState(() => session = next);
-    if (current.hapticEnabled) await HapticFeedback.selectionClick();
+    // Sayımın kaydedilmesi dokunsal geri bildirime bağlı olmamalı: haptic
+    // çağrısı desteklenmeyen bir platformda askıda kalırsa veya hata verirse
+    // altındaki save() hiç çalışmıyor ve sayaç kalıcı olmuyordu.
+    if (current.hapticEnabled) {
+      unawaited(HapticFeedback.selectionClick());
+    }
     await repository.save(next);
-    if (next.count >= next.target) {
+    // Hedefe ulaşıldığı an bir kez kaydedilir. Koşul ">=" olduğunda hedefi
+    // geçen her dokunuş geçmişe ayrı bir kayıt daha yazıyordu.
+    if (next.count == next.target) {
       await repository.addHistory(
         TasbihHistoryEntry(
           dhikrId: next.dhikrId,
@@ -194,5 +204,14 @@ class _TasbihPageState extends ConsumerState<TasbihPage> {
   Future<void> _change(TasbihSession next) async {
     setState(() => session = next);
     await repository.save(next);
+  }
+
+  /// Geçmiş kaydının tarihi. Ham `DateTime.toLocal()` kullanıcıya
+  /// "2026-09-14 10:23:45.123456" gibi mikrosaniyeli bir çıktı gösteriyordu.
+  String _formatCompletedAt(BuildContext context, DateTime value) {
+    final local = value.toLocal();
+    final hour = local.hour.toString().padLeft(2, '0');
+    final minute = local.minute.toString().padLeft(2, '0');
+    return '${local.day} ${context.l10n.month(local.month)} · $hour:$minute';
   }
 }
