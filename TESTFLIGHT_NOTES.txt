@@ -1,12 +1,28 @@
-Dini'nin ilk dahili TestFlight yapısında aşağıdaki alanları doğrulayın:
+Bu yapıda ibadet merkezi, yenilenen kıble ve alarmlar ilk kez test ediliyor.
+Uygulama lansman döneminde tam sürüm: her şey açık, satın alma yok.
 
-- Namaz vakitlerinin konuma ve tarihe göre doğruluğu
-- Konum izni akışı ve konum değişiklikleri
-- Kıble yönü ve pusula davranışı
-- Bildirim izinleri ve planlanan namaz bildirimleri
-- Ana ekran küçük/orta widget içerikleri ve yenilenmesi
-- Takvim ekranı ve tarih geçişleri
-- İbadet takipçisi kayıtları
-- Tesbih sayacı ve kalıcılığı
-- Premium aylık, yıllık ve ömür boyu ürünlerin mağaza fiyatları
-- Satın alımları geri yükleme akışı
+Öncelikli olarak şunları doğrulayın:
+
+- Kıble oku: telefonu yavaşça tam tur çevirin. Ok her zaman kısa taraftan
+  dönmeli; kıble tam arkanızdayken ters yöne tam tur atmamalı.
+- Pusula kalibrasyonu ve metal eşya etkisi; sensör yoksa açıklayıcı uyarı.
+- Alarmlar: bir namazı açın, uygulamayı kapatın ve bildirimin gerçekten
+  geldiğini görün. İzin vermeden açtığınız alarm da izin verdikten sonra
+  çalışmalı.
+- Açılış tekbiri: telefon sessizdeyken çalmamalı, müzik çalıyorsa onu
+  kesmemeli. Ayarlar'dan kapatınca bir daha çalmamalı.
+- İbadet sekmeleri: Takip, Namaz, Abdest ve Alarmlar sekmelerinin dördü de
+  ekranda görünmeli (dar telefonlarda da).
+- Tesbih: sayaç uygulamayı kapatıp açınca korunmalı. Hedefe ulaşınca geçmişe
+  tek kayıt düşmeli, hedefi geçince yenileri eklenmemeli.
+- Namaz takibi: gece yarısını geçtikten sonra işaretleme doğru güne yazılmalı.
+- Namaz vakitlerinin konuma ve tarihe göre doğruluğu, konum izni akışı.
+- Takvim ekranı, tarih geçişleri ve büyük yazı boyutunda hücrelerin taşmaması.
+- Ana ekran küçük/orta widget içerikleri ve yenilenmesi.
+
+Bilinen eksikler:
+
+- Kuran sekmesi "yakında" ekranı gösteriyor; içerik henüz eklenmedi.
+- Namaz rehberindeki okunacak metinler (Sübhâneke, Ettehiyyâtü vb.) henüz
+  girilmedi, bu yüzden o bölüm görünmüyor.
+- Uygulama simgesi hâlâ Flutter varsayılanı.
