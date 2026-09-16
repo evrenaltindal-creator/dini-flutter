@@ -122,7 +122,9 @@ void main() {
   test('fresh storage returns safe defaults', () async {
     final restored = await PrayerSettingsRepository(MemoryStorage()).load();
     expect(restored.method, PrayerCalculationMethod.diyanet);
-    expect(restored.asrMethod, AsrMethod.hanafi);
+    // Diyanet ikindiyi asr-ı evvel ile yayımlar; varsayılan onunla örtüşür.
+    // Hanefî seçeneği Ayarlar'dan seçilebilir durumda kalır.
+    expect(restored.asrMethod, AsrMethod.standard);
     expect(restored.location.timezoneId, 'Europe/Istanbul');
   });
 }

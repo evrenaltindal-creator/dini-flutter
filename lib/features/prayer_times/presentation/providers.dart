@@ -11,7 +11,9 @@ final coordinatesProvider = StateProvider<Coordinates>(
 final calculationMethodProvider = StateProvider<PrayerCalculationMethod>(
   (ref) => PrayerCalculationMethod.diyanet,
 );
-final asrMethodProvider = StateProvider<AsrMethod>((ref) => AsrMethod.hanafi);
+// Diyanet'in yayımladığı vakitlerle uyum için standart hesap; bkz.
+// PrayerSettings.asrMethod.
+final asrMethodProvider = StateProvider<AsrMethod>((ref) => AsrMethod.standard);
 final effectivePrayerSettingsProvider = Provider<PrayerSettings>(
   (ref) => ref
       .watch(prayerSettingsProvider)

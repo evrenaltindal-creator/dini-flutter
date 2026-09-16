@@ -33,7 +33,11 @@ class PrayerSettings {
   final PrayerAdjustments adjustments;
   const PrayerSettings({
     this.method = PrayerCalculationMethod.diyanet,
-    this.asrMethod = AsrMethod.hanafi,
+    // Diyanet yayımladığı ikindi vaktini standart (asr-ı evvel, gölge oranı 1)
+    // hesabıyla verir. Varsayılan Hanefî iken uygulamanın ikindisi Diyanet'in
+    // tablosundan ~52 dakika sonra çıkıyordu; Ankara 16-22 Eylül 2026 verisiyle
+    // ölçüldü. Hanefî (asr-ı sânî) seçeneği Ayarlar'da duruyor.
+    this.asrMethod = AsrMethod.standard,
     this.use24Hour = true,
     this.location = const LocationPreference(
       city: 'Istanbul',
