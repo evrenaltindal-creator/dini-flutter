@@ -18,8 +18,8 @@ Flutter + Riverpod + go_router. **Tamamen cihaz içi (offline-first) çalışır
 3. **Üç dil zorunlu.** Kullanıcıya görünen her metin
    `lib/core/localization/app_localizations.dart` içindeki `_strings` haritasına
    **`tr`, `en` ve `ar` için birlikte** eklenir. Şu an üç dilde de tam olarak
-   155 anahtar var ve bu parite korunmalıdır. Widget'ta düz string yazma;
-   `context.l10n.text('key')` kullan.
+   242 anahtar var; `localization_test.dart` bu pariteyi zorunlu kılar.
+   Widget'ta düz string yazma; `context.l10n.text('key')` kullan.
 4. **RTL bozulmaz.** Arapça yön desteği `MaterialApp.supportedLocales` içindeki
    `Locale('ar')` + `GlobalWidgetsLocalizations.delegate` üzerinden otomatik gelir.
    `EdgeInsets.only(left/right)` yerine `EdgeInsetsDirectional`, `Alignment` yerine
@@ -60,7 +60,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 66 test var; hepsi geçmelidir.
+- Depoda şu an 26 dosyada 241 test var; hepsi geçmelidir.
 
 ## Git akışı
 
@@ -81,13 +81,16 @@ flutter test --reporter expanded
 | Kalıcı veri | `lib/core/storage/local_storage.dart` soyutlaması üzerinden |
 | Ortak model/enum | `lib/shared/models/domain.dart` |
 | Test | `test/` |
+| Uygulama simgesi | `tool/generate_app_icon.py` (PNG'leri elle düzenleme) |
+| Bildirim tonu | `tool/generate_notification_tone.py` |
 
 ## Bilinmesi gereken tuzaklar
 
 - `lib/app/router.dart` 979 satırdır; `HomePage`, `SettingsPage`, `PrivacyPage`,
   `AboutPage` ve `PlaceholderPage` bu dosyanın içindedir. Yeni büyük ekranı
   buraya gömme, `lib/features/<alan>/presentation/` altına aç ve router'dan bağla.
-- **`/quran` rotası hâlâ `PlaceholderPage`'tir.** Kuran ekranı henüz yazılmadı.
+- **`/quran` rotası `QuranComingSoonPage`'tir.** Kuran ekranı henüz yazılmadı;
+  meal telif nedeniyle bilinçli olarak ertelendi.
 - `main.dart` özel bir `LocalizationsDelegate` kaydetmez; `AppLocalizations`
   doğrudan `Localizations.localeOf(context)` okur. Bu tasarımı bozma.
 - `SharedPreferences` doğrudan widget'larda kullanılmaz; `LocalStorage` üzerinden
@@ -97,3 +100,16 @@ flutter test --reporter expanded
 - Mağaza ürün kimlikleri `--dart-define` ile gelir; `.dev` ile biten placeholder
   değerler TestFlight workflow'unda reddedilir.
 - Yeni asset eklersen `pubspec.yaml` içindeki `assets:` listesini güncelle.
+- Simge ve bildirim tonu PNG/WAV dosyaları `tool/` altındaki betiklerden
+  üretilir. Dosyaları elle düzenleme; betiği değiştirip yeniden çalıştır.
+  Betikler `pip install Pillow` ister, başka bağımlılıkları yoktur.
+- **Kıble açısı gerçek (coğrafi) kuzeye göredir.** Android'in pusulası
+  manyetik kuzeye göre ölçer; `MagneticDeclinationService` farkı
+  `GeomagneticField` üzerinden kapatır. iOS zaten `trueHeading` verir.
+  Bu ayrımı kaldırma, ok birkaç derece kayar.
+- **Android bildirim kanalının sesi oluşturulduktan sonra değiştirilemez.**
+  Bu yüzden her ses seçeneği kendi kanal kimliğini taşır; kimlikleri
+  birleştirirsen kullanıcı sesi değiştirdiğinde hiçbir şey olmaz.
+- `LocalPrayerTimesCalculator` varsayılanları `PrayerSettings`
+  varsayılanlarıyla aynı olmalıdır; ayrıldıklarında ikindi elli dakikaya
+  varan fark verir. `prayer_engine_test.dart` bunu bekçiler.
