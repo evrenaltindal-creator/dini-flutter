@@ -227,6 +227,30 @@ void main() {
     });
   });
 
+  test('motorun varsayılan mezhebi ayarlarınkiyle aynıdır', () {
+    // Motoru ayar nesnesi olmadan çağıran kod (imsakiye, bildirim planlayıcı)
+    // ekranda görünenle aynı vakti üretmelidir. Bu ikisi ayrıldığında ikindi
+    // arasında elli dakikaya varan fark oluşuyordu.
+    final byDefault = _calculator.calculate(
+      DateTime(2026, 9, 16),
+      _istanbul,
+      timezoneId: 'Europe/Istanbul',
+    );
+    final fromSettings = _calculator.calculate(
+      DateTime(2026, 9, 16),
+      _istanbul,
+      asrMethod: const PrayerSettings().asrMethod,
+      timezoneId: 'Europe/Istanbul',
+    );
+    expect(
+      byDefault.times[Prayer.asr],
+      fromSettings.times[Prayer.asr],
+      reason:
+          'Motorun varsayılanı ${AsrMethod.values} içinden ayarlardakiyle '
+          'aynı olmalı.',
+    );
+  });
+
   test('dakika düzeltmeleri vakitleri tam olarak kaydırır', () {
     const adjustments = PrayerAdjustments(fajr: 3, dhuhr: -2, isha: 5);
     final plain = _at(_istanbul, DateTime(2026, 6, 21), 'Europe/Istanbul');

@@ -56,7 +56,11 @@ class LocalPrayerTimesCalculator implements PrayerTimesCalculator {
     DateTime date,
     Coordinates coordinates, {
     PrayerCalculationMethod method = PrayerCalculationMethod.diyanet,
-    AsrMethod asrMethod = AsrMethod.hanafi,
+    // Varsayılan, `PrayerSettings.asrMethod` ile aynı olmalıdır: Diyanet
+    // ikindiyi asr-ı evvel (standart gölge oranı) ile yayımlar. Bu varsayılan
+    // Hanefî iken motoru doğrudan çağıran kod, ayarlardan farklı bir ikindi
+    // üretiyordu — aradaki fark elli dakikayı buluyor.
+    AsrMethod asrMethod = AsrMethod.standard,
     PrayerAdjustments adjustments = const PrayerAdjustments(),
     String timezoneId = 'Europe/Istanbul',
   }) {

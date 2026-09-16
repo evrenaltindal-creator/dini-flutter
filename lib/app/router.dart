@@ -20,6 +20,7 @@ import '../core/storage/local_storage.dart';
 import '../core/storage/storage_provider.dart';
 import '../core/storage/local_data_repository.dart';
 import '../features/calendar/presentation/calendar_page.dart';
+import '../features/prayer_times/presentation/imsakiye_page.dart';
 import '../features/tasbih/presentation/tasbih_page.dart';
 import '../features/notifications/presentation/notification_settings_page.dart';
 import '../features/notifications/data/flutter_local_notification_service.dart';
@@ -133,6 +134,7 @@ final appRouter = GoRouter(
     GoRoute(path: '/privacy', builder: (_, _) => const PrivacyPage()),
     GoRoute(path: '/about', builder: (_, _) => const AboutPage()),
     GoRoute(path: '/qibla', builder: (_, _) => const QiblaPage()),
+    GoRoute(path: '/imsakiye', builder: (_, _) => const ImsakiyePage()),
     GoRoute(path: '/tasbih', builder: (_, _) => const TasbihPage()),
     GoRoute(
       path: '/tracker',

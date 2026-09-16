@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/localization/app_localizations.dart';
 import '../domain/islamic_calendar.dart';
@@ -146,6 +147,14 @@ class _CalendarPageState extends State<CalendarPage> {
                 ),
               );
             },
+          ),
+          const SizedBox(height: 16),
+          // Takvim bugüne kadar namaz vaktine hiç değinmiyordu; aylık
+          // çizelge buradan açılır.
+          FilledButton.tonalIcon(
+            onPressed: () => context.push('/imsakiye'),
+            icon: const Icon(Icons.schedule_outlined),
+            label: Text(l10n.text('imsakiye.open')),
           ),
           const SizedBox(height: 16),
           _selectedPanel(context),
