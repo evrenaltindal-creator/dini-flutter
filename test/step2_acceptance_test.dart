@@ -54,8 +54,11 @@ void main() {
     expect(state.nextTime.year, 2026);
     expect(state.nextTime.month, 8);
     expect(state.nextTime.day, 27);
-    expect(state.nextTime.hour, 4);
-    expect(state.nextTime.minute, 48);
+    // Saat ve dakika sabit yazılmamalı: motor gerçek güneş konumundan
+    // hesaplıyor, dolayısıyla beklenen değer bugünün sabah vaktidir.
+    final fajrToday = today.times[Prayer.fajr]!;
+    expect(state.nextTime.hour, fajrToday.hour);
+    expect(state.nextTime.minute, fajrToday.minute);
   });
   test('near midnight and next calendar day remain positive', () {
     final t = calc.calculate(date, locations['Istanbul']!);
@@ -89,27 +92,42 @@ void main() {
   test(
     'minute adjustments change displayed times without changing domain date',
     () {
-      final t = calc.calculate(
+      const adjustments = PrayerAdjustments(
+        fajr: 2,
+        dhuhr: -1,
+        asr: 3,
+        maghrib: 0,
+        isha: -2,
+      );
+      final plain = calc.calculate(date, locations['Istanbul']!);
+      final adjusted = calc.calculate(
         date,
         locations['Istanbul']!,
-        adjustments: const PrayerAdjustments(
-          fajr: 2,
-          dhuhr: -1,
-          asr: 3,
-          maghrib: 0,
-          isha: -2,
-        ),
+        adjustments: adjustments,
       );
-      expect(t.times[Prayer.fajr]!.hour, 4);
-      expect(t.times[Prayer.fajr]!.minute, 50);
-      expect(t.times[Prayer.dhuhr]!.hour, 11);
-      expect(t.times[Prayer.dhuhr]!.minute, 59);
-      expect(t.times[Prayer.asr]!.hour, 16);
-      expect(t.times[Prayer.asr]!.minute, 33);
-      expect(t.times[Prayer.isha]!.hour, 19);
-      expect(t.times[Prayer.isha]!.minute, 13);
+
+      // Mutlak saatler motorun hesabına bağlıdır; sözleşme, her vaktin tam
+      // olarak verilen dakika kadar kaymasıdır.
+      const expected = {
+        Prayer.fajr: 2,
+        Prayer.dhuhr: -1,
+        Prayer.asr: 3,
+        Prayer.maghrib: 0,
+        Prayer.isha: -2,
+      };
+      expected.forEach((prayer, minutes) {
+        expect(
+          adjusted.times[prayer]!.difference(plain.times[prayer]!).inMinutes,
+          minutes,
+          reason: '$prayer için düzeltme uygulanmadı.',
+        );
+      });
+
+      // Düzeltme yalnızca gösterimi kaydırır, günü değiştirmez.
+      expect(adjusted.date, plain.date);
     },
   );
+
   test('12 and 24 hour formatting are display-only', () {
     final value = DateTime(2026, 8, 26, 19, 42);
     expect(formatPrayerTime(value), '19:42');

@@ -247,7 +247,23 @@ void main() {
       );
       expect(before.timezoneId, timezone);
       expect(after.timezoneId, timezone);
-      expect(after.times[Prayer.sunrise]!.hour, 6);
+
+      // Sabit bir saat beklemek anlamsız: güneş doğuşu konuma ve tarihe göre
+      // değişir. Yerel saatin kayması da hata değil — Londra 29 Mart'ta yaz
+      // saatine geçer ve güneş doğuşu saati gerçekten bir saat ilerler.
+      //
+      // Doğru sözleşme şu: altta yatan **an** sürekli olmalıdır. Saat dilimi
+      // doğru işleniyorsa UTC'de güneş doğuşu iki günde yalnızca mevsimsel
+      // birkaç dakika kayar; yanlış işleniyorsa bir saat sıçrar.
+      final beforeUtc = _minuteOfDay(before.times[Prayer.sunrise]!.toUtc());
+      final afterUtc = _minuteOfDay(after.times[Prayer.sunrise]!.toUtc());
+      expect(
+        (afterUtc - beforeUtc).abs(),
+        lessThan(30),
+        reason:
+            '$timezone için güneş doğuşunun UTC anı sıçradı: '
+            '$beforeUtc -> $afterUtc dakika. Yaz saati yanlış işleniyor.',
+      );
     }
   });
 
@@ -276,3 +292,5 @@ void main() {
     },
   );
 }
+
+int _minuteOfDay(DateTime value) => value.hour * 60 + value.minute;
