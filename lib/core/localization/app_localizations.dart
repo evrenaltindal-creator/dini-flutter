@@ -162,6 +162,8 @@ class AppLocalizations {
       'qibla.heading': 'Cihaz yönü: {degrees}°{aligned}',
       'qibla.aligned': ' · Hizalı',
       'qibla.privacy': 'Konum cihazda tutulur; dışarı gönderilmez.',
+      'qibla.northTrue': 'Açı gerçek (coğrafi) kuzeye göredir.',
+      'qibla.northBoth': 'Gerçek kuzeye göre {true}°, manyetik pusulaya göre {magnetic}°. Basılı çizelgeler manyetik değeri verebilir.',
       'tracker.title': 'Namaz Takibi',
       'tracker.today': 'Bugünün namazları',
       'tracker.completed': '{completed} / {total} tamamlandı',
@@ -420,6 +422,9 @@ class AppLocalizations {
       'qibla.aligned': ' · Aligned',
       'qibla.privacy':
           'Your location stays on this device and is not sent out.',
+      'qibla.northTrue':
+          'The bearing is measured from true (geographic) north.',
+      'qibla.northBoth': '{true}° from true north, {magnetic}° on a magnetic compass. Printed tables may quote the magnetic value.',
       'tracker.title': 'Prayer Tracker',
       'tracker.today': 'Today’s prayers',
       'tracker.completed': '{completed} / {total} completed',
@@ -677,6 +682,8 @@ class AppLocalizations {
       'qibla.heading': 'اتجاه الجهاز: {degrees}°{aligned}',
       'qibla.aligned': ' · بمحاذاة القبلة',
       'qibla.privacy': 'يبقى موقعك على هذا الجهاز ولا يتم إرساله.',
+      'qibla.northTrue': 'الزاوية محسوبة من الشمال الجغرافي الحقيقي.',
+      'qibla.northBoth': '{true}° من الشمال الحقيقي، و{magnetic}° على البوصلة المغناطيسية. قد تذكر الجداول المطبوعة القيمة المغناطيسية.',
       'tracker.title': 'متابعة الصلاة',
       'tracker.today': 'صلوات اليوم',
       'tracker.completed': 'تم إكمال {completed} من {total}',

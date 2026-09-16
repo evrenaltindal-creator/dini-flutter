@@ -7,10 +7,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../prayer_times/domain/prayer_engine.dart';
 import '../../prayer_times/presentation/providers.dart';
+import '../data/magnetic_declination.dart';
+import '../domain/compass_north.dart';
 import '../domain/qibla_calculator.dart';
 
 class QiblaPage extends ConsumerStatefulWidget {
-  const QiblaPage({super.key});
+  /// Manyetik sapmayı çözen servis. Testlerde sahte bir servisle
+  /// değiştirilebilsin diye dışarıdan verilebilir; verilmezse platforma
+  /// bağlı olan gerçek servis kullanılır.
+  final MagneticDeclinationService? declinationService;
+
+  const QiblaPage({super.key, this.declinationService});
 
   @override
   ConsumerState<QiblaPage> createState() => _QiblaPageState();
@@ -24,15 +31,24 @@ class _QiblaPageState extends ConsumerState<QiblaPage> {
   /// doğrudan animasyona verilemez; bkz. [QiblaNeedle].
   QiblaNeedle _needle = const QiblaNeedle();
 
+  /// Pusula okumasının gerçek kuzeye çevrimi. Sapma çözülene kadar
+  /// düzeltmesiz başlar; Android'de sapma birkaç derecedir, iOS'ta sıfırdır.
+  CompassNorth _north = const CompassNorth(readingIsTrueNorth: false);
+
   @override
   void initState() {
     super.initState();
+    _resolveNorth();
     _subscription = FlutterCompass.events?.listen(
       (event) {
         if (!mounted) return;
         setState(() {
-          _heading = event.heading;
-          final heading = event.heading;
+          // Android manyetik kuzeye göre ölçer; kıble açısı gerçek kuzeye
+          // göredir. Karşılaştırmadan önce okuma çevrilir.
+          final heading = event.heading == null
+              ? null
+              : _north.toTrue(event.heading!);
+          _heading = heading;
           if (heading != null) {
             _needle = _needle.update(
               const QiblaCalculator().turnDifference(
@@ -46,6 +62,21 @@ class _QiblaPageState extends ConsumerState<QiblaPage> {
       onError: (_) {
         if (mounted) setState(() => _heading = null);
       },
+    );
+  }
+
+  /// Yerel manyetik sapmayı çözer ve oku yeniden hizalar.
+  Future<void> _resolveNorth() async {
+    final service = widget.declinationService ?? MagneticDeclinationService();
+    final north = await service.resolve(_coordinates);
+    if (mounted) setState(() => _north = north);
+  }
+
+  Coordinates get _coordinates {
+    final settings = ref.read(effectivePrayerSettingsProvider);
+    return Coordinates(
+      settings.location.latitude ?? 41.0082,
+      settings.location.longitude ?? 28.9784,
     );
   }
 
@@ -133,6 +164,20 @@ class _QiblaPageState extends ConsumerState<QiblaPage> {
                         'qibla': bearing.round(),
                       }),
                       textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 6),
+                    // Hangi kuzeye göre ölçtüğümüzü söylemek gerekir:
+                    // basılı çizelgelerdeki kıble açısı manyetik pusulaya
+                    // göre olabilir ve birkaç derece farklı görünür.
+                    Text(
+                      _north.isKnown && !_north.readingIsTrueNorth
+                          ? context.l10n.text('qibla.northBoth', {
+                              'true': bearing.round(),
+                              'magnetic': _north.toMagnetic(bearing).round(),
+                            })
+                          : context.l10n.text('qibla.northTrue'),
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
                 ),
