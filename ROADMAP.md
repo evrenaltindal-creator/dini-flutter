@@ -133,9 +133,14 @@ Biriken kaza namazlarının sayımı. 2.2 ile aynı veri modelini paylaşır.
 - [x] Hicri tarih düzeltmesi (resmî ilan farkını kullanıcı kapatabiliyor)
 - [x] Ramazan geri sayımı, gün sayısı, son on gece, bayram
 - [x] Aylık imsakiye
-- [ ] **Mahya** — minareler arası ışıklı yazı, her gece değişir, yalnızca
-      Ramazan gecelerinde yanar. Tek teknik risk: arka plan `BoxFit.cover` ile
-      kırpıldığı için minare çapalarının ekrandaki yerini hesaplamak gerekir.
+- [x] **Mahya** — minareler arası ışıklı yazı. Akşamdan imsağa yanar, yazı
+      haftada bir değişir; ilk gece, Kadir Gecesi, son gece ve bayram kendi
+      yazılarını taşır. Hicri gün akşam başladığı için akşamdan sonraki mahya
+      ertesi geceye aittir — Ramazan'dan önceki akşam "hoş geldin" mahyası
+      yanar. Minare çapaları görselden ölçüldü (`mahya_geometry.dart`) ve
+      `BoxFit.cover` kırpması hesaba katılıyor; minareler ekran dışında
+      kalırsa mahya çizilmez. Perdesi koyu ekranlarda mahya söner, çünkü
+      içeriğin okunabilirliği önce gelir.
 - [ ] Oruç takibi (30 kutu, tutuldu/tutulmadı, sebebi)
 - [ ] Teravih sayacı (tesbih sayacının motoru kullanılır)
 

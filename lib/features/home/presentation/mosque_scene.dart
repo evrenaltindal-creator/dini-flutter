@@ -4,6 +4,14 @@ import 'package:flutter/material.dart';
 
 import '../domain/mosque_scene_state.dart';
 
+/// Sahne görsellerinin piksel boyutu.
+///
+/// Dördü de aynı orandadır; mahyanın minare yerlerini çözebilmesi için
+/// görselin gerçek boyutu gerekir (`BoxFit.cover` kırpmayı bu orana göre
+/// yapar). Yeni bir sahne görseli eklenirse bu değer de güncellenmelidir;
+/// `mahya_test.dart` dosyadan okuyup karşılaştırır.
+const mosqueSceneImageSize = Size(839, 1874);
+
 class MosqueScene extends StatefulWidget {
   final MosqueSceneState state;
   final double height;

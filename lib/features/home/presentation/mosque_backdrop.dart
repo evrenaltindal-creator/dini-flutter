@@ -3,8 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../calendar/domain/ramadan_status.dart';
+import '../../ramadan/domain/mahya.dart';
+import '../../ramadan/presentation/mahya_view.dart';
 import '../../prayer_times/domain/timezone_service.dart';
 import '../../prayer_times/presentation/providers.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../domain/mosque_scene_state.dart';
 import 'mosque_scene.dart';
 
@@ -51,7 +54,7 @@ class MosqueBackdrop extends ConsumerWidget {
     final settings = ref.watch(effectivePrayerSettingsProvider);
     final now = TimezoneService.inLocation(
       times.timezoneId ?? 'Europe/Istanbul',
-      DateTime.now(),
+      ref.watch(clockProvider)(),
     );
     final state = const MosqueSceneStateResolver().resolve(
       now,
@@ -80,6 +83,11 @@ class MosqueBackdrop extends ConsumerWidget {
             key: scrimKey,
             decoration: BoxDecoration(gradient: _gradient),
           ),
+          // Mahya perdenin ÜSTÜNDE çizilir; altında kalsaydı koyu perdeli
+          // ekranlarda tamamen kaybolurdu. Parlaklığı perdeye göre düşer:
+          // içeriğin okunabilirliği mahyadan önce gelir.
+          if (mahyaIsLit(state.period))
+            Positioned.fill(child: _Mahya(scrim: scrim)),
           _BackdropMarker(child: child),
         ],
       ),
@@ -101,6 +109,46 @@ class MosqueBackdrop extends ConsumerWidget {
       stops: [0, .5, 1],
     ),
   };
+}
+
+/// Ramazan gecelerinde minareler arasına asılan ışıklı yazı.
+///
+/// Hangi yazının yanacağı hicri geceye bağlıdır; kullanıcının tarih
+/// düzeltmesi burada da geçerlidir, yoksa mahya bildirimlerin planlandığı
+/// günden başka bir gece için yanar.
+class _Mahya extends ConsumerWidget {
+  final BackdropScrim scrim;
+
+  const _Mahya({required this.scrim});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final times = ref.watch(prayerTimesProvider);
+    final settings = ref.watch(effectivePrayerSettingsProvider);
+    final now = TimezoneService.inLocation(
+      times.timezoneId ?? 'Europe/Istanbul',
+      ref.watch(clockProvider)(),
+    );
+    final state = const MosqueSceneStateResolver().resolve(
+      now,
+      times,
+      ramadan: ramadanStatus(now, calendar: settings.calendar).isFasting,
+    );
+    final mahya = mahyaFor(
+      now,
+      afterMaghrib: mahyaAfterMaghrib(state.period),
+      calendar: settings.calendar,
+    );
+    if (mahya == null) return const SizedBox.shrink();
+
+    final text = context.l10n.text(mahya.textKey);
+    return MahyaView(
+      text: text,
+      semanticsLabel: context.l10n.text('mahya.semantics', {'text': text}),
+      imageSize: mosqueSceneImageSize,
+      glow: scrim == BackdropScrim.light ? MahyaGlow.full : MahyaGlow.dim,
+    );
+  }
 }
 
 /// Ağaçta bir [MosqueBackdrop] bulunduğunu bildirir.

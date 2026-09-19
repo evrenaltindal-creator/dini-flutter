@@ -19,6 +19,14 @@ final calculationMethodProvider = StateProvider<PrayerCalculationMethod>(
 // Diyanet'in yayımladığı vakitlerle uyum için standart hesap; bkz.
 // PrayerSettings.asrMethod.
 final asrMethodProvider = StateProvider<AsrMethod>((ref) => AsrMethod.standard);
+
+/// Şimdiki zaman.
+///
+/// Doğrudan `DateTime.now()` çağıran ekranlar testte sabitlenemez: mahyanın
+/// hangi gece yandığı ya da sahnenin hangi vakti gösterdiği gerçek saate
+/// bağlı kalırdı.
+final clockProvider = Provider<DateTime Function()>((ref) => DateTime.now);
+
 final effectivePrayerSettingsProvider = Provider<PrayerSettings>(
   (ref) => ref
       .watch(prayerSettingsProvider)
@@ -32,7 +40,9 @@ final prayerTimesProvider = Provider<PrayerTimes>((ref) {
     location.longitude ?? 28.9784,
   );
   return const LocalPrayerTimesCalculator().calculate(
-    DateTime.now(),
+    // Vakitler ekrandaki "şimdi" ile aynı günden okunmalı; ayrıldıklarında
+    // sahne gece görünürken vakitler başka bir güne ait olur.
+    ref.watch(clockProvider)(),
     coordinates,
     method: settings.method,
     asrMethod: settings.asrMethod,
