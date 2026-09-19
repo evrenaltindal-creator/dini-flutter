@@ -149,9 +149,10 @@ void main() {
       'Europe/Berlin',
       reason: 'Şehir kaydedildi ama saat dilimi İstanbul kaldı.',
     );
-    // ignore: avoid_print
-    print(
-      'DBG cancels=${notifications.cancels} scheduled=${notifications.scheduled.length}',
+    expect(
+      notifications.cancels,
+      greaterThan(0),
+      reason: 'Eski alarmlar iptal edilmeden yenileri kurulamaz.',
     );
     expect(
       notifications.scheduled,
