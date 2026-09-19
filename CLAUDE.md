@@ -1,7 +1,8 @@
 # CLAUDE.md — Dini Flutter için çalışma kuralları
 
 Bu dosya, bu depoda çalışan her Claude oturumu için bağlayıcı kısa kılavuzdur.
-Projenin tam haritası için `ARCHITECTURE.md` dosyasını oku.
+Projenin tam haritası için `ARCHITECTURE.md`, sıradaki işler ve gerekçeleri
+için `ROADMAP.md` dosyasını oku.
 
 ## Proje özeti
 
@@ -100,6 +101,13 @@ flutter test --reporter expanded
 - Mağaza ürün kimlikleri `--dart-define` ile gelir; `.dev` ile biten placeholder
   değerler TestFlight workflow'unda reddedilir.
 - Yeni asset eklersen `pubspec.yaml` içindeki `assets:` listesini güncelle.
+- **Konum hiçbir yerden ayarlanamıyor.** `DeviceLocationService` yazılmış ama
+  uygulamada çağrılmıyor ve saat dilimi `'Europe/Istanbul'` olarak sabit;
+  herkes İstanbul'un vaktini görüyor. Bu, açık en büyük eksiktir (`ROADMAP.md`
+  1.1). Konuma dayanan bir özellik eklerken bunu hesaba kat.
+- **Tam zamanlı alarm izni bildirilmemiş.** `AndroidScheduleMode`
+  `exactAllowWhileIdle` kullanıyoruz ama manifestte `SCHEDULE_EXACT_ALARM`
+  yok ve `requestExactAlarmsPermission()` hiç çağrılmıyor (`ROADMAP.md` 1.2).
 - Simge ve bildirim tonu PNG/WAV dosyaları `tool/` altındaki betiklerden
   üretilir. Dosyaları elle düzenleme; betiği değiştirip yeniden çalıştır.
   Betikler `pip install Pillow` ister, başka bağımlılıkları yoktur.
