@@ -22,10 +22,11 @@ import '../features/calendar/domain/ramadan_status.dart';
 import '../features/calendar/presentation/ramadan_headline.dart';
 import '../features/calendar/presentation/calendar_page.dart';
 import '../features/prayer_times/presentation/imsakiye_page.dart';
+import '../features/prayer_times/presentation/location_page.dart';
+import '../features/prayer_times/presentation/save_settings.dart';
 import '../features/tasbih/presentation/tasbih_page.dart';
 import '../features/notifications/presentation/notification_settings_page.dart';
 import '../features/notifications/data/flutter_local_notification_service.dart';
-import '../features/notifications/data/notification_scheduler.dart';
 import '../features/widgets/data/widget_preferences_repository.dart';
 import '../features/widgets/domain/widget_snapshot.dart';
 import '../features/premium/presentation/premium_page.dart';
@@ -144,6 +145,7 @@ final appRouter = GoRouter(
       path: '/qibla',
       builder: (_, _) => const MosqueBackdrop(child: QiblaPage()),
     ),
+    GoRoute(path: '/location', builder: (_, _) => const LocationPage()),
     GoRoute(
       path: '/imsakiye',
       builder: (_, _) => const MosqueBackdrop(child: ImsakiyePage()),
@@ -705,6 +707,19 @@ class SettingsPage extends ConsumerWidget {
       data: (settings) => _Page(
         title: l10n.text('settings.title'),
         children: [
+          // Konum en üstte: vakitlerin doğruluğu her şeyden önce buna bağlı.
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.place_outlined),
+              title: Text(l10n.text('settings.location')),
+              subtitle: Text(
+                settings.location.city ?? l10n.text('location.unknown'),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push('/location'),
+            ),
+          ),
+          const SizedBox(height: 12),
           DropdownButtonFormField<PrayerCalculationMethod>(
             // Dar ekran ve büyük yazı ölçeğinde yatay taşmayı önler.
             isExpanded: true,
@@ -898,14 +913,10 @@ class SettingsPage extends ConsumerWidget {
         .setString(localePreferenceKey, languageCode);
   }
 
-  Future<void> _saveSettings(WidgetRef ref, PrayerSettings value) async {
-    await ref.read(prayerSettingsProvider.notifier).saveSettings(value);
-    await const WidgetSnapshotService().refresh();
-    await reschedulePrayerNotifications(
-      storage: ref.read(localStorageProvider),
-      settings: value,
-    );
-  }
+  /// Ayarları kaydeder. Gövdesi `savePrayerSettings` içindedir; kaydetmenin
+  /// tek bir yolu olmalı ki bildirimleri yeniden planlamak unutulmasın.
+  Future<void> _saveSettings(WidgetRef ref, PrayerSettings value) =>
+      savePrayerSettings(ref, value);
 }
 
 class PremiumPage extends StatelessWidget {

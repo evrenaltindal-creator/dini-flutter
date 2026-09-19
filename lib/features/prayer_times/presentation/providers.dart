@@ -1,5 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/city_repository.dart';
+import '../data/location_service.dart';
+import '../domain/city.dart';
+import '../domain/location_resolver.dart';
 import '../domain/monthly_timetable.dart';
 import '../domain/prayer_engine.dart';
 import '../domain/prayer_settings.dart';
@@ -62,3 +66,24 @@ final monthlyTimetableProvider = Provider.family<MonthlyTimetable, DateTime>((
     timezoneId: location.timezoneId ?? 'Europe/Istanbul',
   );
 });
+
+/// Paketlenmiş şehir listesi. Tek bir kopya tutulur; varlık her aramada
+/// yeniden çözülmemeli.
+final cityRepositoryProvider = Provider((ref) => CityRepository());
+
+final cityDirectoryProvider = FutureProvider<CityDirectory>(
+  (ref) => ref.watch(cityRepositoryProvider).load(),
+);
+
+/// Cihaz konumunu okuyan servis. Testlerde sahte bir servisle değiştirilir.
+final locationServiceProvider = Provider<LocationService>(
+  (ref) => const DeviceLocationService(),
+);
+
+/// Konumu ölçüp kaydedilebilir bir tercihe çeviren çözümleyici.
+final locationResolverProvider = FutureProvider<LocationResolver>(
+  (ref) async => LocationResolver(
+    service: ref.watch(locationServiceProvider),
+    directory: await ref.watch(cityDirectoryProvider.future),
+  ),
+);

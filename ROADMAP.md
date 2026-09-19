@@ -34,25 +34,15 @@ Bu fazın tamamı tek bir soruya bakar: *vakit girdiğinde telefon doğru şehir
 için doğru saatte ötüyor mu?* Arayüz ne kadar iyi olursa olsun bu cevap "hayır"
 ise uygulama silinir.
 
-### 1.1 Konum — her şeyin önünde
+### 1.1 Konum — her şeyin önünde ✅
 
-**Durum:** `DeviceLocationService.automatic()` yazılmış ama uygulamada tek bir
-yerden bile çağrılmıyor. Şehir seçici, elle koordinat girişi ve konum izni akışı
-yok. Saat dilimi her yerde `'Europe/Istanbul'` olarak sabit.
+**Yapıldı.** Ayarlar → Konum ekranı: cihazdan otomatik konum ya da paketlenmiş
+listeden şehir seçimi (81 il + 83 dünya şehri). Saat dilimi en yakın şehirden
+çözülür; GPS'i bağlayıp dilimi sabit bırakmak Berlin'deki kullanıcıya Berlin
+koordinatlarını İstanbul saatiyle göstermek olurdu.
 
-**Sonuç:** Kullanıcı nerede olursa olsun İstanbul'un vaktini görüyor. Ankara'da
-birkaç dakika, Berlin'de saatler yanlış.
-
-**Yapılacak:**
-- İzin akışı + otomatik konum (`geolocator` zaten bağımlı).
-- Şehir seçici. Çevrimdışı kuralı gereği şehir listesi **pakette** olmalı;
-  geocoding API'si eklenmez.
-- Koordinattan IANA saat dilimi çözümü — offline bir tablo ister. GPS'i
-  bağlayıp saat dilimini sabit bırakmak, Berlin'deki kullanıcıya Berlin
-  koordinatlarını İstanbul saatiyle göstermek demektir.
-
-**Neden ilk:** Alarm iznini düzeltsek bile yanlış şehrin ezanını tam zamanında
-çalmış oluruz.
+Kalan: elle koordinat girişi (uzman kullanıcı için), şehir listesinin
+genişletilmesi ve listedeki koordinatların gözden geçirilmesi.
 
 ### 1.2 Tam zamanlı alarm izni (Android)
 
