@@ -1,4 +1,6 @@
+import 'package:dini_flutter/core/localization/app_localizations.dart';
 import 'package:dini_flutter/features/worship/domain/prayer_flow.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Arap harfleri bloğu (U+0600–U+06FF) ve Arapça ek formlar.
@@ -7,15 +9,18 @@ final _arabicScript = RegExp(r'[؀-ۿݐ-ݿﭐ-﷿]');
 /// Latin harfleri — Arapça alanında bulunmamalıdır.
 final _latinLetters = RegExp(r'[A-Za-zÇĞİÖŞÜçğıöşü]');
 
+String _text(String languageCode, String key) =>
+    AppLocalizations(Locale(languageCode)).text(key);
+
 void main() {
   test('every recitation slot is declared and named', () {
     for (final id in RecitationId.values) {
       final recitation = recitationLibrary[id];
       expect(recitation, isNotNull, reason: '$id için kütüphanede kayıt yok.');
       expect(
-        recitation!.name.trim(),
+        recitation!.nameKey.trim(),
         isNotEmpty,
-        reason: '$id kaydının adı boş.',
+        reason: '$id kaydının ad anahtarı boş.',
       );
     }
   });
@@ -65,23 +70,76 @@ void main() {
     }
   });
 
-  test('transliteration and meaning are not swapped with arabic', () {
+  test('transliteration is latin, never arabic script', () {
     for (final entry in recitationLibrary.entries) {
-      final value = entry.value;
-      if (value.transliteration.isNotEmpty) {
-        expect(
-          _arabicScript.hasMatch(value.transliteration),
-          isFalse,
-          reason: '${entry.key} okunuş alanında Arap harfi var.',
-        );
-      }
-      if (value.meaning.isNotEmpty) {
-        expect(
-          _arabicScript.hasMatch(value.meaning),
-          isFalse,
-          reason: '${entry.key} anlam alanında Arap harfi var.',
-        );
-      }
+      final value = entry.value.transliteration;
+      if (value.isEmpty) continue;
+      expect(
+        _arabicScript.hasMatch(value),
+        isFalse,
+        reason: '${entry.key} okunuş alanında Arap harfi var.',
+      );
+      expect(_latinLetters.hasMatch(value), isTrue);
     }
+  });
+
+  group('üç dilde metin', () {
+    // Ad, anlam ve kaynak kullanıcıya görünür; CLAUDE.md üç dilde birlikte
+    // eklenmelerini şart koşar. Eksik bir anahtar `text()` tarafından
+    // anahtarın kendisi olarak döner, yani ekranda "recitation.x.name"
+    // yazardı. Bu testler o sessiz düşüşü yakalar.
+    for (final entry in recitationLibrary.entries) {
+      final recitation = entry.value;
+      if (!recitation.isComplete) continue;
+
+      test('${entry.key} üç dilde de çözülüyor', () {
+        for (final language in ['tr', 'en', 'ar']) {
+          for (final key in [
+            recitation.nameKey,
+            recitation.meaningKey,
+            recitation.sourceKey,
+          ]) {
+            final value = _text(language, key);
+            expect(
+              value,
+              isNot(key),
+              reason: '$language dilinde $key karşılıksız.',
+            );
+            expect(value.trim(), isNotEmpty);
+          }
+        }
+      });
+    }
+
+    test('Türkçe ve İngilizce anlamlar Arap harfi taşımaz', () {
+      // Anlam alanına yanlışlıkla Arapça metnin kendisi kopyalanırsa
+      // kullanıcı çeviri yerine aynı metni ikinci kez görür.
+      for (final entry in recitationLibrary.entries) {
+        if (!entry.value.isComplete) continue;
+        for (final language in ['tr', 'en']) {
+          expect(
+            _arabicScript.hasMatch(_text(language, entry.value.meaningKey)),
+            isFalse,
+            reason: '${entry.key} için $language anlamı Arap harfi içeriyor.',
+          );
+        }
+      }
+    });
+
+    test('her kaynak künyesi bir kaynak adı taşır', () {
+      // "Kaynak:" etiketinin arkası boş kalırsa kullanıcı içeriğin nereden
+      // geldiğini göremez; dinî içerikte bu kabul edilemez.
+      for (final entry in recitationLibrary.entries) {
+        if (!entry.value.isComplete) continue;
+        final turkish = _text('tr', entry.value.sourceKey);
+        expect(
+          turkish,
+          anyOf(contains('Diyanet'), contains('Kur’an')),
+          reason:
+              '${entry.key} kaynağı tanınan bir kaynağa işaret etmiyor: '
+              '$turkish',
+        );
+      }
+    });
   });
 }

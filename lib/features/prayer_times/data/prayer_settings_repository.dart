@@ -21,6 +21,7 @@ class PrayerSettingsRepository {
         'lat': s.location.latitude,
         'lon': s.location.longitude,
         'tz': s.location.timezoneId,
+        'hijriOffset': s.hijriOffset,
         'adjustments': {
           'fajr': s.adjustments.fajr,
           'dhuhr': s.adjustments.dhuhr,
@@ -53,6 +54,8 @@ class PrayerSettingsRepository {
         use24Hour: (m['use24'] as bool?) ?? true,
         location: location,
         locationMode: LocationMode.values.byName(m['mode'] as String),
+        // Beklenmeyen bir değer takvimi saatlerce kaydırmamalı.
+        hijriOffset: ((m['hijriOffset'] as int?) ?? 0).clamp(-1, 1),
         adjustments: PrayerAdjustments(
           fajr: a['fajr'] as int? ?? 0,
           dhuhr: a['dhuhr'] as int? ?? 0,

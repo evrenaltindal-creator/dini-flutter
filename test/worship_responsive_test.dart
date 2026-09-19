@@ -202,6 +202,50 @@ void main() {
       );
     });
 
+    /// Okunacak metinler bölümü, kütüphane dolana kadar hiç çizilmiyordu;
+    /// dolayısıyla düzenini hiçbir test görmemişti. Fâtiha ve Kunut uzun
+    /// metinlerdir ve dar ekranda taşmaya en yatkın kayıtlardır.
+    for (final language in ['tr', 'en', 'ar']) {
+      for (final width in [320.0, 430.0]) {
+        testWidgets('recitations fit at ${width.toInt()}dp in $language', (
+          tester,
+        ) async {
+          await tester.binding.setSurfaceSize(Size(width, 900));
+          addTearDown(() => tester.binding.setSurfaceSize(null));
+
+          await tester.pumpWidget(
+            _app(
+              PrayerGuideDetailPage(guide: dailyPrayerGuides.first),
+              languageCode: language,
+              width: width,
+              // Büyük yazı ölçeği taşmayı en çok zorlayan durumdur.
+              textScale: 1.3,
+            ),
+          );
+          await tester.pump(const Duration(milliseconds: 400));
+
+          // Başlık, testin çalıştığı dilde aranmalıdır.
+          final heading = AppLocalizations(Locale(language))
+              .text('guide.recitationsTitle');
+          await tester.scrollUntilVisible(
+            find.text(heading),
+            300,
+            scrollable: find.byType(Scrollable).first,
+          );
+
+          expect(
+            tester.takeException(),
+            isNull,
+            reason:
+                'Okunacak metinler bölümü ${width.toInt()}dp genişlikte '
+                '$language dilinde taştı.',
+          );
+          // Bölüm gerçekten çizildi mi? Kütüphane boşalırsa bu düşer.
+          expect(find.text(heading), findsOneWidget);
+        });
+      }
+    }
+
     testWidgets('renders right-to-left in Arabic', (tester) async {
       await tester.binding.setSurfaceSize(const Size(390, 900));
       addTearDown(() => tester.binding.setSurfaceSize(null));

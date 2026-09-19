@@ -47,7 +47,7 @@ test edilebilir. Yeni mantık yazarken önce `domain`'e koy.
 | --- | --- |
 | `lib/main.dart` | Giriş noktası. `SharedPreferences` yükler, kayıtlı dili okur, `ProviderScope` override'larını kurar, `MaterialApp.router`'ı yapılandırır. `themeModeProvider`, `localeProvider` ve `localePreferenceKey` burada tanımlıdır. |
 | `lib/app/router.dart` | **979 satır.** Tüm rotalar, alt menü (`NavigationBar`) ve `HomePage`, `SettingsPage`, `PremiumPage`, `PrivacyPage`, `AboutPage`, `PlaceholderPage` sayfaları. |
-| `lib/core/localization/app_localizations.dart` | **527 satır.** `tr`/`en`/`ar` için 155'er anahtarlık sabit `_strings` haritası, `{placeholder}` değiştirme, `context.l10n` extension'ı. |
+| `lib/core/localization/app_localizations.dart` | `tr`/`en`/`ar` için 242'şer anahtarlık sabit `_strings` haritası, `{placeholder}` değiştirme, `context.l10n` extension'ı. Parite `localization_test.dart` ile zorunludur. |
 | `lib/core/theme/app_theme.dart` | Material 3 light/dark tema. Tohum renk `#0b3d3a`, ikincil `#cda45e`. Kart, navigasyon çubuğu, chip ve metin temaları. |
 | `lib/core/storage/local_storage.dart` | `LocalStorage` arayüzü + `SharedPreferencesStorage`. |
 | `lib/core/storage/storage_provider.dart` | `localStorageProvider`; `SharedPreferences` yoksa `MemoryStorage`'a düşer (test yolu). |
@@ -61,13 +61,13 @@ Alt menüde beş sekme — `StatefulShellRoute.indexedStack`, sekme durumu korun
 | # | Rota | Ekran | Menü anahtarı |
 | --- | --- | --- | --- |
 | 0 | `/` | `HomePage` (cami sahnesi + vakitler) | `nav.home` |
-| 1 | `/quran` | `PlaceholderPage` — **henüz yazılmadı** | `nav.quran` |
+| 1 | `/quran` | `QuranComingSoonPage` — **henüz yazılmadı**, meal telif nedeniyle ertelendi | `nav.quran` |
 | 2 | `/worship` | `TasbihPage` | `nav.worship` |
 | 3 | `/calendar` | `CalendarPage` | `nav.calendar` |
 | 4 | `/settings` | `SettingsPage` | `nav.settings` |
 
 Menü dışı rotalar: `/premium`, `/privacy`, `/about`, `/qibla`, `/tasbih`,
-`/tracker`, `/notifications`.
+`/tracker`, `/notifications`, `/imsakiye`.
 
 Ana sayfada alt menü camiye uyacak şekilde koyu/altın renklerle
 (`NavigationBarTheme` override) çizilir; diğer sekmelerde tema varsayılanı kullanılır.
@@ -81,6 +81,9 @@ Ana sayfada alt menü camiye uyacak şekilde koyu/altın renklerle
 - `domain/prayer_engine.dart` — `PrayerTimesCalculator` arayüzü ve
   `LocalPrayerTimesCalculator`. Altı hesaplama yöntemi (Diyanet, MWL,
   Umm al-Qura, Egyptian, Karachi, ISNA) ve iki ikindi içtihadı (standard/hanafi).
+  **Varsayılan ikindi `standard`'dır** ve `PrayerSettings` ile aynı olmalıdır:
+  Diyanet ikindiyi asr-ı evvel ile yayımlar, Hanefî ile aradaki fark elli
+  dakikayı bulur.
   `nextPrayerState()` sıradaki vakti ve kalan süreyi üretir; **tam vakit anı bir
   sonraki vakte ilerler** (sınır kuralı testlerle sabitlenmiştir).
 - `domain/prayer_settings.dart` — `PrayerSettings`, `PrayerAdjustments`
@@ -93,13 +96,22 @@ Ana sayfada alt menü camiye uyacak şekilde koyu/altın renklerle
 - `data/location_service.dart` — `geolocator`; servis kapalı, izin reddedilmiş ve
   kalıcı reddedilmiş durumlarında güvenli fallback. Koordinat cihazdan çıkmaz.
 - `data/prayer_settings_repository.dart` — ayarların yerel serileştirilmesi.
+- `domain/monthly_timetable.dart` — bir ayın tamamı için günlük vakitler
+  (imsakiye). Ekrandan bağımsızdır ve tek gün hesabıyla birebir örtüşmesi
+  test edilir.
 - `presentation/providers.dart` — `prayerTimesProvider`, `nextPrayerProvider`,
-  `effectivePrayerSettingsProvider`. Varsayılan konum İstanbul (41.0082, 28.9784).
+  `effectivePrayerSettingsProvider`, `monthlyTimetableProvider` (ay bazlı
+  `family`). Varsayılan konum İstanbul (41.0082, 28.9784).
+- `presentation/imsakiye_page.dart` — aylık çizelge; bugünün satırına
+  kaydırılmış açılır, satır yüksekliği sabit olduğu için konum doğrudan
+  hesaplanabilir.
 - `presentation/settings_controller.dart` — `sharedPreferencesProvider` (override
   zorunlu) ve `PrayerSettingsController` (`AsyncNotifier`).
 
 > Hesaplayıcı bilinçli olarak yerel bir yaklaşımdır ve resmî Diyanet takvimi
-> olarak etiketlenmemelidir.
+> olarak etiketlenmemelidir. Yine de `diyanet_reference_test.dart`, Ankara için
+> yayımlanan haftalık tabloya üç dakika toleransla bağlıdır; motorun
+> gerçeklikten kopmasını yakalayan tek testtir.
 
 ### `features/home/` — cami sahnesi
 
@@ -114,9 +126,17 @@ Ana sayfada alt menü camiye uyacak şekilde koyu/altın renklerle
 
 ### `features/qibla/` — kıble
 
-`domain/qibla_calculator.dart` Kâbe (21.4225, 39.8262) için yerel açı hesaplar.
+`domain/qibla_calculator.dart` Kâbe (21.4225, 39.8262) için büyük daire açısını
+hesaplar; sonuç **gerçek (coğrafi) kuzeye** göredir.
+`domain/compass_north.dart` + `data/magnetic_declination.dart` cihaz okumasını
+gerçek kuzeye çevirir: iOS `CLHeading.trueHeading` verdiği için düzeltme
+gerekmez, Android `SensorManager.getOrientation` ile manyetik kuzeye göre ölçer
+ve sapma `GeomagneticField` üzerinden (`dini/geomagnetic` kanalı) okunur. Bu
+ayrım olmadan ok Android'de sapma kadar sistematik olarak kayar.
 `presentation/qibla_page.dart` magnetometreye **yalnızca sayfa açıkken** abone olur,
-`dispose` içinde iptal eder; sensör yoksa sakin bir yönlendirme gösterir.
+`dispose` içinde iptal eder; sensör yoksa sakin bir yönlendirme gösterir. Ekran
+hangi kuzeye göre ölçtüğünü yazar ve sapma bilindiğinde manyetik karşılığı da
+gösterir.
 
 ### `features/calendar/` — hicri takvim
 
@@ -209,7 +229,14 @@ Uygulama Diyanet'e bağlı değildir ve dinî hüküm vermez.
 
 `DiniWidgetProvider.kt` + `res/layout/widget_dini.xml` ve
 `res/xml/dini_widget_info.xml` ile AppWidget sağlanır; `MainActivity.kt` Flutter
-tarafını bağlar.
+tarafını bağlar ve iki kanal yayımlar: `dini/widget_snapshot` ve
+`dini/geomagnetic` (manyetik sapma).
+
+Başlatıcı simgesi hem eski PNG'ler hem de `mipmap-anydpi-v26/ic_launcher.xml`
+ile uyarlanabilir katman olarak sağlanır; zemin rengi `values/colors.xml`
+içindedir. Bildirim sesi `res/raw/notification_tone.wav` olarak derlemeye girer.
+Her ses seçeneği **ayrı bir kanal kimliği** taşır, çünkü Android 8'den beri bir
+kanalın sesi oluşturulduktan sonra değiştirilemez.
 
 ---
 
@@ -227,6 +254,15 @@ tarafını bağlar.
 | `step3_responsive_widget_test.dart` | Farklı genişliklerde layout taşması yok, büyük metin ölçeğinde bilgi korunur |
 | `step4_acceptance_test.dart` | Bildirim planlayıcı, koordinatör, tracker, tesbih, dinî günler, "tümünü sil", widget gizliliği |
 | `step5_acceptance_test.dart` | Ücretsiz özellik politikası, ürün eşlemesi, premium tema kapısı |
+| `prayer_engine_test.dart` | Motor koordinatı ve tarihi gerçekten kullanıyor; mevsim, boylam, mezhep, yöntem, kutup bölgeleri, varsayılan parite |
+| `diyanet_reference_test.dart` | Ankara için yayımlanan haftalık tabloya üç dakika toleransla bağlılık |
+| `imsakiye_test.dart` | Ay uzunlukları ve artık yıl, çizelgenin tek gün hesabıyla örtüşmesi, ekranın üç dilde 320-430 dp arasında çizilmesi |
+| `compass_north_test.dart` | Manyetik/gerçek kuzey çevrimi, sapma okunamadığında güvenli davranış, ekranın iki açıyı da göstermesi |
+| `app_icon_test.dart` | Simge dosyaları PNG başlığından doğrulanır: boyut, alfa kanalı, varsayılan Flutter simgesine dönüş |
+| `notification_sound_test.dart` | Ham kaynağın varlığı, iOS kurulumu, ses başına ayrı kanal |
+| `recitation_content_test.dart` | Namaz metinleri kaynaksız veya yarım olamaz; üç dilde çözülür |
+| `worship_responsive_test.dart` | İbadet sekmeleri ekrana sığar, rehber ve okunacak metinler üç dilde taşmaz |
+| `tasbih_history_test.dart`, `tracker_date_test.dart`, `qibla_needle_test.dart`, `launch_mode_test.dart`, `screen_coverage_test.dart`, `notification_scheduling_test.dart`, `worship_guide_test.dart` | İlgili ekranların davranış testleri |
 
 Testler ağ kullanmaz; `MemoryStorage` ve `FakeClock` ile deterministiktir.
 Yeni bir ekran eklerken en az bir davranış testi + (metin eklediysen) yerelleştirme
@@ -286,5 +322,8 @@ içeriği korur.
 6. `test/` altına davranış testi ekle.
 7. `dart format .` → `flutter analyze` → `flutter test` → commit → push.
 
-Sıradaki büyük iş: `/quran` rotasındaki `PlaceholderPage` yerine gerçek
-Kuran ekranı.
+Görsel varlıklar elle düzenlenmez: uygulama simgesi `tool/generate_app_icon.py`,
+bildirim tonu `tool/generate_notification_tone.py` ile üretilir.
+
+Sıradaki büyük iş: `/quran` rotasındaki "yakında" ekranı yerine gerçek
+Kuran ekranı. Meal telif nedeniyle bekletiliyor.

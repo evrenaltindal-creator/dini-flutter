@@ -19,7 +19,12 @@ class WorshipHubPage extends StatelessWidget {
       length: 4,
       initialIndex: initialIndex,
       child: Scaffold(
+        backgroundColor: Colors.transparent,
         appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          scrolledUnderElevation: 0,
           automaticallyImplyLeading: Navigator.of(context).canPop(),
           title: Text(l10n.text('worship.title')),
           actions: [

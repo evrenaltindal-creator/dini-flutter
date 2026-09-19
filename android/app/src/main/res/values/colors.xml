@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Uyarlanabilir simgenin zemini. lib/core/theme/app_theme.dart içindeki
+         tohum rengin koyu tonu. -->
+    <color name="ic_launcher_background">#FF072826</color>
+</resources>

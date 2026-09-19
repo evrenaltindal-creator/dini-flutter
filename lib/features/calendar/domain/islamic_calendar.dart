@@ -5,9 +5,26 @@ class IslamicDate {
 }
 
 class IslamicCalendar {
-  const IslamicCalendar();
+  /// Hicri tarihin kaç gün kaydırılacağı.
+  ///
+  /// Buradaki hesap tabulardır: ayın gözlemine değil ortalama ay ayına
+  /// dayanır ve resmî ilandan bir gün sapabilir. Ramazan'da bu fark önemsiz
+  /// bir ayrıntı olmaktan çıkar — iftar bildirimi yanlış günde gider, geri
+  /// sayım yanlış günü gösterir. Kullanıcı farkı kendi kapatabilsin diye
+  /// tarih bu kadar gün ileri alınır.
+  ///
+  /// +1: resmî takvim bizimkinden bir gün ÖNDE (Ramazan bir gün erken başlar).
+  /// -1: resmî takvim bir gün GERİDE.
+  final int dayOffset;
+
+  const IslamicCalendar({this.dayOffset = 0});
+
+  /// Kullanıcının seçebileceği kaydırma değerleri.
+  static const offsetChoices = [-1, 0, 1];
+
   IslamicDate hijri(DateTime date) {
-    final jd = _julianDay(date.year, date.month, date.day);
+    final shifted = dayOffset == 0 ? date : date.add(Duration(days: dayOffset));
+    final jd = _julianDay(shifted.year, shifted.month, shifted.day);
     var l = jd - 1948440 + 10632;
     final n = (l - 1) ~/ 10631;
     l = l - 10631 * n + 354;

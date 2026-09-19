@@ -273,7 +273,7 @@ class _RecitationSection extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      recitation.name,
+                      l10n.text(recitation.nameKey),
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 10),
@@ -290,12 +290,13 @@ class _RecitationSection extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      '${l10n.text('guide.meaning')}: ${recitation.meaning}',
+                      '${l10n.text('guide.meaning')}: '
+                      '${l10n.text(recitation.meaningKey)}',
                       style: const TextStyle(height: 1.45),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      recitation.source,
+                      l10n.text(recitation.sourceKey),
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],

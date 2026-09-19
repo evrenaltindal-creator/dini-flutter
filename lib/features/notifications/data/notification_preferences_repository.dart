@@ -25,6 +25,8 @@ class NotificationPreferencesRepository {
       fridayReminder: await _bool('friday'),
       ramadanSuhoorReminder: await _bool('ramadan.suhoor'),
       ramadanIftarReminder: await _bool('ramadan.iftar'),
+      suhoorMinutes: await _minutes('ramadan.suhoor.minutes', 45),
+      iftarMinutes: await _minutes('ramadan.iftar.minutes', 30),
     );
   }
 
@@ -52,7 +54,20 @@ class NotificationPreferencesRepository {
       '${_prefix}ramadan.iftar',
       value.ramadanIftarReminder ? '1' : '0',
     );
+    await storage.write(
+      '${_prefix}ramadan.suhoor.minutes',
+      '${value.suhoorMinutes}',
+    );
+    await storage.write(
+      '${_prefix}ramadan.iftar.minutes',
+      '${value.iftarMinutes}',
+    );
   }
+
+  /// Kayıtlı dakika değeri. Hiç kaydedilmemişse ya da bozuksa varsayılan
+  /// döner; bozuk bir değer uyarıyı hiç göndermemeye yol açmamalı.
+  Future<int> _minutes(String key, int fallback) async =>
+      int.tryParse(await storage.read('$_prefix$key') ?? '') ?? fallback;
 
   Future<bool> _bool(String key) async =>
       await storage.read('$_prefix$key') == '1';

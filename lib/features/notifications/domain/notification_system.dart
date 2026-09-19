@@ -1,7 +1,7 @@
 import '../../../shared/models/domain.dart';
+import '../../calendar/domain/islamic_calendar.dart';
 import '../../prayer_times/domain/prayer_engine.dart';
 import '../../prayer_times/domain/prayer_settings.dart';
-import '../../calendar/domain/islamic_calendar.dart';
 
 const notificationPrayers = [
   Prayer.fajr,
@@ -26,7 +26,18 @@ enum NotificationKind {
   friday,
   ramadanSuhoor,
   ramadanIftar,
+  ramadanIftarSoon,
 }
+
+/// Bildirim metnini kullanıcının diline çeviren işlev.
+///
+/// Planlayıcı alan katmanındadır ve `BuildContext` göremez; metinler bu yüzden
+/// dışarıdan verilir. Daha önce başlık ve gövdeler doğrudan Türkçe yazılıydı,
+/// yani İngilizce veya Arapça kullanan bir kişi bildirimi Türkçe alıyordu.
+typedef NotificationTextResolver = String Function(
+  String key, [
+  Map<String, Object> values,
+]);
 
 class PrayerNotificationPreference {
   final bool enabled;
@@ -51,13 +62,29 @@ class NotificationPreferences {
   final Map<Prayer, PrayerNotificationPreference> prayers;
   final NotificationSound sound;
   final bool fridayReminder, ramadanSuhoorReminder, ramadanIftarReminder;
+
+  /// Sahur uyarısının imsaktan kaç dakika önce çalacağı.
+  ///
+  /// Sabit otuz dakikaydı; kalkıp yemek için dar bir süre. Kullanıcı seçer.
+  final int suhoorMinutes;
+
+  /// İftardan kaç dakika önce hazırlık uyarısı verileceği. Sıfır ise yalnızca
+  /// iftar vaktinde bildirim gönderilir.
+  final int iftarMinutes;
+
   const NotificationPreferences({
     this.prayers = const {},
     this.sound = NotificationSound.defaultSound,
     this.fridayReminder = false,
     this.ramadanSuhoorReminder = false,
     this.ramadanIftarReminder = false,
+    this.suhoorMinutes = 45,
+    this.iftarMinutes = 30,
   });
+
+  /// Sahur ve iftar uyarıları için seçilebilen süreler (dakika).
+  static const suhoorChoices = [30, 45, 60, 90];
+  static const iftarChoices = [0, 15, 30, 60];
   PrayerNotificationPreference forPrayer(Prayer prayer) =>
       prayers[prayer] ?? const PrayerNotificationPreference();
   NotificationPreferences copyWith({
@@ -66,12 +93,16 @@ class NotificationPreferences {
     bool? fridayReminder,
     bool? ramadanSuhoorReminder,
     bool? ramadanIftarReminder,
+    int? suhoorMinutes,
+    int? iftarMinutes,
   }) => NotificationPreferences(
     prayers: prayers ?? this.prayers,
     sound: sound ?? this.sound,
     fridayReminder: fridayReminder ?? this.fridayReminder,
     ramadanSuhoorReminder: ramadanSuhoorReminder ?? this.ramadanSuhoorReminder,
     ramadanIftarReminder: ramadanIftarReminder ?? this.ramadanIftarReminder,
+    suhoorMinutes: suhoorMinutes ?? this.suhoorMinutes,
+    iftarMinutes: iftarMinutes ?? this.iftarMinutes,
   );
 }
 
@@ -103,118 +134,143 @@ abstract class LocalNotificationService {
 
 class NotificationSchedulePlanner {
   const NotificationSchedulePlanner();
+
+  /// Ramazan ayının hicri sıra numarası.
+  static const _ramadan = 9;
+
   List<PlannedNotification> plan({
     required List<PrayerTimes> days,
     required NotificationPreferences preferences,
+    required NotificationTextResolver text,
+    // Kullanıcının hicri kaydırması buraya ulaşmazsa Ramazan bildirimleri
+    // ekranda görünen günden farklı bir günde planlanır.
+    IslamicCalendar calendar = const IslamicCalendar(),
     DateTime? notBefore,
   }) {
     final result = <int, PlannedNotification>{};
     final cutoff = notBefore;
+
+    void add({
+      required DateTime at,
+      required NotificationKind kind,
+      required String title,
+      required String body,
+      Prayer? prayer,
+    }) {
+      if (cutoff != null && !at.isAfter(cutoff)) return;
+      final id = notificationId(at, kind, prayer: prayer);
+      result[id] = PlannedNotification(
+        id: id,
+        prayer: prayer,
+        kind: kind,
+        scheduledAt: at,
+        title: title,
+        body: body,
+      );
+    }
+
     for (final day in days) {
       for (final prayer in notificationPrayers) {
         final value = day.times[prayer]!;
         final setting = preferences.forPrayer(prayer);
         if (!setting.enabled) continue;
-        if (cutoff == null || value.isAfter(cutoff)) {
-          final item = PlannedNotification(
-            id: _id(value, prayer, NotificationKind.prayer),
-            prayer: prayer,
-            kind: NotificationKind.prayer,
-            scheduledAt: value,
-            title: _label(prayer),
-            body: 'Namaz vakti geldi.',
-          );
-          result[item.id] = item;
-        }
+
+        add(
+          at: value,
+          kind: NotificationKind.prayer,
+          prayer: prayer,
+          title: text('prayer.${prayer.name}'),
+          body: text('notify.prayerBody'),
+        );
+
         final minutes = setting.reminderMinutes;
         if (minutes != null && minutes > 0) {
-          final reminder = value.subtract(Duration(minutes: minutes));
-          if ((cutoff == null || reminder.isAfter(cutoff)) &&
-              reminder.isAfter(DateTime(2000))) {
-            final item = PlannedNotification(
-              id: _id(value, prayer, NotificationKind.beforePrayer),
-              prayer: prayer,
-              kind: NotificationKind.beforePrayer,
-              scheduledAt: reminder,
-              title: '${_label(prayer)} yaklaşıyor',
-              body: '$minutes dakika sonra namaz vakti.',
-            );
-            result[item.id] = item;
-          }
+          add(
+            at: value.subtract(Duration(minutes: minutes)),
+            kind: NotificationKind.beforePrayer,
+            prayer: prayer,
+            title: text('notify.beforeTitle', {
+              'prayer': text('prayer.${prayer.name}'),
+            }),
+            body: text('notify.beforeBody', {'minutes': minutes}),
+          );
         }
       }
-      final fajr = day.times[Prayer.fajr]!;
-      final maghrib = day.times[Prayer.maghrib]!;
-      final hijri = const IslamicCalendar().hijri(day.date);
+
       if (preferences.fridayReminder && day.date.weekday == DateTime.friday) {
-        final at = day.times[Prayer.dhuhr]!.subtract(
-          const Duration(minutes: 60),
+        add(
+          at: day.times[Prayer.dhuhr]!.subtract(const Duration(minutes: 60)),
+          kind: NotificationKind.friday,
+          title: text('notify.fridayTitle'),
+          body: text('notify.fridayBody'),
         );
-        if (cutoff == null || at.isAfter(cutoff)) {
-          final item = PlannedNotification(
-            id: _specialId(at, NotificationKind.friday),
-            prayer: null,
-            kind: NotificationKind.friday,
-            scheduledAt: at,
-            title: 'Cuma hatırlatıcısı',
-            body: 'Cuma için hazırlık zamanı.',
-          );
-          result[item.id] = item;
-        }
       }
-      if (hijri.month == 9 && preferences.ramadanSuhoorReminder) {
-        final at = fajr.subtract(const Duration(minutes: 30));
-        if (cutoff == null || at.isAfter(cutoff)) {
-          final item = PlannedNotification(
-            id: _specialId(at, NotificationKind.ramadanSuhoor),
-            prayer: null,
-            kind: NotificationKind.ramadanSuhoor,
-            scheduledAt: at,
-            title: 'Sahur yaklaşıyor',
-            body: 'Sahur için 30 dakika kaldı.',
-          );
-          result[item.id] = item;
-        }
+
+      // Ramazan uyarıları yalnızca Ramazan günlerinde planlanır.
+      if (calendar.hijri(day.date).month != _ramadan) continue;
+
+      if (preferences.ramadanSuhoorReminder) {
+        final minutes = preferences.suhoorMinutes;
+        add(
+          at: day.times[Prayer.fajr]!.subtract(Duration(minutes: minutes)),
+          kind: NotificationKind.ramadanSuhoor,
+          title: text('notify.suhoorTitle'),
+          body: text('notify.suhoorBody', {'minutes': minutes}),
+        );
       }
-      if (hijri.month == 9 && preferences.ramadanIftarReminder) {
-        if (cutoff == null || maghrib.isAfter(cutoff)) {
-          final item = PlannedNotification(
-            id: _specialId(maghrib, NotificationKind.ramadanIftar),
-            prayer: null,
-            kind: NotificationKind.ramadanIftar,
-            scheduledAt: maghrib,
-            title: 'İftar vakti',
-            body: 'Hesaplanan yerel Maghrib vakti geldi.',
+
+      if (preferences.ramadanIftarReminder) {
+        final maghrib = day.times[Prayer.maghrib]!;
+        final minutes = preferences.iftarMinutes;
+        // Hazırlık uyarısı isteğe bağlıdır; sıfır seçilirse yalnızca iftar
+        // vaktinde bildirim gider.
+        if (minutes > 0) {
+          add(
+            at: maghrib.subtract(Duration(minutes: minutes)),
+            kind: NotificationKind.ramadanIftarSoon,
+            title: text('notify.iftarSoonTitle'),
+            body: text('notify.iftarSoonBody', {'minutes': minutes}),
           );
-          result[item.id] = item;
         }
+        add(
+          at: maghrib,
+          kind: NotificationKind.ramadanIftar,
+          title: text('notify.iftarTitle'),
+          body: text('notify.iftarBody'),
+        );
       }
     }
     return result.values.toList()
       ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
   }
-
-  int _id(DateTime value, Prayer prayer, NotificationKind kind) =>
-      value.year * 100000 +
-      value.month * 1000 +
-      value.day * 20 +
-      prayer.index * 2 +
-      kind.index;
-  int _specialId(DateTime value, NotificationKind kind) =>
-      value.year * 100000 +
-      value.month * 1000 +
-      value.day * 20 +
-      15 +
-      kind.index;
-  String _label(Prayer prayer) => switch (prayer) {
-    Prayer.fajr => 'Sabah',
-    Prayer.dhuhr => 'Öğle',
-    Prayer.asr => 'İkindi',
-    Prayer.maghrib => 'Akşam',
-    Prayer.isha => 'Yatsı',
-    Prayer.sunrise => 'Güneş doğuşu',
-  };
 }
+
+/// Bir bildirimin kimliği.
+///
+/// Aynı gün, aynı tür ve aynı namaz her zaman aynı sayıyı verir; böylece
+/// yeniden planlama aynı bildirimi çoğaltmaz.
+///
+/// Eski şema `gün * 20 + 15 + tür` biçimindeydi ve tür sayısı beşten fazla
+/// olduğunda `15 + 5 = 20` ertesi günün ilk kimliğiyle çakışıyordu: iki ayrı
+/// bildirim aynı kimliği alır, biri diğerini sessizce silerdi. Slot genişliği
+/// artık türlerin iki katından fazla.
+int notificationId(DateTime at, NotificationKind kind, {Prayer? prayer}) {
+  const kinds = NotificationKind.values;
+  // Her (namaz, tür) çifti kendi slotunu alır. Çarpan tür sayısıdır; daha
+  // küçük bir çarpan (eskiden 2) yalnızca iki tür namazla eşleştiği sürece
+  // çalışır ve üçüncü tür eklendiğinde sessizce çakışır.
+  final slot = prayer == null
+      ? _specialSlotBase + kind.index
+      : prayer.index * kinds.length + kind.index;
+  assert(slot < _slotsPerDay, 'Bildirim slotu taştı: $slot');
+  final day = at.year * 372 + at.month * 31 + at.day;
+  return day * _slotsPerDay + slot;
+}
+
+/// Namazlı slotlar 0..35, özel günler 36..41. 48, büyümeye yer bırakır ve
+/// kimliği 32 bit tam sayı sınırının çok altında tutar.
+const _slotsPerDay = 48;
+const _specialSlotBase = 36;
 
 class PrayerNotificationCoordinator {
   final LocalNotificationService service;
@@ -230,6 +286,7 @@ class PrayerNotificationCoordinator {
     required Coordinates coordinates,
     required PrayerSettings settings,
     required NotificationPreferences preferences,
+    required NotificationTextResolver text,
     int daysAhead = 7,
   }) async {
     await service.cancelAll();
@@ -253,6 +310,8 @@ class PrayerNotificationCoordinator {
     final planned = planner.plan(
       days: days,
       preferences: preferences,
+      text: text,
+      calendar: settings.calendar,
       notBefore: start,
     );
     for (final item in planned) {

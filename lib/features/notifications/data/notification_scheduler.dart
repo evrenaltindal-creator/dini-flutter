@@ -1,5 +1,7 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/storage/local_storage.dart';
 import '../../prayer_times/domain/prayer_engine.dart';
 import '../../prayer_times/domain/prayer_settings.dart';
@@ -33,11 +35,15 @@ Future<void> reschedulePrayerNotifications({
   required PrayerSettings settings,
   NotificationPreferences? preferences,
   LocalNotificationService? service,
+  Locale? locale,
 }) async {
   final values =
       preferences ?? await NotificationPreferencesRepository(storage).load();
   final notifications = service ?? FlutterLocalNotificationService();
   await notifications.initialize();
+  // Bildirim metni kullanıcının dilinde olmalı. Planlayıcı alan katmanındadır
+  // ve `BuildContext` göremez; çözümleyici buradan verilir.
+  final strings = AppLocalizations(locale ?? await savedLocale(storage));
   await PrayerNotificationCoordinator(
     service: notifications,
     calculator: const LocalPrayerTimesCalculator(),
@@ -52,5 +58,16 @@ Future<void> reschedulePrayerNotifications({
     ),
     settings: settings,
     preferences: values,
+    text: strings.text,
   );
+}
+
+/// Kullanıcının kaydettiği dil. Hiç seçilmemişse ya da tanınmayan bir kod
+/// kayıtlıysa Türkçe döner.
+Future<Locale> savedLocale(LocalStorage storage) async {
+  final code = await storage.read(localePreferenceKey);
+  final supported = AppLocalizations.supportedLocales.map(
+    (locale) => locale.languageCode,
+  );
+  return Locale(supported.contains(code) ? code! : 'tr');
 }

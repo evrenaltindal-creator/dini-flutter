@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -12,14 +11,17 @@ import '../features/prayer_times/domain/prayer_settings.dart';
 import '../shared/models/domain.dart';
 import '../features/qibla/presentation/qibla_page.dart';
 import '../features/home/domain/mosque_scene_state.dart';
-import '../features/home/presentation/mosque_scene.dart';
-import '../features/calendar/domain/islamic_calendar.dart';
+import '../features/home/presentation/mosque_backdrop.dart';
 import '../features/content/domain/content_repository.dart';
 import '../features/content/presentation/content_card.dart';
 import '../core/storage/local_storage.dart';
 import '../core/storage/storage_provider.dart';
 import '../core/storage/local_data_repository.dart';
+import '../features/calendar/domain/islamic_calendar.dart';
+import '../features/calendar/domain/ramadan_status.dart';
+import '../features/calendar/presentation/ramadan_headline.dart';
 import '../features/calendar/presentation/calendar_page.dart';
+import '../features/prayer_times/presentation/imsakiye_page.dart';
 import '../features/tasbih/presentation/tasbih_page.dart';
 import '../features/notifications/presentation/notification_settings_page.dart';
 import '../features/notifications/data/flutter_local_notification_service.dart';
@@ -39,60 +41,66 @@ final appRouter = GoRouter(
       builder: (context, state, shell) {
         final l10n = context.l10n;
         final onHome = shell.currentIndex == 0;
-        return Scaffold(
-          extendBody: onHome,
-          body: shell,
-          bottomNavigationBar: NavigationBarTheme(
-            data: onHome
-                ? NavigationBarThemeData(
-                    backgroundColor: const Color(0xF20A2425),
-                    indicatorColor: const Color(0x40FFD88A),
-                    iconTheme: WidgetStateProperty.resolveWith(
-                      (states) => IconThemeData(
-                        color: states.contains(WidgetState.selected)
-                            ? const Color(0xFFFFD88A)
-                            : const Color(0xFFDCE7E4),
+        return MosqueBackdrop(
+          // Ana ekranda fotoğraf ana öğedir; diğer sekmelerde metin öne
+          // çıksın diye perde koyulaşır.
+          scrim: onHome ? BackdropScrim.light : BackdropScrim.heavy,
+          child: Scaffold(
+            backgroundColor: Colors.transparent,
+            extendBody: true,
+            body: shell,
+            bottomNavigationBar: NavigationBarTheme(
+              data: onHome
+                  ? NavigationBarThemeData(
+                      backgroundColor: const Color(0xF20A2425),
+                      indicatorColor: const Color(0x40FFD88A),
+                      iconTheme: WidgetStateProperty.resolveWith(
+                        (states) => IconThemeData(
+                          color: states.contains(WidgetState.selected)
+                              ? const Color(0xFFFFD88A)
+                              : const Color(0xFFDCE7E4),
+                        ),
                       ),
-                    ),
-                    labelTextStyle: WidgetStateProperty.resolveWith(
-                      (states) => TextStyle(
-                        color: states.contains(WidgetState.selected)
-                            ? const Color(0xFFFFD88A)
-                            : const Color(0xFFDCE7E4),
-                        fontWeight: states.contains(WidgetState.selected)
-                            ? FontWeight.w700
-                            : FontWeight.w500,
-                        fontSize: 12,
+                      labelTextStyle: WidgetStateProperty.resolveWith(
+                        (states) => TextStyle(
+                          color: states.contains(WidgetState.selected)
+                              ? const Color(0xFFFFD88A)
+                              : const Color(0xFFDCE7E4),
+                          fontWeight: states.contains(WidgetState.selected)
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                          fontSize: 12,
+                        ),
                       ),
-                    ),
-                  )
-                : const NavigationBarThemeData(),
-            child: NavigationBar(
-              selectedIndex: shell.currentIndex,
-              onDestinationSelected: shell.goBranch,
-              destinations: [
-                NavigationDestination(
-                  icon: const Icon(Icons.home_outlined),
-                  selectedIcon: const Icon(Icons.home),
-                  label: l10n.text('nav.home'),
-                ),
-                NavigationDestination(
-                  icon: const Icon(Icons.menu_book_outlined),
-                  label: l10n.text('nav.quran'),
-                ),
-                NavigationDestination(
-                  icon: const Icon(Icons.mosque_outlined),
-                  label: l10n.text('nav.worship'),
-                ),
-                NavigationDestination(
-                  icon: const Icon(Icons.calendar_month_outlined),
-                  label: l10n.text('nav.calendar'),
-                ),
-                NavigationDestination(
-                  icon: const Icon(Icons.settings_outlined),
-                  label: l10n.text('nav.settings'),
-                ),
-              ],
+                    )
+                  : const NavigationBarThemeData(),
+              child: NavigationBar(
+                selectedIndex: shell.currentIndex,
+                onDestinationSelected: shell.goBranch,
+                destinations: [
+                  NavigationDestination(
+                    icon: const Icon(Icons.home_outlined),
+                    selectedIcon: const Icon(Icons.home),
+                    label: l10n.text('nav.home'),
+                  ),
+                  NavigationDestination(
+                    icon: const Icon(Icons.menu_book_outlined),
+                    label: l10n.text('nav.quran'),
+                  ),
+                  NavigationDestination(
+                    icon: const Icon(Icons.mosque_outlined),
+                    label: l10n.text('nav.worship'),
+                  ),
+                  NavigationDestination(
+                    icon: const Icon(Icons.calendar_month_outlined),
+                    label: l10n.text('nav.calendar'),
+                  ),
+                  NavigationDestination(
+                    icon: const Icon(Icons.settings_outlined),
+                    label: l10n.text('nav.settings'),
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -132,15 +140,27 @@ final appRouter = GoRouter(
     GoRoute(path: '/premium', builder: (_, _) => const PremiumStorePage()),
     GoRoute(path: '/privacy', builder: (_, _) => const PrivacyPage()),
     GoRoute(path: '/about', builder: (_, _) => const AboutPage()),
-    GoRoute(path: '/qibla', builder: (_, _) => const QiblaPage()),
-    GoRoute(path: '/tasbih', builder: (_, _) => const TasbihPage()),
+    GoRoute(
+      path: '/qibla',
+      builder: (_, _) => const MosqueBackdrop(child: QiblaPage()),
+    ),
+    GoRoute(
+      path: '/imsakiye',
+      builder: (_, _) => const MosqueBackdrop(child: ImsakiyePage()),
+    ),
+    GoRoute(
+      path: '/tasbih',
+      builder: (_, _) => const MosqueBackdrop(child: TasbihPage()),
+    ),
     GoRoute(
       path: '/tracker',
-      builder: (_, _) => const WorshipHubPage(initialIndex: 0),
+      builder: (_, _) =>
+          const MosqueBackdrop(child: WorshipHubPage(initialIndex: 0)),
     ),
     GoRoute(
       path: '/notifications',
-      builder: (_, _) => const NotificationSettingsPage(),
+      builder: (_, _) =>
+          const MosqueBackdrop(child: NotificationSettingsPage()),
     ),
   ],
 );
@@ -157,7 +177,8 @@ class HomePage extends ConsumerWidget {
       times.timezoneId ?? 'Europe/Istanbul',
       DateTime.now(),
     );
-    final hijri = const IslamicCalendar().hijri(now);
+    final hijri = settings.calendar.hijri(now);
+    final ramadan = ramadanStatus(now, calendar: settings.calendar);
     final scene = const MosqueSceneStateResolver().resolve(
       now,
       times,
@@ -177,199 +198,202 @@ class HomePage extends ConsumerWidget {
       'hours': next.remaining.inHours,
       'minutes': next.remaining.inMinutes.remainder(60),
     });
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          RepaintBoundary(
-            child: MosqueScene(
-              state: scene,
-              height: viewport.height,
-              borderRadius: BorderRadius.zero,
-              showShadow: false,
+    // Sahne artık kabukta çizilir; burada yalnızca içerik ve onun kendi
+    // okunabilirlik perdesi durur. İkinci bir sahne çizmek, sekme
+    // değiştirirken görselin yeniden yüklenmesine yol açıyordu.
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        const DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0x8C000000),
+                Color(0x12000000),
+                Color(0x70020D0E),
+                Color(0xD9082021),
+              ],
+              stops: [0, .22, .56, 1],
             ),
           ),
-          const DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0x8C000000),
-                  Color(0x12000000),
-                  Color(0x70020D0E),
-                  Color(0xD9082021),
-                ],
-                stops: [0, .22, .56, 1],
+        ),
+        SafeArea(
+          bottom: false,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 18, 16, 116),
+            children: [
+              Text(
+                l10n.text('home.greeting'),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 30,
+                  height: 1.05,
+                  fontWeight: FontWeight.w700,
+                  shadows: [Shadow(blurRadius: 14, color: Color(0xCC000000))],
+                ),
               ),
-            ),
-          ),
-          SafeArea(
-            bottom: false,
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 18, 16, 116),
-              children: [
-                Text(
-                  l10n.text('home.greeting'),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 30,
-                    height: 1.05,
-                    fontWeight: FontWeight.w700,
-                    shadows: [Shadow(blurRadius: 14, color: Color(0xCC000000))],
-                  ),
+              const SizedBox(height: 8),
+              Text(
+                '${settings.location.city ?? l10n.text('home.selectedLocation')} · ${now.day} ${l10n.month(now.month)} ${now.year}',
+                style: const TextStyle(
+                  color: Color(0xFFF7F3E9),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  shadows: [Shadow(blurRadius: 12, color: Color(0xE0000000))],
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  '${settings.location.city ?? l10n.text('home.selectedLocation')} · ${now.day} ${l10n.month(now.month)} ${now.year}',
-                  style: const TextStyle(
-                    color: Color(0xFFF7F3E9),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    shadows: [Shadow(blurRadius: 12, color: Color(0xE0000000))],
-                  ),
-                ),
-                SizedBox(height: topBreathingRoom),
-                _NextPrayerPanel(
-                  icon: _prayerIcon(next.next!),
-                  title: l10n.text('home.nextPrayer'),
-                  prayerAndRemaining: '${label(next.next!)} · $remaining',
-                  time: fmt(next.nextTime),
-                ),
-                const SizedBox(height: 12),
-                _GlassPanel(
-                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
+              ),
+              SizedBox(height: topBreathingRoom),
+              _NextPrayerPanel(
+                icon: _prayerIcon(next.next!),
+                title: l10n.text('home.nextPrayer'),
+                prayerAndRemaining: '${label(next.next!)} · $remaining',
+                time: fmt(next.nextTime),
+              ),
+              const SizedBox(height: 12),
+              _GlassPanel(
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _GlassTag(
+                          icon: Icons.calendar_today_outlined,
+                          label: l10n.text('home.hijri', {'date': hijri.label}),
+                        ),
+                        if (scene.friday)
                           _GlassTag(
-                            icon: Icons.calendar_today_outlined,
-                            label: l10n.text('home.hijri', {
-                              'date': hijri.label,
-                            }),
+                            icon: Icons.star_outline,
+                            label: l10n.text('home.friday'),
                           ),
-                          if (scene.friday)
-                            _GlassTag(
-                              icon: Icons.star_outline,
-                              label: l10n.text('home.friday'),
-                            ),
-                          if (scene.ramadan)
-                            _GlassTag(
-                              icon: Icons.nightlight_outlined,
-                              label: l10n.text('home.ramadan'),
-                            ),
-                        ],
+                        if (scene.ramadan)
+                          _GlassTag(
+                            icon: Icons.nightlight_outlined,
+                            // Ramazan'ın kaçıncı günü olduğumuzu yazmak,
+                            // yalnızca "Ramazan" demekten daha yararlı.
+                            label: ramadan.dayOfRamadan == null
+                                ? l10n.text('home.ramadan')
+                                : l10n.text('ramadan.dayOf', {
+                                    'day': ramadan.dayOfRamadan!,
+                                  }),
+                          ),
+                        if (ramadan.phase == RamadanPhase.lastTen)
+                          _GlassTag(
+                            icon: Icons.auto_awesome_outlined,
+                            label: l10n.text('ramadan.lastTen'),
+                          ),
+                      ],
+                    ),
+                    if (ramadan.isVisible) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        // Ramazan içindeysek sahur/iftar mesajı, değilsek
+                        // geri sayım ya da bayram mesajı.
+                        ramadan.isFasting
+                            ? _ramadanMessage(now, times, fmt, l10n)
+                            : ramadanHeadline(ramadan, l10n),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          height: 1.4,
+                        ),
                       ),
-                      if (scene.ramadan) ...[
-                        const SizedBox(height: 12),
-                        Text(
-                          _ramadanMessage(now, times, fmt, l10n),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            height: 1.4,
-                          ),
+                    ],
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _QuickAction(
+                          icon: Icons.explore_outlined,
+                          label: l10n.text('home.qibla'),
+                          onPressed: () => context.push('/qibla'),
+                        ),
+                        _QuickAction(
+                          icon: Icons.touch_app_outlined,
+                          label: l10n.text('home.tasbih'),
+                          onPressed: () => context.push('/tasbih'),
+                        ),
+                        _QuickAction(
+                          icon: Icons.check_circle_outline,
+                          label: l10n.text('home.tracker'),
+                          onPressed: () => context.push('/tracker'),
+                        ),
+                        _QuickAction(
+                          icon: Icons.calendar_month_outlined,
+                          label: l10n.text('home.calendar'),
+                          onPressed: () => context.go('/calendar'),
                         ),
                       ],
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          _QuickAction(
-                            icon: Icons.explore_outlined,
-                            label: l10n.text('home.qibla'),
-                            onPressed: () => context.push('/qibla'),
-                          ),
-                          _QuickAction(
-                            icon: Icons.touch_app_outlined,
-                            label: l10n.text('home.tasbih'),
-                            onPressed: () => context.push('/tasbih'),
-                          ),
-                          _QuickAction(
-                            icon: Icons.check_circle_outline,
-                            label: l10n.text('home.tracker'),
-                            onPressed: () => context.push('/tracker'),
-                          ),
-                          _QuickAction(
-                            icon: Icons.calendar_month_outlined,
-                            label: l10n.text('home.calendar'),
-                            onPressed: () => context.go('/calendar'),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                _GlassPanel(
-                  padding: const EdgeInsets.fromLTRB(12, 16, 12, 10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: Text(
-                          l10n.text('home.todayTimes'),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 19,
-                            fontWeight: FontWeight.w700,
-                          ),
+              ),
+              const SizedBox(height: 12),
+              _GlassPanel(
+                padding: const EdgeInsets.fromLTRB(12, 16, 12, 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Text(
+                        l10n.text('home.todayTimes'),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 19,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                      const SizedBox(height: 6),
-                      ...Prayer.values.where((p) => p != Prayer.sunrise).map((
-                        p,
-                      ) {
-                        final isCurrent = next.current == p;
-                        final isNext = next.next == p;
-                        return _PrayerTimeRow(
-                          icon: _prayerIcon(p),
-                          label: label(p),
-                          time: fmt(times.times[p]!),
-                          badge: isCurrent
-                              ? l10n.text('home.now')
-                              : isNext
-                              ? l10n.text('home.next')
-                              : null,
-                          highlighted: isNext,
-                        );
-                      }),
-                      const Divider(color: Color(0x35FFFFFF), height: 10),
-                      _PrayerTimeRow(
-                        icon: Icons.wb_sunny_outlined,
-                        label: l10n.text('home.sunrise'),
-                        time: fmt(times.times[Prayer.sunrise]!),
-                      ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 6),
+                    ...Prayer.values.where((p) => p != Prayer.sunrise).map((p) {
+                      final isCurrent = next.current == p;
+                      final isNext = next.next == p;
+                      return _PrayerTimeRow(
+                        icon: _prayerIcon(p),
+                        label: label(p),
+                        time: fmt(times.times[p]!),
+                        badge: isCurrent
+                            ? l10n.text('home.now')
+                            : isNext
+                            ? l10n.text('home.next')
+                            : null,
+                        highlighted: isNext,
+                      );
+                    }),
+                    const Divider(color: Color(0x35FFFFFF), height: 10),
+                    _PrayerTimeRow(
+                      icon: Icons.wb_sunny_outlined,
+                      label: l10n.text('home.sunrise'),
+                      time: fmt(times.times[Prayer.sunrise]!),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                FutureBuilder<bool>(
-                  future: contentRepository.isFavorite(daily.id),
-                  builder: (context, snapshot) => DailyContentCard(
-                    title: daily is VerseContent
-                        ? l10n.text('home.verse')
-                        : daily is HadithContent
-                        ? l10n.text('home.hadith')
-                        : l10n.text('home.prayer'),
-                    content: daily,
-                    initiallyFavorite: snapshot.data ?? false,
-                    glass: true,
-                    onFavoriteChanged: (value) =>
-                        contentRepository.setFavorite(daily.id, value),
-                  ),
+              ),
+              const SizedBox(height: 12),
+              FutureBuilder<bool>(
+                future: contentRepository.isFavorite(daily.id),
+                builder: (context, snapshot) => DailyContentCard(
+                  title: daily is VerseContent
+                      ? l10n.text('home.verse')
+                      : daily is HadithContent
+                      ? l10n.text('home.hadith')
+                      : l10n.text('home.prayer'),
+                  content: daily,
+                  initiallyFavorite: snapshot.data ?? false,
+                  glass: true,
+                  onFavoriteChanged: (value) =>
+                      contentRepository.setFavorite(daily.id, value),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -738,7 +762,45 @@ class SettingsPage extends ConsumerWidget {
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Text(l10n.text('settings.hijriNotice')),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.text('settings.hijriNotice')),
+                  const SizedBox(height: 12),
+                  // Hesap tabulardır ve resmî ilandan bir gün sapabilir.
+                  // Ramazan'da bu fark iftar bildirimini yanlış güne taşır;
+                  // kullanıcı farkı kendisi kapatabilmeli.
+                  DropdownButtonFormField<int>(
+                    isExpanded: true,
+                    initialValue: settings.hijriOffset,
+                    decoration: InputDecoration(
+                      labelText: l10n.text('settings.hijriOffset'),
+                      helperText: l10n.text('settings.hijriOffsetHint'),
+                      helperMaxLines: 3,
+                    ),
+                    items: IslamicCalendar.offsetChoices.map((offset) {
+                      // Seçeneğin yanında o kaydırmayla bugünün hicri tarihi
+                      // yazar; kullanıcı sayıyla değil sonuçla karar verir.
+                      final preview = IslamicCalendar(dayOffset: offset)
+                          .hijri(DateTime.now());
+                      return DropdownMenuItem(
+                        value: offset,
+                        child: Text(
+                          '${_offsetLabel(l10n, offset)} · ${preview.label}',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (offset) {
+                      if (offset == null) return;
+                      _saveSettings(
+                        ref,
+                        settings.copyWith(hijriOffset: offset),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
           showLocation.when(
@@ -820,6 +882,14 @@ class SettingsPage extends ConsumerWidget {
       ),
     );
   }
+
+  /// Kaydırma seçeneğinin etiketi. Sayının kendisi kullanıcıya bir şey
+  /// anlatmaz; ne demek olduğu yazılır.
+  String _offsetLabel(AppLocalizations l10n, int offset) => switch (offset) {
+    -1 => l10n.text('settings.hijriOffsetBack'),
+    1 => l10n.text('settings.hijriOffsetForward'),
+    _ => l10n.text('settings.hijriOffsetNone'),
+  };
 
   Future<void> _setLocale(WidgetRef ref, String languageCode) async {
     ref.read(localeProvider.notifier).state = Locale(languageCode);
@@ -922,8 +992,8 @@ class _Page extends StatelessWidget {
   final List<Widget> children;
   const _Page({required this.title, required this.children});
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(title)),
+  Widget build(BuildContext context) => BackdropScaffold(
+    title: title,
     body: SafeArea(
       child: ListView(
         padding: const EdgeInsetsDirectional.fromSTEB(20, 12, 20, 28),

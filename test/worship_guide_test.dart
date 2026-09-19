@@ -79,14 +79,14 @@ void main() {
     }
   });
 
-  test('recitation library stays empty until sourced content is added', () {
-    // Dini metin tahminle eklenmemelidir. Kütüphaneye içerik girildiğinde
-    // bu test, her kaydın kaynak bilgisi taşımasını zorunlu kılar.
-    for (final recitation in recitationLibrary.values) {
+  test('no recitation carries text without a source', () {
+    // Dini metin kaynaksız yayına çıkamaz; kütüphaneye içerik girildiğinde
+    // bu kural geçerliliğini korur.
+    for (final entry in recitationLibrary.entries) {
       expect(
-        recitation.isMissingSource,
+        entry.value.isMissingSource,
         isFalse,
-        reason: 'Kaynaksız dini metin eklenemez: ${recitation.name}',
+        reason: 'Kaynaksız dini metin eklenemez: ${entry.key}',
       );
     }
   });
