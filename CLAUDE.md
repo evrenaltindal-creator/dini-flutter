@@ -101,13 +101,23 @@ flutter test --reporter expanded
 - Mağaza ürün kimlikleri `--dart-define` ile gelir; `.dev` ile biten placeholder
   değerler TestFlight workflow'unda reddedilir.
 - Yeni asset eklersen `pubspec.yaml` içindeki `assets:` listesini güncelle.
-- **Konum hiçbir yerden ayarlanamıyor.** `DeviceLocationService` yazılmış ama
-  uygulamada çağrılmıyor ve saat dilimi `'Europe/Istanbul'` olarak sabit;
-  herkes İstanbul'un vaktini görüyor. Bu, açık en büyük eksiktir (`ROADMAP.md`
-  1.1). Konuma dayanan bir özellik eklerken bunu hesaba kat.
-- **Tam zamanlı alarm izni bildirilmemiş.** `AndroidScheduleMode`
-  `exactAllowWhileIdle` kullanıyoruz ama manifestte `SCHEDULE_EXACT_ALARM`
-  yok ve `requestExactAlarmsPermission()` hiç çağrılmıyor (`ROADMAP.md` 1.2).
+- **Konum artık ayarlanabiliyor** (Ayarlar → Konum): cihazdan otomatik ya da
+  paketlenmiş listeden şehir. Saat dilimi en yakın şehirden çözülür; koordinatı
+  değiştirip dilimi sabit bırakmak Berlin'deki kullanıcıya Berlin koordinatını
+  İstanbul saatiyle gösterirdi. Kaydetmenin tek yolu `savePrayerSettings`'tir
+  ve **sıra önemlidir**: alarmlar widget'tan önce yeniden kurulur.
+- **Tam zamanlı alarm izni bildirildi.** İzin varken `alarmClock` kipi
+  kullanılır, yokken `inexactAllowWhileIdle`'a düşülür — izinsiz tam zamanlı
+  alarm kurmaya çalışmak bildirimi tamamen düşürür. `USE_EXACT_ALARM`
+  **bilerek** bildirilmedi (Play politikası riski); bir test kazara
+  eklenmesini engelliyor.
+- **İlk açılış akışı vardır** (`/onboarding`): dil → konum → bildirim izni →
+  pil rehberi. `main.dart` bayrağı okuyup başlangıç rotasını verir; router
+  `createRouter()` fabrikasıdır, üst düzey `appRouter` yoktur.
+- **Mahya yalnızca Ramazan gecelerinde yanar.** Minare çapaları görselden
+  ölçüldü ve `BoxFit.cover` kırpmasına göre çözülür; `assets/scenes/*.png`
+  dosyalarını farklı oranda bir görselle değiştirirsen mahya boşluğa asılır
+  (`mahya_test.dart` oranı bekçiler).
 - Simge ve bildirim tonu PNG/WAV dosyaları `tool/` altındaki betiklerden
   üretilir. Dosyaları elle düzenleme; betiği değiştirip yeniden çalıştır.
   Betikler `pip install Pillow` ister, başka bağımlılıkları yoktur.
