@@ -13,7 +13,14 @@ class QuranComingSoonPage extends StatelessWidget {
     final l10n = context.l10n;
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.text('nav.quran'))),
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        title: Text(l10n.text('nav.quran')),
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+      ),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsetsDirectional.fromSTEB(24, 32, 24, 32),
