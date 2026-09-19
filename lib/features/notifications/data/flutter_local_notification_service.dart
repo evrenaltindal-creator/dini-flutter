@@ -27,6 +27,51 @@ class FlutterLocalNotificationService implements LocalNotificationService {
   /// eder; yalnızca işletim sistemine bildirim kurulmaz.
   bool _available = false;
 
+  /// Tam zamanlı alarm izninin son bilinen durumu.
+  ExactAlarmPermission _exactAlarms = ExactAlarmPermission.unknown;
+
+  /// Bildirimler dakikası dakikasına kurulabiliyor mu?
+  ExactAlarmPermission get exactAlarmPermission => _exactAlarms;
+
+  /// İzni işletim sisteminden sorar.
+  ///
+  /// iOS'ta ve eski Android sürümlerinde böyle bir kavram yok; eklenti null
+  /// döner ve bu "izin var" sayılır.
+  Future<ExactAlarmPermission> refreshExactAlarmPermission() async {
+    if (!_available) return _exactAlarms = ExactAlarmPermission.unknown;
+    try {
+      final android = plugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+      if (android == null) return _exactAlarms = ExactAlarmPermission.allowed;
+      final can = await android.canScheduleExactNotifications();
+      return _exactAlarms = can == false
+          ? ExactAlarmPermission.denied
+          : ExactAlarmPermission.allowed;
+    } catch (_) {
+      return _exactAlarms = ExactAlarmPermission.unknown;
+    }
+  }
+
+  /// Kullanıcıyı tam zamanlı alarm izni ekranına yönlendirir.
+  ///
+  /// Android 14'ten itibaren bu izin varsayılan olarak reddedilmiş gelir;
+  /// istemeden bildirimler yaklaşık zamanda gönderilir.
+  Future<ExactAlarmPermission> requestExactAlarmPermission() async {
+    if (!_available) return _exactAlarms;
+    try {
+      await plugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
+          ?.requestExactAlarmsPermission();
+    } catch (_) {
+      // İzin ekranı açılamadıysa durum sorguyla yeniden okunur.
+    }
+    return refreshExactAlarmPermission();
+  }
+
   @override
   Future<void> initialize() async {
     const settings = InitializationSettings(
@@ -46,6 +91,7 @@ class FlutterLocalNotificationService implements LocalNotificationService {
             AndroidFlutterLocalNotificationsPlugin
           >()
           ?.deleteNotificationChannel(_retiredChannelId);
+      await refreshExactAlarmPermission();
     } catch (_) {
       _available = false;
     }
@@ -116,6 +162,15 @@ class FlutterLocalNotificationService implements LocalNotificationService {
     ),
   };
 
+  /// Eklentinin kip karşılığı. İzin yokken tam zamanlı alarm kurmaya
+  /// çalışmak bildirimi tamamen düşürür; bkz. [androidScheduleModeFor].
+  AndroidScheduleMode get _scheduleMode =>
+      switch (androidScheduleModeFor(_exactAlarms)) {
+        AndroidScheduleModeChoice.alarmClock => AndroidScheduleMode.alarmClock,
+        AndroidScheduleModeChoice.inexact =>
+          AndroidScheduleMode.inexactAllowWhileIdle,
+      };
+
   @override
   Future<void> schedule(
     PlannedNotification notification,
@@ -153,7 +208,7 @@ class FlutterLocalNotificationService implements LocalNotificationService {
       notification.body,
       tz.TZDateTime.from(notification.scheduledAt, tz.local),
       details,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      androidScheduleMode: _scheduleMode,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
     );

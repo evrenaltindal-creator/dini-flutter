@@ -6,6 +6,7 @@ import '../../../core/storage/storage_provider.dart';
 import '../../prayer_times/presentation/providers.dart';
 import '../../../shared/models/domain.dart';
 import '../data/notification_preferences_repository.dart';
+import '../data/flutter_local_notification_service.dart';
 import '../data/notification_scheduler.dart';
 import '../domain/notification_system.dart';
 
@@ -33,6 +34,10 @@ class _NotificationSettingsViewState
   late final LocalNotificationService service;
   NotificationPreferences? preferences;
   bool permissionRequested = false;
+
+  /// Tam zamanlı alarm izni. Kapalıyken bildirimler birkaç dakika gecikir;
+  /// kullanıcı bunu bilmeli ve açabilmeli.
+  ExactAlarmPermission exactAlarms = ExactAlarmPermission.unknown;
   @override
   void initState() {
     super.initState();
@@ -46,8 +51,12 @@ class _NotificationSettingsViewState
 
   Future<void> _load() async {
     final value = await repository.load();
+    final exact = await _readExactAlarmPermission();
     if (!mounted) return;
-    setState(() => preferences = value);
+    setState(() {
+      preferences = value;
+      exactAlarms = exact;
+    });
     // Daha önce kaydedilmiş tercihler hiçbir yerde yeniden planlanmıyordu.
     // Ekranı açmak, kayan sekiz günlük pencereyi de tazeler.
     await _reschedule(value);
@@ -150,6 +159,28 @@ class _NotificationSettingsViewState
           ),
         ),
         const SizedBox(height: 8),
+        // İzin kapalıyken bildirimler gecikir. Sessizce geciktirmek yerine
+        // durumu söylemek ve açma yolunu göstermek gerekir.
+        if (exactAlarms == ExactAlarmPermission.denied)
+          Card(
+            color: Theme.of(context).colorScheme.errorContainer,
+            child: Padding(
+              padding: const EdgeInsetsDirectional.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(context.l10n.text('notifications.exactWarning')),
+                  const SizedBox(height: 8),
+                  FilledButton.tonalIcon(
+                    onPressed: _requestExactAlarms,
+                    icon: const Icon(Icons.alarm_on_outlined),
+                    label: Text(context.l10n.text('notifications.exactAllow')),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        const SizedBox(height: 8),
         Text(context.l10n.text('notifications.notice')),
       ],
     );
@@ -205,6 +236,26 @@ class _NotificationSettingsViewState
         preferences: value,
         service: service,
       );
+
+  /// Servis somut türse izin durumunu okur. Sahte servislerde bu kavram yok.
+  Future<ExactAlarmPermission> _readExactAlarmPermission() async {
+    final concrete = service;
+    if (concrete is! FlutterLocalNotificationService) {
+      return ExactAlarmPermission.allowed;
+    }
+    return concrete.refreshExactAlarmPermission();
+  }
+
+  Future<void> _requestExactAlarms() async {
+    final concrete = service;
+    if (concrete is! FlutterLocalNotificationService) return;
+    final next = await concrete.requestExactAlarmPermission();
+    if (!mounted) return;
+    setState(() => exactAlarms = next);
+    // İzin verildiyse kip değişti; alarmlar yeni kiple yeniden kurulmalı.
+    final value = preferences;
+    if (value != null) await _reschedule(value);
+  }
 
   String _soundLabel(BuildContext context, NotificationSound sound) =>
       switch (sound) {

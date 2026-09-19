@@ -2,6 +2,17 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!--
+      Namaz vakti bildiriminin dakikası dakikasına çalması gerekir. Android
+      12'den itibaren tam zamanlı alarm bu izni ister; 14'ten itibaren izin
+      varsayılan olarak REDDEDİLMİŞ gelir ve kullanıcının açması gerekir.
+      Bildirilmeden tam zamanlı alarm kurmak güvenlik hatasına düşer.
+
+      USE_EXACT_ALARM bilerek bildirilmedi: o izin kullanıcı onayı istemez ama
+      Google Play politikası gereği yalnızca çekirdek işlevi alarm/takvim olan
+      uygulamalara açıktır ve incelemede reddedilme riski taşır.
+    -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <application
         android:label="dini_flutter"
         android:name="${applicationName}"

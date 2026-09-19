@@ -44,19 +44,19 @@ koordinatlarını İstanbul saatiyle göstermek olurdu.
 Kalan: elle koordinat girişi (uzman kullanıcı için), şehir listesinin
 genişletilmesi ve listedeki koordinatların gözden geçirilmesi.
 
-### 1.2 Tam zamanlı alarm izni (Android)
+### 1.2 Tam zamanlı alarm izni (Android) ✅
 
-**Durum:** `AndroidScheduleMode.exactAllowWhileIdle` kullanıyoruz. Eklentinin
-kendi dokümanı bu modun `SCHEDULE_EXACT_ALARM` iznini gerektirdiğini yazıyor.
-İzin ne bizim manifestimizde ne de eklentinin manifestinde bildirilmiş.
-Eklentinin sunduğu `requestExactAlarmsPermission()` hiç çağrılmıyor.
+**Yapıldı.** Manifeste `SCHEDULE_EXACT_ALARM` eklendi. İzin açılışta
+sorgulanıyor; verilmişse `alarmClock` kipi kullanılıyor
+(`AlarmManager.setAlarmClock()` — sistem bunu çalar saat gibi ele alır ve
+düşük güç kipinde bile zamanında çalıştırır), verilmemişse
+`inexactAllowWhileIdle`. Ayarlar ekranı izin kapalıyken uyarı gösteriyor ve
+açma düğmesi sunuyor; izin verilince alarmlar yeni kiple yeniden kuruluyor.
 
-**Yapılacak:**
-- Manifeste `SCHEDULE_EXACT_ALARM` ve `USE_EXACT_ALARM` ekle.
-- Planlamadan önce iznin verilip verilmediğini kontrol et; verilmemişse
-  kullanıcıya açıkça sor.
-- İzin yoksa `inexactAllowWhileIdle` ile planla ve bunu arayüzde söyle —
-  sessizce hiç planlamama en kötü seçenek.
+`USE_EXACT_ALARM` **bilerek bildirilmedi**: kullanıcı onayı istemez ama Google
+Play politikası gereği yalnızca çekirdek işlevi alarm/takvim olan uygulamalara
+açıktır ve incelemede reddedilme riski taşır. Bir test bunun kazara
+eklenmesini engelliyor.
 
 **Not:** `POST_NOTIFICATIONS` ve `VIBRATE` sorun değil; eklentinin manifesti
 bunları getiriyor, doğrulandı.
