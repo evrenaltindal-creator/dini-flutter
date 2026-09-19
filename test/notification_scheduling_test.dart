@@ -51,13 +51,17 @@ class _RecordingService implements LocalNotificationService {
   ) async => scheduled.add(notification);
 }
 
-Widget _app(_RecordingService service, LocalStorage storage) => ProviderScope(
+Widget _app(
+  _RecordingService service,
+  LocalStorage storage, {
+  String languageCode = 'tr',
+}) => ProviderScope(
   overrides: [
     localStorageProvider.overrideWithValue(storage),
     notificationServiceProvider.overrideWithValue(service),
   ],
   child: MaterialApp(
-    locale: const Locale('tr'),
+    locale: Locale(languageCode),
     supportedLocales: AppLocalizations.supportedLocales,
     localizationsDelegates: const [
       GlobalMaterialLocalizations.delegate,
@@ -143,5 +147,102 @@ void main() {
     expect(service.cancelAllCount, 1);
     expect(service.permissionRequests, 0);
     expect(service.scheduled, isNotEmpty);
+  });
+
+  group('Ramazan uyarı süreleri', () {
+    /// Uzun bir yüzey kullanır ki liste tamamı oluşturulsun.
+    ///
+    /// `ListView` tembeldir: görünmeyen karolar hiç yaratılmaz, dolayısıyla
+    /// "şu alan yok" iddiası ekranın dışındaki her şey için boş yere geçer.
+    /// Bu testin ölçtüğü şey tam olarak bir alanın var olup olmadığı.
+    Future<void> pumpTall(
+      WidgetTester tester,
+      LocalStorage storage, {
+      String languageCode = 'tr',
+    }) async {
+      await tester.binding.setSurfaceSize(const Size(400, 2400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpWidget(
+        _app(_RecordingService(), storage, languageCode: languageCode),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    Finder switchTitled(String key) => find.ancestor(
+      of: find.text(const AppLocalizations(Locale('tr')).text(key)),
+      matching: find.byType(SwitchListTile),
+    );
+
+    testWidgets('süre seçimi yalnızca uyarı açıkken görünür', (tester) async {
+      final storage = _MemoryStorage();
+      await pumpTall(tester, storage);
+
+      final label = const AppLocalizations(Locale('tr'))
+          .text('notifications.suhoorMinutes');
+      expect(
+        find.text(label),
+        findsNothing,
+        reason: 'Kapalı bir uyarının süresi gösterilmemeli.',
+      );
+
+      await tester.tap(switchTitled('notifications.suhoor'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(label),
+        findsOneWidget,
+        reason: 'Uyarı açıldı ama süresi seçilemiyor.',
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('seçilen süre kaydedilir ve yeniden planlanır', (tester) async {
+      final storage = _MemoryStorage();
+      // Sahur uyarısı açık ama süresi varsayılan.
+      await NotificationPreferencesRepository(storage)
+          .save(const NotificationPreferences(ramadanSuhoorReminder: true));
+
+      await pumpTall(tester, storage);
+
+      final field = find.byType(DropdownButtonFormField<int>);
+      await tester.tap(field);
+      await tester.pumpAndSettle();
+
+      final l10n = const AppLocalizations(Locale('tr'));
+      final ninety = l10n.text('notifications.minutesBefore', {'minutes': 90});
+      await tester.tap(find.text(ninety).last);
+      await tester.pumpAndSettle();
+
+      final saved = await NotificationPreferencesRepository(storage).load();
+      expect(
+        saved.suhoorMinutes,
+        90,
+        reason: 'Seçilen süre kaydedilmedi; ekran kapanınca kaybolur.',
+      );
+    });
+
+    for (final language in ['tr', 'en', 'ar']) {
+      testWidgets('$language dilinde dar ekranda taşmaz', (tester) async {
+        final storage = _MemoryStorage();
+        await NotificationPreferencesRepository(storage).save(
+          const NotificationPreferences(
+            ramadanSuhoorReminder: true,
+            ramadanIftarReminder: true,
+          ),
+        );
+
+        // Dar ekranda bütün liste tek seferde çizilir: taşma varsa görülür.
+        await tester.binding.setSurfaceSize(const Size(320, 2400));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+        await tester.pumpWidget(
+          _app(_RecordingService(), storage, languageCode: language),
+        );
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        // İki süre alanı da çizilmeli.
+        expect(find.byType(DropdownButtonFormField<int>), findsNWidgets(2));
+      });
+    }
   });
 }

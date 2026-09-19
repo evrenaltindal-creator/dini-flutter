@@ -16,7 +16,6 @@ import 'features/prayer_times/presentation/settings_controller.dart';
 
 final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
 final localeProvider = StateProvider<Locale>((ref) => const Locale('tr'));
-const localePreferenceKey = 'dini.locale';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

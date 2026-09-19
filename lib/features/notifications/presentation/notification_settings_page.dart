@@ -107,12 +107,38 @@ class _NotificationSettingsViewState
           onChanged: (enabled) =>
               _update(value.copyWith(ramadanSuhoorReminder: enabled)),
         ),
+        // Süre yalnızca uyarı açıkken anlamlıdır; kapalıyken göstermek
+        // kullanıcıya çalışmayan bir ayar sunmak olur.
+        if (value.ramadanSuhoorReminder)
+          _MinutesField(
+            label: context.l10n.text('notifications.suhoorMinutes'),
+            value: value.suhoorMinutes,
+            choices: NotificationPreferences.suhoorChoices,
+            onChanged: (minutes) =>
+                _update(value.copyWith(suhoorMinutes: minutes)),
+          ),
         SwitchListTile(
           title: Text(context.l10n.text('notifications.iftar')),
           value: value.ramadanIftarReminder,
           onChanged: (enabled) =>
               _update(value.copyWith(ramadanIftarReminder: enabled)),
         ),
+        if (value.ramadanIftarReminder)
+          _MinutesField(
+            label: context.l10n.text('notifications.iftarMinutes'),
+            value: value.iftarMinutes,
+            choices: NotificationPreferences.iftarChoices,
+            onChanged: (minutes) =>
+                _update(value.copyWith(iftarMinutes: minutes)),
+          ),
+        if (value.ramadanSuhoorReminder || value.ramadanIftarReminder)
+          Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(0, 4, 0, 4),
+            child: Text(
+              context.l10n.text('notifications.ramadanOnly'),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
         const SizedBox(height: 12),
         FilledButton.icon(
           onPressed: permissionRequested ? null : _requestPermission,
@@ -269,4 +295,54 @@ class _PrayerNotificationTile extends StatelessWidget {
       ),
     ),
   );
+}
+
+/// Dakika seçimi. Sahur ve iftar uyarılarının kaç dakika önce çalacağını
+/// belirler; sıfır "yalnızca vaktinde" demektir.
+class _MinutesField extends StatelessWidget {
+  final String label;
+  final int value;
+  final List<int> choices;
+  final ValueChanged<int> onChanged;
+
+  const _MinutesField({
+    required this.label,
+    required this.value,
+    required this.choices,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    // Kayıtlı değer listede yoksa (eski sürümden gelen bir ayar) dropdown
+    // hata verir; listeye eklenerek gösterilir.
+    final items = {...choices, value}.toList()..sort();
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 8),
+      child: DropdownButtonFormField<int>(
+        isExpanded: true,
+        initialValue: value,
+        decoration: InputDecoration(labelText: label),
+        items: items
+            .map(
+              (minutes) => DropdownMenuItem(
+                value: minutes,
+                child: Text(
+                  minutes == 0
+                      ? l10n.text('notifications.onlyAtTime')
+                      : l10n.text('notifications.minutesBefore', {
+                          'minutes': minutes,
+                        }),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            )
+            .toList(),
+        onChanged: (minutes) {
+          if (minutes != null) onChanged(minutes);
+        },
+      ),
+    );
+  }
 }

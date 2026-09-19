@@ -1,3 +1,5 @@
+import 'package:dini_flutter/core/localization/app_localizations.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:dini_flutter/core/storage/local_data_repository.dart';
 import 'package:dini_flutter/core/storage/storage_provider.dart';
@@ -31,6 +33,10 @@ class _FakeNotificationService implements LocalNotificationService {
   ) async => scheduled.add(notification);
 }
 
+/// Planlayıcının metin çözümleyicisi. Testler Türkçe metinle çalışır.
+String _turkish(String key, [Map<String, Object> values = const {}]) =>
+    const AppLocalizations(Locale('tr')).text(key, values);
+
 void main() {
   final calculator = const LocalPrayerTimesCalculator();
   final settings = const PrayerSettings();
@@ -55,6 +61,7 @@ void main() {
     final plan = const NotificationSchedulePlanner().plan(
       days: [times],
       preferences: preferences,
+      text: _turkish,
       notBefore: DateTime(2026, 1, 1),
     );
     expect(
@@ -92,6 +99,7 @@ void main() {
       coordinates: coordinates,
       settings: settings,
       preferences: preferences,
+      text: _turkish,
       daysAhead: 2,
     );
     expect(service.scheduled, isNotEmpty);
@@ -224,6 +232,7 @@ void main() {
       final planned = const NotificationSchedulePlanner().plan(
         days: [first, second],
         preferences: preferences,
+        text: _turkish,
       );
       expect(planned.map((item) => item.id).toSet(), hasLength(planned.length));
     },

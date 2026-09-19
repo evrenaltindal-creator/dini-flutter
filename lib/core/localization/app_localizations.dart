@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 
+/// Kullanıcının seçtiği dilin saklandığı anahtar.
+///
+/// `main.dart` yerine burada durur: bildirim planlayıcısı da bu değeri okur
+/// ve bir feature'ın giriş noktasından import etmesi doğru değildir.
+const localePreferenceKey = 'dini.locale';
+
 /// App-specific copy for the three languages supported by Dini.
 class AppLocalizations {
   final Locale locale;
@@ -270,6 +276,23 @@ class AppLocalizations {
       'notifications.permissionDone': 'İzin durumu işlendi',
       'notifications.managePermission': 'Bildirim izinlerini yönet',
       'notifications.notice': 'Bildirimler yerel olarak planlanır. Tam uzunlukta ezan sesinin arka planda her platformda garanti edilemeyeceğini unutmayın.',
+      'notify.prayerBody': 'Namaz vakti geldi.',
+      'notify.beforeTitle': '{prayer} yaklaşıyor',
+      'notify.beforeBody': '{minutes} dakika sonra namaz vakti.',
+      'notify.fridayTitle': 'Cuma hatırlatıcısı',
+      'notify.fridayBody': 'Cuma için hazırlık zamanı.',
+      'notify.suhoorTitle': 'Sahur vakti',
+      'notify.suhoorBody': 'İmsağa {minutes} dakika kaldı.',
+      'notify.iftarSoonTitle': 'İftar yaklaşıyor',
+      'notify.iftarSoonBody': 'İftara {minutes} dakika kaldı.',
+      'notify.iftarTitle': 'İftar vakti',
+      'notify.iftarBody': 'Hesaplanan akşam vakti girdi.',
+      'notifications.suhoorMinutes': 'Sahur uyarısı',
+      'notifications.iftarMinutes': 'İftar uyarısı',
+      'notifications.minutesBefore': '{minutes} dakika önce',
+      'notifications.onlyAtTime': 'Yalnızca vaktinde',
+      'notifications.ramadanOnly':
+          'Sahur ve iftar uyarıları yalnızca Ramazan günlerinde gönderilir.',
       'notifications.permissionTitle': 'Yerel bildirim izni',
       'notifications.notNow': 'Şimdi değil',
       'notifications.continue': 'Devam et',
@@ -529,6 +552,23 @@ class AppLocalizations {
       'notifications.permissionDone': 'Permission status processed',
       'notifications.managePermission': 'Manage notification permissions',
       'notifications.notice': 'Notifications are scheduled locally. A full-length adhan cannot be guaranteed in the background on every platform.',
+      'notify.prayerBody': 'It is time for prayer.',
+      'notify.beforeTitle': '{prayer} is approaching',
+      'notify.beforeBody': 'Prayer time in {minutes} minutes.',
+      'notify.fridayTitle': 'Friday reminder',
+      'notify.fridayBody': 'Time to prepare for Friday prayer.',
+      'notify.suhoorTitle': 'Suhoor',
+      'notify.suhoorBody': '{minutes} minutes left until imsak.',
+      'notify.iftarSoonTitle': 'Iftar is approaching',
+      'notify.iftarSoonBody': '{minutes} minutes left until iftar.',
+      'notify.iftarTitle': 'Iftar',
+      'notify.iftarBody': 'The calculated maghrib time has arrived.',
+      'notifications.suhoorMinutes': 'Suhoor reminder',
+      'notifications.iftarMinutes': 'Iftar reminder',
+      'notifications.minutesBefore': '{minutes} minutes before',
+      'notifications.onlyAtTime': 'Only at the time',
+      'notifications.ramadanOnly':
+          'Suhoor and iftar reminders are sent only on days in Ramadan.',
       'notifications.permissionTitle': 'Local notification permission',
       'notifications.notNow': 'Not now',
       'notifications.continue': 'Continue',
@@ -790,6 +830,23 @@ class AppLocalizations {
       'notifications.permissionDone': 'تمت معالجة حالة الإذن',
       'notifications.managePermission': 'إدارة أذونات الإشعارات',
       'notifications.notice': 'تُجدول الإشعارات محليًا. لا يمكن ضمان تشغيل الأذان كاملًا في الخلفية على جميع المنصات.',
+      'notify.prayerBody': 'حان وقت الصلاة.',
+      'notify.beforeTitle': 'اقترب وقت {prayer}',
+      'notify.beforeBody': 'وقت الصلاة بعد {minutes} دقيقة.',
+      'notify.fridayTitle': 'تذكير الجمعة',
+      'notify.fridayBody': 'حان وقت الاستعداد لصلاة الجمعة.',
+      'notify.suhoorTitle': 'السحور',
+      'notify.suhoorBody': 'بقيت {minutes} دقيقة على الإمساك.',
+      'notify.iftarSoonTitle': 'اقترب الإفطار',
+      'notify.iftarSoonBody': 'بقيت {minutes} دقيقة على الإفطار.',
+      'notify.iftarTitle': 'الإفطار',
+      'notify.iftarBody': 'دخل وقت المغرب المحسوب.',
+      'notifications.suhoorMinutes': 'تذكير السحور',
+      'notifications.iftarMinutes': 'تذكير الإفطار',
+      'notifications.minutesBefore': 'قبل {minutes} دقيقة',
+      'notifications.onlyAtTime': 'عند الوقت فقط',
+      'notifications.ramadanOnly':
+          'تُرسل تذكيرات السحور والإفطار في أيام رمضان فقط.',
       'notifications.permissionTitle': 'إذن الإشعارات المحلية',
       'notifications.notNow': 'ليس الآن',
       'notifications.continue': 'متابعة',
