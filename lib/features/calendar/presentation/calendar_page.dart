@@ -1,19 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../prayer_times/presentation/providers.dart';
 import '../domain/islamic_calendar.dart';
 import '../domain/religious_events.dart';
 
-class CalendarPage extends StatefulWidget {
+class CalendarPage extends ConsumerStatefulWidget {
   const CalendarPage({super.key});
   @override
-  State<CalendarPage> createState() => _CalendarPageState();
+  ConsumerState<CalendarPage> createState() => _CalendarPageState();
 }
 
-class _CalendarPageState extends State<CalendarPage> {
-  final calendar = const IslamicCalendar();
-  final events = const ReligiousEvents();
+class _CalendarPageState extends ConsumerState<CalendarPage> {
+  /// Kullanıcının hicri kaydırması takvime de uygulanır; aksi halde ana ekran
+  /// ile takvim ekranı farklı hicri tarih gösterir.
+  IslamicCalendar get calendar =>
+      ref.watch(effectivePrayerSettingsProvider).calendar;
+  ReligiousEvents get events => ReligiousEvents(calendar: calendar);
   late DateTime month;
   late DateTime selected;
   @override

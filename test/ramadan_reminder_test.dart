@@ -4,6 +4,7 @@ import 'package:dini_flutter/features/calendar/domain/islamic_calendar.dart';
 import 'package:dini_flutter/features/notifications/data/notification_preferences_repository.dart';
 import 'package:dini_flutter/features/notifications/domain/notification_system.dart';
 import 'package:dini_flutter/features/prayer_times/domain/prayer_engine.dart';
+import 'package:dini_flutter/features/prayer_times/domain/prayer_settings.dart';
 import 'package:dini_flutter/features/prayer_times/domain/timezone_service.dart';
 import 'package:dini_flutter/shared/models/domain.dart';
 import 'package:flutter/widgets.dart';
@@ -288,4 +289,98 @@ void main() {
       expect(loaded.suhoorMinutes, 45);
     });
   });
+
+  group('hicri düzeltme bildirimlere ulaşır', () {
+    // Kullanıcı resmî ilana uyması için takvimi bir gün kaydırdığında
+    // sahur ve iftar bildirimleri de o günlere kaymalıdır. Aksi halde ekran
+    // "Ramazan 1" derken bildirim hiç gelmez.
+    const preferences = NotificationPreferences(
+      ramadanSuhoorReminder: true,
+      ramadanIftarReminder: true,
+    );
+
+    test('kaydırma Ramazan gününü bildirime taşır', () {
+      final dayBefore = ramadanDay.subtract(const Duration(days: 1));
+      // Ramazan'ın ilk gününü bul: bir önceki gün Ramazan dışında olmalı.
+      const plain = IslamicCalendar();
+      if (plain.hijri(dayBefore).month == 9) return;
+
+      final without = const NotificationSchedulePlanner().plan(
+        days: [_timesOn(dayBefore)],
+        preferences: preferences,
+        text: _in('tr'),
+      );
+      expect(
+        without,
+        isEmpty,
+        reason: 'Düzeltmesiz takvimde bu gün Ramazan değil.',
+      );
+
+      final shifted = const NotificationSchedulePlanner().plan(
+        days: [_timesOn(dayBefore)],
+        preferences: preferences,
+        calendar: const IslamicCalendar(dayOffset: 1),
+        text: _in('tr'),
+      );
+      expect(
+        shifted,
+        isNotEmpty,
+        reason:
+            'Kaydırma planlayıcıya ulaşmıyor; ekran Ramazan derken bildirim '
+            'kurulmuyor.',
+      );
+    });
+
+    test('koordinatör ayardaki kaydırmayı planlayıcıya geçirir', () async {
+      final dayBefore = ramadanDay.subtract(const Duration(days: 1));
+      const plain = IslamicCalendar();
+      if (plain.hijri(dayBefore).month == 9) return;
+
+      Future<int> scheduledCount(int offset) async {
+        final service = _CountingService();
+        await PrayerNotificationCoordinator(
+          service: service,
+          calculator: _calculator,
+        ).reschedule(
+          // Gün başı: o günün bütün vakitleri kesme noktasından sonradır.
+          start: TimezoneService.local(
+            'Europe/Istanbul',
+            dayBefore.year,
+            dayBefore.month,
+            dayBefore.day,
+          ),
+          coordinates: _istanbul,
+          settings: PrayerSettings(hijriOffset: offset),
+          preferences: preferences,
+          text: _in('tr'),
+          daysAhead: 0,
+        );
+        return service.count;
+      }
+
+      expect(await scheduledCount(0), 0);
+      expect(
+        await scheduledCount(1),
+        greaterThan(0),
+        reason: 'Ayardaki kaydırma koordinatörden planlayıcıya geçmiyor.',
+      );
+    });
+  });
+}
+
+/// Kaç bildirim kurulduğunu sayar.
+class _CountingService implements LocalNotificationService {
+  int count = 0;
+  @override
+  Future<void> cancelAll() async {}
+  @override
+  Future<void> initialize() async {}
+  @override
+  Future<NotificationPermissionStatus> requestPermission() async =>
+      NotificationPermissionStatus.granted;
+  @override
+  Future<void> schedule(
+    PlannedNotification notification,
+    NotificationSound sound,
+  ) async => count++;
 }

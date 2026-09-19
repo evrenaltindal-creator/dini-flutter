@@ -13,12 +13,14 @@ import '../shared/models/domain.dart';
 import '../features/qibla/presentation/qibla_page.dart';
 import '../features/home/domain/mosque_scene_state.dart';
 import '../features/home/presentation/mosque_scene.dart';
-import '../features/calendar/domain/islamic_calendar.dart';
 import '../features/content/domain/content_repository.dart';
 import '../features/content/presentation/content_card.dart';
 import '../core/storage/local_storage.dart';
 import '../core/storage/storage_provider.dart';
 import '../core/storage/local_data_repository.dart';
+import '../features/calendar/domain/islamic_calendar.dart';
+import '../features/calendar/domain/ramadan_status.dart';
+import '../features/calendar/presentation/ramadan_headline.dart';
 import '../features/calendar/presentation/calendar_page.dart';
 import '../features/prayer_times/presentation/imsakiye_page.dart';
 import '../features/tasbih/presentation/tasbih_page.dart';
@@ -159,7 +161,8 @@ class HomePage extends ConsumerWidget {
       times.timezoneId ?? 'Europe/Istanbul',
       DateTime.now(),
     );
-    final hijri = const IslamicCalendar().hijri(now);
+    final hijri = settings.calendar.hijri(now);
+    final ramadan = ramadanStatus(now, calendar: settings.calendar);
     final scene = const MosqueSceneStateResolver().resolve(
       now,
       times,
@@ -263,14 +266,29 @@ class HomePage extends ConsumerWidget {
                           if (scene.ramadan)
                             _GlassTag(
                               icon: Icons.nightlight_outlined,
-                              label: l10n.text('home.ramadan'),
+                              // Ramazan'ın kaçıncı günü olduğumuzu yazmak,
+                              // yalnızca "Ramazan" demekten daha yararlı.
+                              label: ramadan.dayOfRamadan == null
+                                  ? l10n.text('home.ramadan')
+                                  : l10n.text('ramadan.dayOf', {
+                                      'day': ramadan.dayOfRamadan!,
+                                    }),
+                            ),
+                          if (ramadan.phase == RamadanPhase.lastTen)
+                            _GlassTag(
+                              icon: Icons.auto_awesome_outlined,
+                              label: l10n.text('ramadan.lastTen'),
                             ),
                         ],
                       ),
-                      if (scene.ramadan) ...[
+                      if (ramadan.isVisible) ...[
                         const SizedBox(height: 12),
                         Text(
-                          _ramadanMessage(now, times, fmt, l10n),
+                          // Ramazan içindeysek sahur/iftar mesajı, değilsek
+                          // geri sayım ya da bayram mesajı.
+                          ramadan.isFasting
+                              ? _ramadanMessage(now, times, fmt, l10n)
+                              : ramadanHeadline(ramadan, l10n),
                           style: const TextStyle(
                             color: Colors.white,
                             height: 1.4,
@@ -740,7 +758,45 @@ class SettingsPage extends ConsumerWidget {
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Text(l10n.text('settings.hijriNotice')),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.text('settings.hijriNotice')),
+                  const SizedBox(height: 12),
+                  // Hesap tabulardır ve resmî ilandan bir gün sapabilir.
+                  // Ramazan'da bu fark iftar bildirimini yanlış güne taşır;
+                  // kullanıcı farkı kendisi kapatabilmeli.
+                  DropdownButtonFormField<int>(
+                    isExpanded: true,
+                    initialValue: settings.hijriOffset,
+                    decoration: InputDecoration(
+                      labelText: l10n.text('settings.hijriOffset'),
+                      helperText: l10n.text('settings.hijriOffsetHint'),
+                      helperMaxLines: 3,
+                    ),
+                    items: IslamicCalendar.offsetChoices.map((offset) {
+                      // Seçeneğin yanında o kaydırmayla bugünün hicri tarihi
+                      // yazar; kullanıcı sayıyla değil sonuçla karar verir.
+                      final preview = IslamicCalendar(dayOffset: offset)
+                          .hijri(DateTime.now());
+                      return DropdownMenuItem(
+                        value: offset,
+                        child: Text(
+                          '${_offsetLabel(l10n, offset)} · ${preview.label}',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (offset) {
+                      if (offset == null) return;
+                      _saveSettings(
+                        ref,
+                        settings.copyWith(hijriOffset: offset),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
           showLocation.when(
@@ -822,6 +878,14 @@ class SettingsPage extends ConsumerWidget {
       ),
     );
   }
+
+  /// Kaydırma seçeneğinin etiketi. Sayının kendisi kullanıcıya bir şey
+  /// anlatmaz; ne demek olduğu yazılır.
+  String _offsetLabel(AppLocalizations l10n, int offset) => switch (offset) {
+    -1 => l10n.text('settings.hijriOffsetBack'),
+    1 => l10n.text('settings.hijriOffsetForward'),
+    _ => l10n.text('settings.hijriOffsetNone'),
+  };
 
   Future<void> _setLocale(WidgetRef ref, String languageCode) async {
     ref.read(localeProvider.notifier).state = Locale(languageCode);

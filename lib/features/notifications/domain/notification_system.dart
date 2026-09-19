@@ -142,6 +142,9 @@ class NotificationSchedulePlanner {
     required List<PrayerTimes> days,
     required NotificationPreferences preferences,
     required NotificationTextResolver text,
+    // Kullanıcının hicri kaydırması buraya ulaşmazsa Ramazan bildirimleri
+    // ekranda görünen günden farklı bir günde planlanır.
+    IslamicCalendar calendar = const IslamicCalendar(),
     DateTime? notBefore,
   }) {
     final result = <int, PlannedNotification>{};
@@ -204,7 +207,7 @@ class NotificationSchedulePlanner {
       }
 
       // Ramazan uyarıları yalnızca Ramazan günlerinde planlanır.
-      if (const IslamicCalendar().hijri(day.date).month != _ramadan) continue;
+      if (calendar.hijri(day.date).month != _ramadan) continue;
 
       if (preferences.ramadanSuhoorReminder) {
         final minutes = preferences.suhoorMinutes;
@@ -308,6 +311,7 @@ class PrayerNotificationCoordinator {
       days: days,
       preferences: preferences,
       text: text,
+      calendar: settings.calendar,
       notBefore: start,
     );
     for (final item in planned) {

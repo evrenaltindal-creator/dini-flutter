@@ -1,4 +1,5 @@
 import '../../../shared/models/domain.dart';
+import '../../calendar/domain/islamic_calendar.dart';
 
 class PrayerAdjustments {
   final int fajr, dhuhr, asr, maghrib, isha;
@@ -31,6 +32,10 @@ class PrayerSettings {
   final LocationPreference location;
   final LocationMode locationMode;
   final PrayerAdjustments adjustments;
+
+  /// Hicri tarihin kaç gün kaydırılacağı; bkz. [IslamicCalendar.dayOffset].
+  final int hijriOffset;
+
   const PrayerSettings({
     this.method = PrayerCalculationMethod.diyanet,
     // Diyanet yayımladığı ikindi vaktini standart (asr-ı evvel, gölge oranı 1)
@@ -47,7 +52,11 @@ class PrayerSettings {
     ),
     this.locationMode = LocationMode.manual,
     this.adjustments = const PrayerAdjustments(),
+    this.hijriOffset = 0,
   });
+
+  /// Bu ayarlarla kurulmuş hicri takvim.
+  IslamicCalendar get calendar => IslamicCalendar(dayOffset: hijriOffset);
   PrayerSettings copyWith({
     PrayerCalculationMethod? method,
     AsrMethod? asrMethod,
@@ -55,6 +64,7 @@ class PrayerSettings {
     LocationPreference? location,
     LocationMode? locationMode,
     PrayerAdjustments? adjustments,
+    int? hijriOffset,
   }) => PrayerSettings(
     method: method ?? this.method,
     asrMethod: asrMethod ?? this.asrMethod,
@@ -62,6 +72,7 @@ class PrayerSettings {
     location: location ?? this.location,
     locationMode: locationMode ?? this.locationMode,
     adjustments: adjustments ?? this.adjustments,
+    hijriOffset: hijriOffset ?? this.hijriOffset,
   );
 }
 
