@@ -23,8 +23,9 @@ Aşağıdakiler iddia değil, kodda ya da testte doğrulanmış olgulardır.
 | Kıble | Gerçek (coğrafi) kuzeye göre | `CompassNorth`, Android'de `GeomagneticField` düzeltmesi |
 | Diller | tr/en/ar tam parite, RTL | `localization_test.dart` |
 | Bildirim sesi | Ses başına ayrı Android kanalı | `androidChannelFor` |
-| Konum | **Hiçbir yerden ayarlanamıyor** | `LocationService` yazılmış, hiç çağrılmıyor |
-| Tam zamanlı alarm izni | **Yok** | Manifest'te `SCHEDULE_EXACT_ALARM` bildirilmemiş |
+| Konum | Ayarlar → Konum; otomatik ya da listeden şehir | `LocationPage`, `location_page_test.dart` |
+| Tam zamanlı alarm izni | Bildirildi, izin varken `alarmClock` kipi | `exact_alarm_test.dart` |
+| İlk açılış | Dil → konum → bildirim → pil rehberi | `onboarding_test.dart` |
 
 ---
 
@@ -61,27 +62,33 @@ eklenmesini engelliyor.
 **Not:** `POST_NOTIFICATIONS` ve `VIBRATE` sorun değil; eklentinin manifesti
 bunları getiriyor, doğrulandı.
 
-### 1.3 Pil optimizasyonu rehberi
+### 1.3 Pil optimizasyonu rehberi ✅
 
-**Durum:** Yok.
+**Yapıldı.** Rehber iki yerde duruyor: ilk açılış akışının son adımında
+(bkz. 1.4) ve Ayarlar → Bildirimler ekranının altında kalıcı olarak. Metin
+otomatik başlatma ve pil kısıtlamasının kaldırılmasını anlatır; düğme
+uygulamanın kendi ayar sayfasını açar.
 
-**Yapılacak:** İlk açılışta (bkz. 1.4) ve Ayarlar'da, kullanıcıyı üretici
-ayarlarına yönlendiren bir rehber: otomatik başlatma, pil kısıtlaması yok.
-Xiaomi/Samsung gibi agresif pil yönetimi olan cihazlarda alarm gecikmesinin
-asıl sebebi budur.
+Üretici ayar ekranlarının intent'leri belgelenmemiştir ve cihazdan cihaza
+değişir, bu yüzden doğrudan açılmaya çalışılmıyor: her Android sürümünde
+bulunan uygulama ayarları sayfası açılıyor (`geolocator` zaten bu köprüyü
+sunuyor, yeni eklenti eklenmedi). Sayfa açılamazsa uygulama çökmüyor,
+adımların elle izlenebileceğini söyleyen bir metin gösteriyor; bir test bunu
+bekçiler.
 
-**Uyarı:** Üretici ayar ekranlarının intent'leri cihaza göre değişir ve
-belgelenmemiştir. Açılamayan bir ayar ekranı çökmeye değil, anlaşılır bir
-yönlendirmeye düşmelidir.
+### 1.4 İlk açılış akışı ✅
 
-### 1.4 İlk açılış akışı
+**Yapıldı.** Dil → konum → bildirim izni → pil rehberi. Sıra bağımlılık
+sırasıdır: dil seçilmeden sonraki adımların metni anlaşılmaz, konum
+bilinmeden bildirimin hangi vakitleri haber vereceği belirsizdir.
 
-**Durum:** Yok. Uygulama doğrudan ana ekrana düşüyor; dil, konum ve bildirim
-izni hiç sorulmuyor.
+Seçilen dil anında uygulanır (`onboardingLocaleProvider`), böylece sonraki
+adımlar kullanıcının okuduğu dilde görünür. Akış bitince ya da atlanınca bir
+bayrak yazılır; `main.dart` bu bayrağı okuyup başlangıç rotasını
+`/onboarding` ya da `/` olarak veriyor.
 
-**Yapılacak:** Dil → konum → bildirim izni → pil rehberi. Yukarıdaki üç maddenin
-doğal taşıyıcısı burasıdır; ayrı ayrı ekranlara dağıtmak yerine tek akışta
-toplanır.
+Kalan: akışın Ayarlar'dan yeniden çalıştırılabilmesi (bayrağı sıfırlayan bir
+düğme; `OnboardingRepository.reset()` hazır).
 
 ### 1.5 Uygulama simgesi ve derleme doğrulaması
 

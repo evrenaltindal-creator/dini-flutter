@@ -9,6 +9,7 @@ import '../data/notification_preferences_repository.dart';
 import '../data/flutter_local_notification_service.dart';
 import '../data/notification_scheduler.dart';
 import '../domain/notification_system.dart';
+import '../../onboarding/data/system_settings.dart';
 
 class NotificationSettingsPage extends StatelessWidget {
   const NotificationSettingsPage({super.key});
@@ -180,6 +181,12 @@ class _NotificationSettingsViewState
               ),
             ),
           ),
+        const SizedBox(height: 8),
+        // Tam zamanlı alarm izni verilmiş olsa bile agresif pil yönetimi olan
+        // cihazlar uygulamayı uyutur ve bildirim dakikalarca gecikir. Rehber
+        // ilk açılışta gösteriliyor; oradan geçen kullanıcı için tek kalıcı
+        // yer burasıdır.
+        const _BatteryGuide(),
         const SizedBox(height: 8),
         Text(context.l10n.text('notifications.notice')),
       ],
@@ -393,6 +400,48 @@ class _MinutesField extends StatelessWidget {
         onChanged: (minutes) {
           if (minutes != null) onChanged(minutes);
         },
+      ),
+    );
+  }
+}
+
+/// Pil optimizasyonu ve otomatik başlatma rehberi.
+///
+/// Üretici ayar ekranlarının intent'leri belgelenmemiştir ve cihazdan cihaza
+/// değişir; doğrudan açmaya çalışmak kırılır. Uygulamanın kendi ayar sayfası
+/// her Android sürümünde vardır, pil ayarı oradan ulaşılır. Açılamazsa çökme
+/// değil, elle izlenebilir bir yönlendirme gösterilir.
+class _BatteryGuide extends ConsumerWidget {
+  const _BatteryGuide();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    return Card(
+      child: ExpansionTile(
+        leading: const Icon(Icons.battery_saver_outlined),
+        title: Text(l10n.text('onboarding.battery.title')),
+        childrenPadding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 16),
+        expandedCrossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.text('onboarding.battery.body')),
+          const SizedBox(height: 12),
+          FilledButton.tonalIcon(
+            onPressed: () async {
+              final opened = await ref
+                  .read(systemSettingsProvider)
+                  .openAppSettings();
+              if (opened || !context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(l10n.text('onboarding.battery.unavailable')),
+                ),
+              );
+            },
+            icon: const Icon(Icons.open_in_new),
+            label: Text(l10n.text('onboarding.battery.action')),
+          ),
+        ],
       ),
     );
   }

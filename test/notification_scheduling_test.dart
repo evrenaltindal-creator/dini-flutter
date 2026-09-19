@@ -1,6 +1,7 @@
 import 'package:dini_flutter/core/localization/app_localizations.dart';
 import 'package:dini_flutter/core/storage/local_storage.dart';
 import 'package:dini_flutter/core/storage/storage_provider.dart';
+import 'package:dini_flutter/features/onboarding/data/system_settings.dart';
 import 'package:dini_flutter/features/notifications/data/notification_scheduler.dart';
 import 'package:dini_flutter/features/notifications/data/notification_preferences_repository.dart';
 import 'package:dini_flutter/features/notifications/domain/notification_system.dart';
@@ -51,14 +52,28 @@ class _RecordingService implements LocalNotificationService {
   ) async => scheduled.add(notification);
 }
 
+class _FakeSystemSettings implements SystemSettings {
+  final bool opens;
+  int calls = 0;
+  _FakeSystemSettings(this.opens);
+  @override
+  Future<bool> openAppSettings() async {
+    calls++;
+    return opens;
+  }
+}
+
 Widget _app(
   _RecordingService service,
   LocalStorage storage, {
   String languageCode = 'tr',
+  SystemSettings? systemSettings,
 }) => ProviderScope(
   overrides: [
     localStorageProvider.overrideWithValue(storage),
     notificationServiceProvider.overrideWithValue(service),
+    if (systemSettings != null)
+      systemSettingsProvider.overrideWithValue(systemSettings),
   ],
   child: MaterialApp(
     locale: Locale(languageCode),
@@ -244,5 +259,42 @@ void main() {
         expect(find.byType(DropdownButtonFormField<int>), findsNWidgets(2));
       });
     }
+  });
+
+  testWidgets('pil rehberi bildirim ayarlarında kalıcı olarak durur', (
+    tester,
+  ) async {
+    // İlk açılışta rehberi geçen kullanıcı için tek kalıcı yer burası.
+    // Tam zamanlı alarm izni verilmiş olsa bile agresif pil yönetimi
+    // bildirimi dakikalarca geciktirir.
+    final settings = _FakeSystemSettings(false);
+    // Uzun yüzey: tembel liste yalnızca görünen kartları kurar, rehberin
+    // açılan gövdesi kısa ekranda hiç çizilmezdi.
+    await tester.binding.setSurfaceSize(const Size(500, 2400));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      _app(_RecordingService(), _MemoryStorage(), systemSettings: settings),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Bildirimler gecikmesin'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.textContaining('Otomatik başlatma'),
+      findsOneWidget,
+      reason: 'Rehber metni açılmadı.',
+    );
+
+    await tester.tap(find.text('Uygulama ayarlarını aç'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(settings.calls, 1);
+    expect(
+      find.textContaining('Ayar sayfası açılamadı'),
+      findsOneWidget,
+      reason: 'Açılamayan ayar ekranı sessizce yutulmamalı.',
+    );
   });
 }

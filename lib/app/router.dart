@@ -34,9 +34,15 @@ import '../features/quran/presentation/quran_coming_soon_page.dart';
 import '../features/info/diyanet_flow.dart';
 import '../features/audio/presentation/opening_takbir.dart';
 import '../features/worship/presentation/worship_hub_page.dart';
+import '../features/onboarding/data/onboarding_repository.dart';
+import '../features/onboarding/presentation/onboarding_page.dart';
 
-final appRouter = GoRouter(
-  initialLocation: '/',
+/// Uygulamanın rota tablosu.
+///
+/// [initialLocation] ile başlangıç rotası verilebilir: ilk açılış akışı
+/// tamamlanmamışsa `main.dart` buraya `/onboarding` geçer.
+GoRouter createRouter({String initialLocation = '/'}) => GoRouter(
+  initialLocation: initialLocation,
   routes: [
     StatefulShellRoute.indexedStack(
       builder: (context, state, shell) {
@@ -146,6 +152,7 @@ final appRouter = GoRouter(
       builder: (_, _) => const MosqueBackdrop(child: QiblaPage()),
     ),
     GoRoute(path: '/location', builder: (_, _) => const LocationPage()),
+    GoRoute(path: '/onboarding', builder: (_, _) => const OnboardingPage()),
     GoRoute(
       path: '/imsakiye',
       builder: (_, _) => const MosqueBackdrop(child: ImsakiyePage()),
@@ -839,6 +846,16 @@ class SettingsPage extends ConsumerWidget {
           _Tile(
             l10n.text('settings.notifications'),
             onTap: () => context.push('/notifications'),
+          ),
+          // Akış bir kez geçilince bir daha görünmez; pil rehberi ve konum
+          // adımı buradan yeniden ulaşılabilir olmalı.
+          _Tile(
+            l10n.text('settings.rerunOnboarding'),
+            onTap: () async {
+              await OnboardingRepository(ref.read(localStorageProvider))
+                  .reset();
+              if (context.mounted) context.push('/onboarding');
+            },
           ),
           _Tile(
             l10n.text('settings.askDiyanet'),

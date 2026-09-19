@@ -5,7 +5,11 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:go_router/go_router.dart';
+
 import 'app/router.dart';
+import 'features/onboarding/data/onboarding_repository.dart';
+import 'features/onboarding/presentation/onboarding_page.dart';
 import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'features/audio/presentation/opening_takbir.dart';
@@ -20,6 +24,10 @@ final localeProvider = StateProvider<Locale>((ref) => const Locale('tr'));
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
+  final storage = SharedPreferencesStorage(prefs);
+  // İlk açılış akışı tamamlanmamışsa uygulama oradan başlar. Akış yazılana
+  // kadar dil, konum ve bildirim izni hiç sorulmuyordu.
+  final onboarded = await OnboardingRepository(storage).isCompleted();
   final savedLanguage = prefs.getString(localePreferenceKey);
   final initialLocale =
       AppLocalizations.supportedLocales.any(
@@ -31,7 +39,7 @@ Future<void> main() async {
   // hiçbir yerde açılışta tazelenmiyordu. Açılışta yeniden planlamak hem bu
   // pencereyi kaydırır hem de önceki oturumda kaydedilmiş ama kurulmamış
   // alarmları devreye alır. Hata olursa uygulamanın açılışını engellemez.
-  unawaited(_rescheduleNotifications(SharedPreferencesStorage(prefs)));
+  unawaited(_rescheduleNotifications(storage));
 
   runApp(
     ProviderScope(
@@ -39,7 +47,9 @@ Future<void> main() async {
         sharedPreferencesProvider.overrideWithValue(prefs),
         localeProvider.overrideWith((ref) => initialLocale),
       ],
-      child: const DiniApp(),
+      child: DiniApp(
+        router: createRouter(initialLocation: onboarded ? '/' : '/onboarding'),
+      ),
     ),
   );
 }
@@ -54,7 +64,10 @@ Future<void> _rescheduleNotifications(LocalStorage storage) async {
 }
 
 class DiniApp extends ConsumerWidget {
-  const DiniApp({super.key});
+  final GoRouter router;
+
+  const DiniApp({required this.router, super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) => MaterialApp.router(
     debugShowCheckedModeBanner: false,
@@ -62,14 +75,16 @@ class DiniApp extends ConsumerWidget {
     theme: AppTheme.light,
     darkTheme: AppTheme.dark,
     themeMode: ref.watch(themeModeProvider),
-    locale: ref.watch(localeProvider),
+    // İlk açılışta seçilen dil anında uygulanmalı ki sonraki adımlar
+    // yeni dilde okunsun.
+    locale: ref.watch(onboardingLocaleProvider) ?? ref.watch(localeProvider),
     supportedLocales: AppLocalizations.supportedLocales,
     localizationsDelegates: const [
       GlobalMaterialLocalizations.delegate,
       GlobalWidgetsLocalizations.delegate,
       GlobalCupertinoLocalizations.delegate,
     ],
-    routerConfig: appRouter,
+    routerConfig: router,
     builder: (context, child) =>
         OpeningTakbirGate(child: child ?? const SizedBox.shrink()),
   );
