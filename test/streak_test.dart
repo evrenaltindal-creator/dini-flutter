@@ -3,6 +3,7 @@ import 'package:dini_flutter/core/storage/local_storage.dart';
 import 'package:dini_flutter/core/storage/storage_provider.dart';
 import 'package:dini_flutter/features/prayer_times/domain/timezone_service.dart';
 import 'package:dini_flutter/features/prayer_times/presentation/providers.dart';
+import 'package:dini_flutter/features/tracker/data/exemption_repository.dart';
 import 'package:dini_flutter/features/tracker/data/prayer_tracker_repository.dart';
 import 'package:dini_flutter/features/tracker/domain/prayer_tracker.dart';
 import 'package:dini_flutter/features/tracker/domain/streak.dart';
@@ -124,6 +125,90 @@ void main() {
     });
   });
 
+  group('muafiyet', () {
+    test('muaf gün seriyi bozmaz', () {
+      // Namaz kılınmayan günde eksik kalan bir şey yoktur; seri o günün
+      // üzerinden atlayarak devam etmeli.
+      final days = [
+        day(today, 5),
+        day(ago(1), 0),
+        day(ago(2), 0),
+        day(ago(3), 5),
+        day(ago(4), 5),
+      ];
+      expect(streakOf(days, today: today).current, 1);
+      expect(
+        streakOf(days, today: today, exempt: {ago(1), ago(2)}).current,
+        3,
+        reason: 'Muaf günler seriyi kesiyor.',
+      );
+    });
+
+    test('muaf gün seriye eklenmez', () {
+      final days = [day(today, 5), day(ago(1), 0), day(ago(2), 5)];
+      final summary = streakOf(days, today: today, exempt: {ago(1)});
+      expect(summary.current, 2, reason: 'Muaf gün seriye sayılmış.');
+      expect(summary.completedDays, 2);
+    });
+
+    test('bugün muafsa seri bozulmaz', () {
+      final days = [day(today, 0), day(ago(1), 5), day(ago(2), 5)];
+      expect(streakOf(days, today: today, exempt: {today}).current, 2);
+    });
+
+    test('muaf gün en uzun seriyi de taşır', () {
+      final days = [
+        day(today, 0),
+        day(ago(1), 5),
+        day(ago(2), 0),
+        day(ago(3), 5),
+        day(ago(4), 5),
+      ];
+      final summary = streakOf(days, today: today, exempt: {ago(2)});
+      expect(summary.longest, 3);
+    });
+
+    test('hepsi muafsa sonsuza gidilmez', () {
+      // Geriye doğru arama elde veri olan en eski günde durmalı.
+      final days = [day(today, 0), day(ago(1), 5)];
+      final summary = streakOf(
+        days,
+        today: today,
+        exempt: {for (var index = 0; index < 400; index++) ago(index)},
+      );
+      expect(summary.current, 0);
+    });
+
+    test('depo muaf günü saklar', () async {
+      final storage = _MemoryStorage();
+      final repository = ExemptionRepository(storage);
+
+      await repository.setExempt(today, true);
+      expect(await repository.isExempt(today), isTrue);
+      expect(
+        storage.values['dini.tracker.exempt.2026-09-20'],
+        '1',
+        reason: 'Muafiyet anahtarı namaz kaydının anahtarına karışmamalı.',
+      );
+
+      expect(await repository.recent(today, days: 3), {today});
+
+      await repository.setExempt(today, false);
+      expect(await repository.isExempt(today), isFalse);
+    });
+
+    test('muaf gün ısı haritasında ayrı görünür', () {
+      // Boş gün ile muaf gün aynı renkte olamaz.
+      final weeks = heatmapOf(const [], today: today, exempt: {ago(1)});
+      final cells = [
+        for (final week in weeks)
+          for (final cell in week) ?cell,
+      ];
+      expect(cells.firstWhere((cell) => cell.date == ago(1)).exempt, isTrue);
+      expect(cells.firstWhere((cell) => cell.date == ago(2)).exempt, isFalse);
+    });
+  });
+
   group('ısı haritası', () {
     test('her hafta yedi hücredir ve pazartesi başlar', () {
       final weeks = heatmapOf(const [], today: today);
@@ -225,6 +310,37 @@ void main() {
         findsOneWidget,
         reason: 'İşaretleme seriye yansımadı.',
       );
+    });
+
+    testWidgets('muaf işaretlemek seriyi korur', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(420, 1600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final storage = _MemoryStorage();
+      final repository = LocalPrayerTrackerRepository(storage);
+      // Dün ve evvelsi tamamlandı; bugün namaz kılınmıyor.
+      for (final past in [1, 2]) {
+        await repository.save(day(ago(past), 5));
+      }
+
+      await tester.pumpWidget(_app(storage: storage));
+      await tester.pumpAndSettle();
+      expect(find.text('2 gün'), findsOneWidget);
+
+      await tester.tap(find.text('Bugün namaz kılmıyorum'));
+      await tester.pumpAndSettle();
+
+      expect(
+        storage.values['dini.tracker.exempt.2026-09-20'],
+        '1',
+        reason: 'Muafiyet kaydedilmedi.',
+      );
+      expect(
+        find.text('Bugünü tamamlayınca seri uzar.'),
+        findsNothing,
+        reason: 'Muaf günde tamamlama çağrısı yapılmamalı.',
+      );
+      expect(find.text('2 gün'), findsOneWidget);
     });
 
     for (final language in ['tr', 'en', 'ar']) {

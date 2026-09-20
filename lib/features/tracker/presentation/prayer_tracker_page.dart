@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/storage/storage_provider.dart';
+import '../data/exemption_repository.dart';
 import '../data/prayer_tracker_repository.dart';
 import '../domain/prayer_tracker.dart';
 import '../domain/streak.dart';
@@ -22,6 +23,15 @@ final trackerHistoryProvider =
       );
       return repository.recent(today, days: heatmapWeeks * 7 + 7);
     });
+
+/// Muaf günler: o günlerde namaz kılınmaz, seri bozulmaz.
+final exemptionsProvider = FutureProvider.family<Set<DateTime>, DateTime>((
+  ref,
+  today,
+) {
+  final repository = ExemptionRepository(ref.watch(localStorageProvider));
+  return repository.recent(today, days: heatmapWeeks * 7 + 7);
+});
 
 class PrayerTrackerPage extends StatelessWidget {
   const PrayerTrackerPage({super.key});
@@ -153,26 +163,55 @@ class _PrayerTrackerViewState extends ConsumerState<PrayerTrackerView> {
         ),
         const SizedBox(height: 12),
         ref
+            .watch(exemptionsProvider(today))
+            .when(
+              loading: () => const SizedBox.shrink(),
+              error: (error, stack) => const SizedBox.shrink(),
+              data: (exempt) => Card(
+                child: SwitchListTile.adaptive(
+                  secondary: const Icon(Icons.event_busy_outlined),
+                  title: Text(context.l10n.text('tracker.exemptToday')),
+                  subtitle: Text(context.l10n.text('tracker.exemptNote')),
+                  value: exempt.contains(today),
+                  onChanged: (value) async {
+                    await ExemptionRepository(ref.read(localStorageProvider))
+                        .setExempt(today, value);
+                    ref.invalidate(exemptionsProvider(today));
+                  },
+                ),
+              ),
+            ),
+        ref
             .watch(trackerHistoryProvider(today))
             .when(
               loading: () => const SizedBox.shrink(),
               error: (error, stack) => const SizedBox.shrink(),
-              data: (history) => Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  StreakCard(
-                    summary: streakOf(history, today: today),
-                    todayComplete: trackerDayIsComplete(current),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    context.l10n.text('tracker.heatmap'),
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                  const SizedBox(height: 8),
-                  HeatmapView(weeks: heatmapOf(history, today: today)),
-                ],
-              ),
+              data: (history) {
+                final exempt =
+                    ref.watch(exemptionsProvider(today)).value ??
+                    const <DateTime>{};
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    StreakCard(
+                      summary: streakOf(history, today: today, exempt: exempt),
+                      // Muaf günde "bugünü tamamla" demek yanlış olurdu.
+                      todayComplete:
+                          trackerDayIsComplete(current) ||
+                          exempt.contains(today),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      context.l10n.text('tracker.heatmap'),
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    HeatmapView(
+                      weeks: heatmapOf(history, today: today, exempt: exempt),
+                    ),
+                  ],
+                );
+              },
             ),
         const SizedBox(height: 12),
         Text(

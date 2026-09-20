@@ -126,22 +126,44 @@ class HeatmapView extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        Row(
+        // Wrap: dar ekranda gösterge tek satıra sığmıyor ve Row taşıyordu.
+        Wrap(
+          spacing: 12,
+          runSpacing: 6,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            Text(
-              l10n.text('tracker.heatmapLegendLow'),
-              style: Theme.of(context).textTheme.bodySmall,
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  l10n.text('tracker.heatmapLegendLow'),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(width: 6),
+                for (final step in [0.0, .25, .5, .75, 1.0])
+                  Padding(
+                    padding: const EdgeInsetsDirectional.only(
+                      end: HeatmapView.cellGap,
+                    ),
+                    child: _Swatch(intensity: step, scheme: scheme),
+                  ),
+                const SizedBox(width: 2),
+                Text(
+                  l10n.text('tracker.heatmapLegendHigh'),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
             ),
-            const SizedBox(width: 6),
-            for (final step in [0.0, .25, .5, .75, 1.0])
-              Padding(
-                padding: const EdgeInsetsDirectional.only(end: cellGap),
-                child: _Swatch(intensity: step, scheme: scheme),
-              ),
-            const SizedBox(width: 2),
-            Text(
-              l10n.text('tracker.heatmapLegendHigh'),
-              style: Theme.of(context).textTheme.bodySmall,
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _Swatch(intensity: 0, scheme: scheme, exempt: true),
+                const SizedBox(width: 6),
+                Text(
+                  l10n.text('tracker.exemptLegend'),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
             ),
           ],
         ),
@@ -166,11 +188,17 @@ class _Cell extends StatelessWidget {
         height: HeatmapView.cellSize,
       );
     }
+    final l10n = context.l10n;
     return Tooltip(
-      message:
-          '${value.date.day}.${value.date.month} · '
-          '${value.completed}/5',
-      child: _Swatch(intensity: value.intensity, scheme: scheme),
+      message: value.exempt
+          ? '${value.date.day}.${value.date.month} · '
+                '${l10n.text('tracker.exemptLegend')}'
+          : '${value.date.day}.${value.date.month} · ${value.completed}/5',
+      child: _Swatch(
+        intensity: value.intensity,
+        scheme: scheme,
+        exempt: value.exempt,
+      ),
     );
   }
 }
@@ -179,7 +207,15 @@ class _Swatch extends StatelessWidget {
   final double intensity;
   final ColorScheme scheme;
 
-  const _Swatch({required this.intensity, required this.scheme});
+  /// Muaf gün: namaz kılınmayan gün. Boş günle aynı görünemez, çünkü eksik
+  /// kalan bir şey yoktur.
+  final bool exempt;
+
+  const _Swatch({
+    required this.intensity,
+    required this.scheme,
+    this.exempt = false,
+  });
 
   @override
   Widget build(BuildContext context) => Container(
@@ -188,11 +224,16 @@ class _Swatch extends StatelessWidget {
     decoration: BoxDecoration(
       // Boş gün ile az işaretlenmiş gün ayırt edilebilmeli: boş gün yalnızca
       // çerçeveyle çizilir.
-      color: intensity == 0
+      color: exempt
+          ? scheme.secondaryContainer
+          : intensity == 0
           ? scheme.surfaceContainerHighest
           : scheme.primary.withValues(alpha: .25 + intensity * .75),
       borderRadius: BorderRadius.circular(3),
-      border: Border.all(color: scheme.outlineVariant, width: .5),
+      border: Border.all(
+        color: exempt ? scheme.secondary : scheme.outlineVariant,
+        width: exempt ? 1 : .5,
+      ),
     ),
   );
 }

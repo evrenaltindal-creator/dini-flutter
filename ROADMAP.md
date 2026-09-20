@@ -122,10 +122,16 @@ bitmeden "seriyi kaybettin" demek, sabah namazından sonra uygulamayı açan
 herkese yanlış söylerdi. Isı haritasında gelecek günler boş bırakılır, sıfırla
 doldurulmaz: tutulmamış bir gün ile henüz gelmemiş bir gün aynı şey değildir.
 
-### 2.3 Muafiyet modu
+### 2.3 Muafiyet modu ✅
 
-Hayız ve nifas dönemlerinde serinin bozulmaması. Küçük bir işaretleme ama
-sadakat açısından değeri yüksek. Streak'ten sonra gelir çünkü ona bağlıdır.
+**Yapıldı.** Takip ekranında "Bugün namaz kılmıyorum" anahtarı. Muaf işaretli
+günler seriyi **bozmaz ve seriye eklenmez**: o günlerde namaz kılınmadığı için
+eksik kalan bir şey yoktur. Seri muaf günün üzerinden atlayarak devam eder,
+ısı haritasında muaf gün boş günden ayrı renkte görünür.
+
+Uygulama burada bir hüküm vermez; işaret kullanıcının kendi kaydıdır ve
+cihazında kalır. Muafiyet ayrı bir anahtar altında saklanır
+(`dini.tracker.exempt.<tarih>`), namaz kaydına karışmaz.
 
 ### 2.4 Kaza takibi
 

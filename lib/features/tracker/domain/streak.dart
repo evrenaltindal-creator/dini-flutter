@@ -30,12 +30,20 @@ class StreakSummary {
 
 /// [days] listesinden seriyi çıkarır.
 ///
+/// [exempt] günleri seriyi **bozmaz ve seriye eklemez**: o günlerde namaz
+/// kılınmadığı için eksik kalan bir şey yoktur. Seri muaf günün üzerinden
+/// atlayarak devam eder.
+///
 /// Liste sırasız gelebilir; burada tarihe göre yeniden sıralanır.
 ///
 /// **Bugün henüz tamamlanmamışsa seri bozulmaz.** Gün bitmeden "seriyi
 /// kaybettin" demek, sabah namazından sonra uygulamayı açan herkese yanlış
 /// söylerdi; bugün seriye ancak tamamlandığında eklenir.
-StreakSummary streakOf(List<PrayerTrackerDay> days, {required DateTime today}) {
+StreakSummary streakOf(
+  List<PrayerTrackerDay> days, {
+  required DateTime today,
+  Set<DateTime> exempt = const {},
+}) {
   if (days.isEmpty) return StreakSummary.empty;
 
   final day = DateTime(today.year, today.month, today.day);
@@ -46,24 +54,47 @@ StreakSummary streakOf(List<PrayerTrackerDay> days, {required DateTime today}) {
   };
   if (completed.isEmpty) return StreakSummary.empty;
 
-  // Güncel seri: bugünden (ya da bugün boşsa dünden) geriye doğru sayılır.
-  var cursor = completed.contains(day)
+  final exemptDays = {
+    for (final date in exempt) DateTime(date.year, date.month, date.day),
+  };
+
+  // Arama elde veri olan en eski günde durur; her günü muaf olan bir kayıt
+  // aksi halde sonsuza kadar geriye giderdi.
+  final known = [...completed, ...exemptDays]..sort();
+  final earliest = known.first;
+
+  // Güncel seri: bugünden geriye doğru sayılır. Bugün ne tamamlanmış ne de
+  // muafsa dünden başlanır — gün bitmeden seri bozulmamalı.
+  var cursor = completed.contains(day) || exemptDays.contains(day)
       ? day
       : day.subtract(const Duration(days: 1));
   var current = 0;
-  while (completed.contains(cursor)) {
+  while (!cursor.isBefore(earliest)) {
+    if (exemptDays.contains(cursor)) {
+      cursor = cursor.subtract(const Duration(days: 1));
+      continue;
+    }
+    if (!completed.contains(cursor)) break;
     current++;
     cursor = cursor.subtract(const Duration(days: 1));
   }
 
-  // En uzun seri: tamamlanan günler sıralanıp ardışık olanlar sayılır.
-  final sorted = completed.toList()..sort();
-  var longest = 1;
-  var run = 1;
-  for (var index = 1; index < sorted.length; index++) {
-    final gap = sorted[index].difference(sorted[index - 1]).inDays;
-    run = gap == 1 ? run + 1 : 1;
-    if (run > longest) longest = run;
+  // En uzun seri: en eski günden bugüne yürünür. Muaf gün seriyi taşır ama
+  // sayıya eklenmez.
+  var longest = 0;
+  var run = 0;
+  for (
+    var date = earliest;
+    !date.isAfter(day);
+    date = date.add(const Duration(days: 1))
+  ) {
+    if (exemptDays.contains(date)) continue;
+    if (completed.contains(date)) {
+      run++;
+      if (run > longest) longest = run;
+    } else {
+      run = 0;
+    }
   }
 
   return StreakSummary(
@@ -80,7 +111,11 @@ class HeatmapCell {
   /// O gün işaretlenen vakit sayısı (0–5).
   final int completed;
 
-  const HeatmapCell(this.date, this.completed);
+  /// Namaz kılınmayan (muaf) gün mü? Boş günden ayrı gösterilir: eksik
+  /// kalan bir şey yoktur.
+  final bool exempt;
+
+  const HeatmapCell(this.date, this.completed, {this.exempt = false});
 
   /// Renk yoğunluğu: 0 boş, 1 tam.
   double get intensity => completed / trackedPrayers.length;
@@ -97,6 +132,7 @@ const heatmapWeeks = 17;
 List<List<HeatmapCell?>> heatmapOf(
   List<PrayerTrackerDay> days, {
   required DateTime today,
+  Set<DateTime> exempt = const {},
   int weeks = heatmapWeeks,
 }) {
   final last = DateTime(today.year, today.month, today.day);
@@ -105,6 +141,9 @@ List<List<HeatmapCell?>> heatmapOf(
   final rawStart = last.subtract(Duration(days: weeks * 7 - 1));
   final start = rawStart.subtract(Duration(days: rawStart.weekday - 1));
 
+  final exemptDays = {
+    for (final date in exempt) DateTime(date.year, date.month, date.day),
+  };
   final counts = <DateTime, int>{
     for (final item in days)
       DateTime(item.date.year, item.date.month, item.date.day):
@@ -118,7 +157,13 @@ List<List<HeatmapCell?>> heatmapOf(
     for (var index = 0; index < 7; index++) {
       final date = cursor.add(Duration(days: index));
       week.add(
-        date.isAfter(last) ? null : HeatmapCell(date, counts[date] ?? 0),
+        date.isAfter(last)
+            ? null
+            : HeatmapCell(
+                date,
+                counts[date] ?? 0,
+                exempt: exemptDays.contains(date),
+              ),
       );
     }
     result.add(week);
