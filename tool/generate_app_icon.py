@@ -5,6 +5,13 @@ Kaynak, `assets/branding/app_icon_source.png` dosyasındaki 1024x1024
 tasarımdır: degrade zemin üzerinde altın hatlı cami, pusula, halkalar ve
 vakit adları.
 
+Kaynak tasarımda iki yazı bloğu vardır ("Huzur Rehberi" ve "Namazlar");
+uygulamanın adı yalnızca **Namaz Yolu** olduğu için ikisi de burada silinir.
+Silme el ile yapılmaz: yazının altın pikselleri bağlı bileşen olarak bulunur,
+kenarına taşan yumuşamayla birlikte maskelenir ve yerine satır satır
+enterpolasyonla zeminin degradesi yazılır. Böylece kaynak dosya olduğu gibi
+kalır, çıktı temizlenir.
+
 Kaynak **tam kenar** olmalıdır: kare, saydamlıksız, köşeleri yuvarlatılmamış
 ve etrafında "saydamlık" damalı deseni çizilmemiş. iOS ve Android simgeye
 kendi maskesini uygular; hazır yuvarlatılmış ya da damalı bir kaynak köşede
@@ -26,7 +33,8 @@ bir PNG katmanıdır.
 import json
 import os
 import subprocess
-from PIL import Image, ImageDraw
+from collections import deque
+from PIL import Image, ImageFilter
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -47,6 +55,13 @@ SAFE_RADIUS = 0.305
 ADAPTIVE_SAFE = SAFE_RADIUS / (CONTENT_EXTENT / 2)
 
 _cache = {}
+
+# Silinecek yazı blokları (sol, üst, sağ, alt). Kaynak 1024x1024 olduğu için
+# piksel cinsindendir ve tasarımdan ÖLÇÜLDÜ: üstteki kuşak madalyonun içinde,
+# kubbe ile iç halka arasındaki düz zemine oturur; alttaki, halkanın tamamen
+# dışındadır. Kutular yalnızca düz zemin içerir; içlerinde kalan çizgiler
+# (minare, kubbe külahı, halka) kutunun kenarına DEĞDİĞİ için korunur.
+TEXT_BANDS = ((330, 270, 700, 375), (330, 860, 700, 985))
 
 
 def _source():
@@ -76,8 +91,103 @@ def _source():
                 "etrafına saydamlık damaları çizilmiş; tuvali dolduran bir "
                 "sürüm gerekir"
             )
+    for band in TEXT_BANDS:
+        _erase(image, band)
     _cache["source"] = image
     return image
+
+
+def _text_mask(image, box):
+    """Kutudaki yazının maskesi.
+
+    Yazı, zeminden altın rengiyle ayrılır; ama kutuda yazı dışında da altın
+    vardır (minare, külah, halka). Ayrım şöyle yapılır: kutunun kenarına
+    değen her bağlı bileşen tasarımın bir parçasıdır ve KORUNUR. Yazı
+    kutunun ortasında yüzer, kenara değmez.
+    """
+    left, top, right, bottom = box
+    width, height = right - left, bottom - top
+    pixels = image.load()
+    gold = [
+        [
+            (lambda rgb: rgb[0] - rgb[2] > 6 and (rgb[0] + rgb[1]) / 2 > 60)(
+                pixels[left + x, top + y]
+            )
+            for x in range(width)
+        ]
+        for y in range(height)
+    ]
+
+    mask = Image.new("L", (width, height), 0)
+    painter = mask.load()
+    seen = [[False] * width for _ in range(height)]
+    for start_y in range(height):
+        for start_x in range(width):
+            if not gold[start_y][start_x] or seen[start_y][start_x]:
+                continue
+            component, touches_edge = [], False
+            queue = deque([(start_x, start_y)])
+            seen[start_y][start_x] = True
+            while queue:
+                x, y = queue.popleft()
+                component.append((x, y))
+                if x in (0, width - 1) or y in (0, height - 1):
+                    touches_edge = True
+                for step_x in (-1, 0, 1):
+                    for step_y in (-1, 0, 1):
+                        next_x, next_y = x + step_x, y + step_y
+                        if not (0 <= next_x < width and 0 <= next_y < height):
+                            continue
+                        if gold[next_y][next_x] and not seen[next_y][next_x]:
+                            seen[next_y][next_x] = True
+                            queue.append((next_x, next_y))
+            # Tek tük piksel gürültüsü zaten zeminle aynı; harf gövdesi büyüktür.
+            if not touches_edge and len(component) > 20:
+                for x, y in component:
+                    painter[x, y] = 255
+    return mask
+
+
+def _erase(image, box):
+    """Kutudaki yazıyı siler, yerine zeminin degradesini koyar."""
+    mask = _text_mask(image, box)
+    if mask.getextrema()[1] == 0:
+        return
+    # Harfin çevresindeki yumuşama eşiğin altında kalır; maske büyütülmezse
+    # silinen yazının soluk bir hayaleti durur.
+    mask = mask.filter(ImageFilter.MaxFilter(9))
+    marked = mask.load()
+
+    patch = image.crop(box)
+    canvas = patch.load()
+    width, height = patch.size
+    for y in range(height):
+        for x in range(width):
+            if not marked[x, y]:
+                continue
+            before = next((i for i in range(x - 1, -1, -1) if not marked[i, y]), None)
+            after = next((i for i in range(x + 1, width) if not marked[i, y]), None)
+            if before is None and after is None:
+                continue
+            if before is None:
+                canvas[x, y] = canvas[after, y]
+            elif after is None:
+                canvas[x, y] = canvas[before, y]
+            else:
+                ratio = (x - before) / (after - before)
+                start, end = canvas[before, y], canvas[after, y]
+                canvas[x, y] = tuple(
+                    int(round(start[i] + (end[i] - start[i]) * ratio))
+                    for i in range(3)
+                )
+    # Satır satır enterpolasyon dikey yönde ince şeritler bırakır; dolgu
+    # bölgesi yumuşatılınca degradeden ayırt edilemez hâle gelir.
+    patch = Image.composite(
+        patch.filter(ImageFilter.GaussianBlur(4)),
+        patch,
+        mask.filter(ImageFilter.GaussianBlur(3)),
+    )
+    image.paste(patch, box)
 
 
 def _artwork():

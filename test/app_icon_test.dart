@@ -35,6 +35,26 @@ bool _hasAlpha(int colorType) => colorType == 4 || colorType == 6;
 /// Uygulamanın kendi ürettiği simgeler her zaman bu biçimdedir; başka bir
 /// biçimle karşılaşırsak test anlamlı bir mesajla düşer.
 List<int> _pixelAt(File file, int x, int y) {
+  final rows = _rows(file);
+  final channels = rows.channels;
+  return rows.data[y].sublist(x * channels, x * channels + channels);
+}
+
+/// Çözülmüş satırlar; dosya başına bir kez.
+///
+/// Simge testleri binlerce piksel okuyor; her okumada tüm akışı yeniden
+/// açmak testi saniyelerce bekletiyordu.
+final _decoded = <String, ({List<List<int>> data, int channels})>{};
+
+({List<List<int>> data, int channels}) _rows(File file) {
+  final cached = _decoded[file.path];
+  if (cached != null) return cached;
+  final decoded = _decode(file);
+  _decoded[file.path] = decoded;
+  return decoded;
+}
+
+({List<List<int>> data, int channels}) _decode(File file) {
   final bytes = file.readAsBytesSync();
   final header = _header(file);
   expect(
@@ -69,10 +89,11 @@ List<int> _pixelAt(File file, int x, int y) {
 
   final raw = ZLibDecoder().convert(compressed);
   final stride = header.width * channels;
-  // Filtre çözümü önceki satıra bağlıdır; istenen satıra kadar hepsini kur.
+  // Filtre çözümü önceki satıra bağlıdır; satırlar baştan sona kurulur.
   var previous = List<int>.filled(stride, 0);
   var current = List<int>.filled(stride, 0);
-  for (var row = 0; row <= y; row++) {
+  final rows = <List<int>>[];
+  for (var row = 0; row < header.height; row++) {
     final start = row * (stride + 1);
     final filter = raw[start];
     current = List<int>.filled(stride, 0);
@@ -91,8 +112,9 @@ List<int> _pixelAt(File file, int x, int y) {
       };
     }
     previous = current;
+    rows.add(current);
   }
-  return current.sublist(x * channels, x * channels + channels);
+  return (data: rows, channels: channels);
 }
 
 int _paeth(int a, int b, int c) {
@@ -230,6 +252,46 @@ void main() {
           reason: '$name düz renk zemine dönmüş.',
         );
         expect(xml, contains('@mipmap/ic_launcher_foreground'));
+      }
+    });
+
+    test('bırakılan yazılar simgeye geri sızmamış', () {
+      // Kaynak tasarımda "Huzur Rehberi" ve "Namazlar" yazıları var; ad
+      // yalnızca Namaz Yolu olduğu için tool/generate_app_icon.py bunları
+      // siliyor. Betik atlanır ya da silme bozulursa simge yanlış adla
+      // mağazaya gider. Kutular 1024'lük tasarımdan ölçüldü ve 192'ye
+      // indirgendi; içlerinde tasarımın kendi altın çizgisi yok.
+      const scale = 192 / 1024;
+      const bands = [
+        (name: 'Huzur Rehberi', left: 370, top: 292, right: 655, bottom: 350),
+        (name: 'Namazlar', left: 355, top: 885, right: 682, bottom: 980),
+      ];
+      final file = File(
+        'android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png',
+      );
+      for (final band in bands) {
+        final left = (band.left * scale).round();
+        final top = (band.top * scale).round();
+        final right = (band.right * scale).round();
+        final bottom = (band.bottom * scale).round();
+        var gold = 0;
+        for (var y = top; y < bottom; y++) {
+          for (var x = left; x < right; x++) {
+            final pixel = _pixelAt(file, x, y);
+            final warmth = pixel[0] - pixel[2];
+            final level = (pixel[0] + pixel[1]) / 2;
+            // Altın: zemine göre hem sıcak hem parlak.
+            if (warmth > 20 && level > 110) gold++;
+          }
+        }
+        final area = (right - left) * (bottom - top);
+        expect(
+          gold / area,
+          lessThan(0.02),
+          reason:
+              '"${band.name}" yazısının durduğu bant hâlâ altın dolu '
+              '($gold/$area piksel); yazı silinmemiş.',
+        );
       }
     });
 
