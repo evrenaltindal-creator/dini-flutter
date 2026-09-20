@@ -203,7 +203,7 @@ class HomePage extends ConsumerWidget {
     final settings = ref.watch(effectivePrayerSettingsProvider);
     final now = TimezoneService.inLocation(
       times.timezoneId ?? 'Europe/Istanbul',
-      DateTime.now(),
+      ref.watch(clockProvider)(),
     );
     final hijri = settings.calendar.hijri(now);
     final ramadan = ramadanStatus(now, calendar: settings.calendar);

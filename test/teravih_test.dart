@@ -2,6 +2,7 @@ import 'package:dini_flutter/core/localization/app_localizations.dart';
 import 'package:dini_flutter/core/storage/local_storage.dart';
 import 'package:dini_flutter/core/storage/storage_provider.dart';
 import 'package:dini_flutter/features/calendar/domain/islamic_calendar.dart';
+import 'package:dini_flutter/shared/models/domain.dart';
 import 'package:dini_flutter/features/prayer_times/domain/timezone_service.dart';
 import 'package:dini_flutter/features/prayer_times/presentation/providers.dart';
 import 'package:dini_flutter/features/ramadan/data/teravih_repository.dart';
@@ -190,6 +191,26 @@ void main() {
         times.date,
         DateTime(2026, 2, 21),
         reason: 'Vakitler cihazın gününe göre hesaplanmış.',
+      );
+    });
+
+    test('geri sayım da aynı saati okur', () {
+      // Geri sayım ayrı bir kaynaktan (gerçek saat) beslenirse vakitler ile
+      // geri sayım birbirini tutmaz: ekran görüntüsü alınırken tabloda
+      // yazan vakit ile "kaldı" satırı saatlerce ayrıldı.
+      final now = DateTime.utc(2026, 2, 20, 22);
+      final container = ProviderContainer(
+        overrides: [clockProvider.overrideWithValue(() => now)],
+      );
+      addTearDown(container.dispose);
+
+      final times = container.read(prayerTimesProvider);
+      final next = container.read(nextPrayerProvider);
+      expect(next.next, Prayer.fajr);
+      expect(
+        next.remaining,
+        times.times[Prayer.fajr]!.difference(now),
+        reason: 'Geri sayım sahte saati değil başka bir saati okuyor.',
       );
     });
   });

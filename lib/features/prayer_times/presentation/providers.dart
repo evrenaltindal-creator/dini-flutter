@@ -54,8 +54,15 @@ final prayerTimesProvider = Provider<PrayerTimes>((ref) {
     timezoneId: timezoneId,
   );
 });
+// Geri sayım da `clockProvider` okur: `nextPrayerState` verilen anı zaten
+// vaktin diliminde değerlendiriyor, ama doğrudan `DateTime.now()` çağrılırsa
+// vakitler sahte saatle, geri sayım gerçek saatle hesaplanır ve ikisi
+// testte birbirini tutmaz.
 final nextPrayerProvider = Provider<NextPrayerState>(
-  (ref) => nextPrayerState(DateTime.now(), ref.watch(prayerTimesProvider)),
+  (ref) => nextPrayerState(
+    ref.watch(clockProvider)(),
+    ref.watch(prayerTimesProvider),
+  ),
 );
 
 /// Seçili konum ve hesap ayarlarıyla bir ayın imsakiyesi.
