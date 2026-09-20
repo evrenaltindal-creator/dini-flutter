@@ -5,7 +5,7 @@ Branch: `claude/location` (`7fb22d3`) · Taban: `origin/main` (17 commit önde)
 Aynı commit `claude/upbeat-gates-1t7ls6` dalına da itildi.
 
 Kapı: `dart format` temiz (Dart 3.13.1), `flutter analyze` sıfır sorun,
-**41 dosyada 496 test geçiyor**.
+**42 dosyada 503 test geçiyor** (`promo` etiketli görüntü testi atlanır).
 
 ---
 
@@ -25,7 +25,17 @@ Kapı: `dart format` temiz (Dart 3.13.1), `flutter analyze` sıfır sorun,
 | Uygulamanın adı: **Namaz Yolu** | `appTitle` (3 dil), iOS/Android görünen ad | en: Prayer Path, ar: طريق الصلاة |
 | Yeni simge | `assets/branding/app_icon_source.png` + `tool/generate_app_icon.py` | Verilen tasarımdan üretiliyor |
 
-## 2. Yol boyunca bulunan üç gerçek hata
+### Web tanıtım paketi (son ekleme)
+
+`docs/promo/` altında sitenin isteyeceği her şey var: favicon/PWA simgeleri,
+1200x630 bağlantı kartı, başlık görseli, gerçek uygulamadan alınmış ekran
+görüntüleri ve üç dilde tanıtım metni. Simge uygulamanınkiyle aynı
+kaynaktan üretiliyor. Görüntüleri yenilemek için
+`tool/capture_promo_shots.sh` → `python3 tool/generate_web_assets.py`.
+Ramazan (mahya) ekranı pakete girmedi: mahyanın yazısı test ortamında dolu
+kutu çiziliyor, o görüntü gerçek cihazdan alınmalı.
+
+## 2. Yol boyunca bulunan gerçek hatalar
 
 1. **Vakitler cihazın gününe göre hesaplanıyordu.** Motor kendisine verilen
    tarihin gün/ay/yıl alanlarını olduğu gibi kullanıyor, sağlayıcı ise ham
@@ -36,7 +46,16 @@ Kapı: `dart format` temiz (Dart 3.13.1), `flutter analyze` sıfır sorun,
    sarmalamak yetmiyor; temanın zemin rengi opak ve sayfanın kendi düz
    `Scaffold`'u sahneyi boyuyordu. `backdrop_coverage_test.dart` artık bütün
    rotaları dolaşıp bekçilik ediyor. (`3ad0830`)
-3. **Ana ekran widget'ı kurulduğu günden beri boştu.** Uygulama yalnızca
+3. **Aydınlık kipte imsakiye ve takvim okunmuyordu.** Bu ekranların metni
+   kartların içinde değil, doğrudan koyu cami perdesinin üstünde duruyor;
+   rengi ise temadan geliyordu. Cihaz aydınlık kipteyken koyu yazı koyu
+   zemine düşüyor, imsakiye ekranı bugünün satırı dışında boş görünüyordu.
+   Site için ekran görüntüsü alınırken ortaya çıktı. Artık perdenin
+   üstündeki metin `BackdropPalette`'ten renkleniyor ve
+   `backdrop_contrast_test.dart` iki ekranı iki temada bekçiliyor.
+4. **Simge hâlâ "Huzur Rehberi" yazıyordu.** Ad yalnızca Namaz Yolu; iki
+   yazı da betikle silindi, `app_icon_test.dart` bandı tarıyor.
+5. **Ana ekran widget'ı kurulduğu günden beri boştu.** Uygulama yalnızca
    `refresh()` çağırıyordu; `update(snapshot)` hiçbir yerden çağrılmıyordu, yani
    uzantının okuyacağı değerler hiç yazılmamıştı. (`2293279`)
 
