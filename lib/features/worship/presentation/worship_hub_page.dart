@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../notifications/presentation/notification_settings_page.dart';
 import '../../tracker/presentation/prayer_tracker_page.dart';
 import 'prayer_guide_view.dart';
@@ -38,6 +39,12 @@ class WorshipHubPage extends StatelessWidget {
           // çubuğunda son sekme ekran dışında kalıyor ve kullanıcı onu
           // bulamıyordu. Uzun açıklamalar sayfa içi başlık olarak duruyor.
           bottom: TabBar(
+            // Sekme çubuğu cami perdesinin üstünde duruyor; temanın
+            // varsayılan renkleri aydınlık kipte seçili olmayan sekmeleri
+            // okunmaz hâle getiriyordu.
+            labelColor: BackdropPalette.text,
+            unselectedLabelColor: BackdropPalette.mutedText,
+            indicatorColor: BackdropPalette.text,
             tabs: [
               Tab(
                 icon: const Icon(Icons.check_circle_outline),
