@@ -20,7 +20,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Premium'));
     await tester.pumpAndSettle();
-    expect(find.text('Dini Premium'), findsOneWidget);
+    expect(find.text('Namaz Yolu Premium'), findsOneWidget);
   });
   test('theme and localization providers have defaults', () {
     final container = ProviderContainer();

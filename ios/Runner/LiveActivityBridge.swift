@@ -68,7 +68,7 @@ final class LiveActivityBridge {
     }
     guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
     _ = try? Activity.request(
-      attributes: PrayerActivityAttributes(appName: "Dini"),
+      attributes: PrayerActivityAttributes(appName: "Namaz Yolu"),
       content: ActivityContent(state: state, staleDate: state.prayerTime.addingTimeInterval(900)),
       pushType: nil
     )

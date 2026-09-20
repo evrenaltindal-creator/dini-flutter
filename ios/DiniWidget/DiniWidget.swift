@@ -106,7 +106,7 @@ struct DiniPrayerWidget: Widget {
         }
         return result
     }
-    var body: some WidgetConfiguration { StaticConfiguration(kind: kind, provider: DiniWidgetProvider()) { entry in DiniWidgetView(entry: entry) }.configurationDisplayName("Dini Namaz Vakitleri").description("Sıradaki namazı ve günlük vakitleri gösterir.").supportedFamilies(Self.families) }
+    var body: some WidgetConfiguration { StaticConfiguration(kind: kind, provider: DiniWidgetProvider()) { entry in DiniWidgetView(entry: entry) }.configurationDisplayName("Namaz Yolu").description("Sıradaki namazı ve günlük vakitleri gösterir.").supportedFamilies(Self.families) }
 }
 
 @main

@@ -6,7 +6,10 @@ için `ROADMAP.md` dosyasını oku.
 
 ## Proje özeti
 
-`dini_flutter`, Türkçe/İngilizce/Arapça namaz vakitleri uygulamasıdır.
+**Namaz Yolu** (`dini_flutter` paketi), Türkçe/İngilizce/Arapça namaz
+vakitleri uygulamasıdır. Görünen ad üç dilde `appTitle` anahtarından gelir
+(en: Prayer Path, ar: طريق الصلاة); paket kimliği `com.dini.dini_flutter`
+mağaza kimliğidir ve değiştirilmez.
 Flutter + Riverpod + go_router. **Tamamen cihaz içi (offline-first) çalışır.**
 
 ## Değişmez kurallar (ihlal etme, önce sor)

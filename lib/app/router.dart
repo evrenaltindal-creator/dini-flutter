@@ -979,7 +979,9 @@ class PremiumPage extends StatelessWidget {
   const PremiumPage({super.key});
   @override
   Widget build(BuildContext context) => _Page(
-    title: 'Dini Premium',
+    // Ad çeviriden gelir: düz string yazılırsa uygulama adı değiştiğinde
+    // burası geride kalır (nitekim kaldı).
+    title: '${context.l10n.text('appTitle')} Premium',
     children: [
       const Text('Temel dini özellikler herkes için ücretsiz kalır.'),
       _Card(

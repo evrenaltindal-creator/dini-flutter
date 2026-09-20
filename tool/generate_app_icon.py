@@ -10,9 +10,14 @@ simgeyi elle yeniden çizmek gerekmez.
     pip install Pillow
     python3 tool/generate_app_icon.py
 
-Tasarım: koyu yeşil zemin üzerinde altın renkli mihrap kemeri; kemerin içine
-hilal negatif boşluk olarak oyulmuştur. Renkler `lib/core/theme/app_theme.dart`
-içindeki tohum renk (#0b3d3a) ve ikincil renkten (#cda45e) alınmıştır.
+Tasarım: koyu yeşil zemin üzerinde altın renkli bir mihrap KAPISI (dolu
+kemer değil, hat); boşluğunda hilal durur ve eşikten öne doğru genişleyen bir
+yol geçer — uygulamanın adı "Namaz Yolu". Dolu kemer denendi ve bırakıldı:
+altındaki yol kaideye dönüşüp simge satranç taşına benziyordu. Renkler `lib/core/theme/app_theme.dart` içindeki tohum renk (#0b3d3a)
+ve ikincil renkten (#cda45e) alınmıştır.
+
+Küçük boyut belirleyicidir: simge 40 pikselde de okunmalı. Bu yüzden yol iki
+kalın dilime bölünür; ince "kaldırım taşları" o ölçekte çamura dönüşürdü.
 """
 
 import json
@@ -47,21 +52,22 @@ def _background(size):
     return image
 
 
-def _arch_mask(size):
+def _arch_mask(size, *, width_ratio, apex_ratio, spring_ratio, bottom_ratio):
     """İki merkezli (sivri) mihrap kemerinin maskesi.
 
     Kemer, yay merkezleri omuz hizasında olan iki dairenin kesişimidir; omuz
-    hizasının altı düz gövdedir.
+    hizasının altı düz gövdedir. Ölçüler dışarıdan verilir: aynı biçim hem dış
+    hat hem iç boşluk için kullanılır, ikisinin farkı kapı halkasını verir.
     """
     mask = Image.new("L", (size, size), 0)
     draw = ImageDraw.Draw(mask)
 
     cx = size / 2
-    width = 0.46 * size
+    width = width_ratio * size
     half = width / 2
-    spring = 0.56 * size  # omuz hizası
-    apex = 0.18 * size  # tepe
-    bottom = 0.80 * size
+    spring = spring_ratio * size  # omuz hizası
+    apex = apex_ratio * size  # tepe
+    bottom = bottom_ratio * size
 
     height = spring - apex
     # d: yay merkezinin eksenden kayması. h^2 = W^2/4 + W*d denkleminden.
@@ -91,23 +97,73 @@ def _arch_mask(size):
     return mask
 
 
+# Kapının dış hattı ve boşluğu. Dolu bir kemer, altındaki her şeyi kaide gibi
+# gösteriyordu; kapı olarak çizilince yol içinden geçip derinlik kazanıyor.
+DOOR_OUTER = dict(width_ratio=0.52, apex_ratio=0.12, spring_ratio=0.44, bottom_ratio=0.72)
+DOOR_INNER = dict(width_ratio=0.36, apex_ratio=0.21, spring_ratio=0.47, bottom_ratio=0.76)
+
+
+def _door_mask(size):
+    """Kapının altın hattı: dış kemerden iç boşluk çıkarılır."""
+    outer = _arch_mask(size, **DOOR_OUTER)
+    inner = _arch_mask(size, **DOOR_INNER)
+    outer.paste(0, (0, 0), inner)
+    return outer
+
+
 def _crescent_mask(size):
-    """Kemerin içine oyulacak hilal."""
+    """Kapı boşluğunda duran hilal."""
     # Hilalin görsel ağırlık merkezi oyuk yüzünden sola kayar; kemerin
     # ortasında dursun diye tamamı hafifçe sağa alınır.
-    cx = size / 2 + 0.028 * size
-    cy = 0.495 * size
-    outer = 0.135 * size
-    inner = 0.117 * size
+    cx = size / 2 + 0.022 * size
+    cy = 0.355 * size
+    outer = 0.105 * size
+    inner = 0.091 * size
     # İç daireyi sağa ve yukarı kaydırmak sola açılan bir hilal bırakır.
-    ix = cx + 0.066 * size
-    iy = cy - 0.032 * size
+    ix = cx + 0.052 * size
+    iy = cy - 0.025 * size
 
     full = Image.new("L", (size, size), 0)
     ImageDraw.Draw(full).ellipse([cx - outer, cy - outer, cx + outer, cy + outer], fill=255)
     cut = Image.new("L", (size, size), 0)
     ImageDraw.Draw(cut).ellipse([ix - inner, iy - inner, ix + inner, iy + inner], fill=255)
     return Image.composite(Image.new("L", (size, size), 0), full, cut)
+
+
+def _path_mask(size):
+    """Kapıdan geçip öne doğru genişleyen yol.
+
+    Perspektif hissi için alt kenarda geniş, kapının eşiğinde dardır. Tek
+    parça çizilir: iki dilime bölmek 48 pikselde üst üste binen bantlara
+    dönüşüyordu. Bu haliyle aynı zamanda mihraba uzanan bir seccade okuması
+    verir.
+    """
+    mask = Image.new("L", (size, size), 0)
+    draw = ImageDraw.Draw(mask)
+
+    cx = size / 2
+    top = 0.56 * size  # eşik: kapının boşluğunun içinde başlar
+    bottom = 0.83 * size
+    half_top = 0.055 * size
+    half_bottom = 0.185 * size
+
+    # Yol, kapının tabanından (0.72) geçerken ayakların arasında kalmalı;
+    # taştığında kapı bir kaidenin üstünde duruyormuş gibi görünüyor.
+
+    def half_at(y):
+        t = (y - top) / (bottom - top)
+        return half_top + (half_bottom - half_top) * t
+
+    draw.polygon(
+        [
+            (cx - half_at(top), top),
+            (cx + half_at(top), top),
+            (cx + half_at(bottom), bottom),
+            (cx - half_at(bottom), bottom),
+        ],
+        fill=255,
+    )
+    return mask
 
 
 def _gold(size):
@@ -129,9 +185,9 @@ def render(size, *, background=True, scale=1.0):
     layer = Image.new("RGBA", (work, work), (0, 0, 0, 0))
 
     content = int(work * scale)
-    arch = _arch_mask(content)
-    crescent = _crescent_mask(content)
-    arch.paste(0, (0, 0), crescent)
+    arch = _door_mask(content)
+    arch.paste(255, (0, 0), _crescent_mask(content))
+    arch.paste(255, (0, 0), _path_mask(content))
 
     gold = _gold(content).convert("RGBA")
     gold.putalpha(arch)

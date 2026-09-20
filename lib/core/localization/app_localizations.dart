@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 /// ve bir feature'ın giriş noktasından import etmesi doğru değildir.
 const localePreferenceKey = 'dini.locale';
 
-/// App-specific copy for the three languages supported by Dini.
+/// App-specific copy for the three languages supported by Namaz Yolu.
 class AppLocalizations {
   final Locale locale;
 
@@ -44,7 +44,7 @@ class AppLocalizations {
 
   static const Map<String, Map<String, String>> _strings = {
     'tr': {
-      'appTitle': 'Dini',
+      'appTitle': 'Namaz Yolu',
       'teravih.title': 'Teravih sayacı',
       'teravih.tonight': '{night}. gece',
       'teravih.outsideRamadan': 'Teravih sayacı Ramazan gecelerinde çalışır.',
@@ -427,7 +427,7 @@ class AppLocalizations {
       'ramadan.eid': 'Bayramınız mübarek olsun.',
     },
     'en': {
-      'appTitle': 'Dini',
+      'appTitle': 'Prayer Path',
       'teravih.title': 'Tarawih counter',
       'teravih.tonight': 'Night {night}',
       'teravih.outsideRamadan': 'The tarawih counter runs on Ramadan nights.',
@@ -805,7 +805,7 @@ class AppLocalizations {
       'ramadan.eid': 'Eid Mubarak.',
     },
     'ar': {
-      'appTitle': 'ديني',
+      'appTitle': 'طريق الصلاة',
       'teravih.title': 'عدّاد التراويح',
       'teravih.tonight': 'الليلة {night}',
       'teravih.outsideRamadan': 'يعمل عدّاد التراويح في ليالي رمضان.',
