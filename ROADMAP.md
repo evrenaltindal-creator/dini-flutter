@@ -147,7 +147,11 @@ Biriken kaza namazlarının sayımı. 2.2 ile aynı veri modelini paylaşır.
       tarihle değil: kullanıcı tarih düzeltmesini değiştirdiğinde kayıt
       kaymamalı. Gün sayısı sabit değil sayılır. Uygulama kaza ya da fidye
       hükmü vermez; ekran bunun için Diyanet'e yönlendirir.
-- [ ] Teravih sayacı (tesbih sayacının motoru kullanılır)
+- [x] **Teravih sayacı** — gecelik sayaç (bir dokunuş = bir selam = iki rekât),
+      seçilebilir hedef (8 / 20, varsayılan 20) ve Ramazan boyunca gece gece
+      kayıt. Rekât sayısı bir hüküm değildir; ekran bunu söyleyip Diyanet'e
+      yönlendirir. Sayaç hedefte kilitlenmez: camiye göre kılınan rekât değişir.
+      Gece, akşam ezanından sonra ertesi güne yazılır.
 
 ---
 
@@ -197,5 +201,7 @@ kanıtlarıyla yazıldı.
 - `claude/upbeat-gates-1t7ls6` ve `claude/ramadan-reminders` main'e girmedi.
 - Gerçek cihazda hiçbir şey doğrulanmadı: pusula, sessiz moddaki ses,
   bildirimlerin gerçekten çalması.
+- Mahyanın harfleri yalnızca testteki yazı tipiyle görüldü (her harf dolu
+  kutu çizilir); okunaklılık cihazda kontrol edilmeli.
 - TestFlight'a build gönderilmedi.
 - `MainActivity.kt` değişikliği derlenmedi (bkz. 1.5).

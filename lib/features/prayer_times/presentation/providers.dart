@@ -7,6 +7,7 @@ import '../domain/location_resolver.dart';
 import '../domain/monthly_timetable.dart';
 import '../domain/prayer_engine.dart';
 import '../domain/prayer_settings.dart';
+import '../domain/timezone_service.dart';
 import 'settings_controller.dart';
 import '../../../shared/models/domain.dart';
 
@@ -39,15 +40,18 @@ final prayerTimesProvider = Provider<PrayerTimes>((ref) {
     location.latitude ?? 41.0082,
     location.longitude ?? 28.9784,
   );
+  final timezoneId = location.timezoneId ?? 'Europe/Istanbul';
   return const LocalPrayerTimesCalculator().calculate(
-    // Vakitler ekrandaki "şimdi" ile aynı günden okunmalı; ayrıldıklarında
-    // sahne gece görünürken vakitler başka bir güne ait olur.
-    ref.watch(clockProvider)(),
+    // Gün, kullanıcının SEÇTİĞİ yerin saat dilimine göre belirlenir. Motor
+    // kendisine verilen tarihin gün/ay/yıl alanlarını olduğu gibi kullanır;
+    // cihazın dilimi seçilen şehirden farklıysa (yolculuk ya da listeden
+    // başka bir şehir) gece yarısı civarında bütün vakitler bir gün kayardı.
+    TimezoneService.inLocation(timezoneId, ref.watch(clockProvider)()),
     coordinates,
     method: settings.method,
     asrMethod: settings.asrMethod,
     adjustments: settings.adjustments,
-    timezoneId: location.timezoneId ?? 'Europe/Istanbul',
+    timezoneId: timezoneId,
   );
 });
 final nextPrayerProvider = Provider<NextPrayerState>(

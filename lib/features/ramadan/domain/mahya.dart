@@ -1,6 +1,7 @@
 import '../../calendar/domain/islamic_calendar.dart';
 import '../../calendar/domain/ramadan_status.dart';
 import '../../home/domain/mosque_scene_state.dart';
+import 'ramadan_night.dart';
 
 /// Minareler arasına asılan ışıklı yazı.
 ///
@@ -56,8 +57,7 @@ Mahya? mahyaFor(
   required bool afterMaghrib,
   IslamicCalendar calendar = const IslamicCalendar(),
 }) {
-  final today = DateTime(date.year, date.month, date.day);
-  final night = afterMaghrib ? today.add(const Duration(days: 1)) : today;
+  final night = ramadanNightDate(date, afterMaghrib: afterMaghrib);
   final status = ramadanStatus(night, calendar: calendar);
 
   if (status.phase == RamadanPhase.eid) return const Mahya('mahya.eid');

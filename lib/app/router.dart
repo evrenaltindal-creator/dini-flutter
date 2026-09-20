@@ -23,6 +23,7 @@ import '../features/calendar/presentation/ramadan_headline.dart';
 import '../features/calendar/presentation/calendar_page.dart';
 import '../features/prayer_times/presentation/imsakiye_page.dart';
 import '../features/ramadan/presentation/fasting_page.dart';
+import '../features/ramadan/presentation/teravih_page.dart';
 import '../features/prayer_times/presentation/location_page.dart';
 import '../features/prayer_times/presentation/save_settings.dart';
 import '../features/tasbih/presentation/tasbih_page.dart';
@@ -154,6 +155,10 @@ GoRouter createRouter({String initialLocation = '/'}) => GoRouter(
     ),
     GoRoute(path: '/location', builder: (_, _) => const LocationPage()),
     GoRoute(path: '/onboarding', builder: (_, _) => const OnboardingPage()),
+    GoRoute(
+      path: '/teravih',
+      builder: (_, _) => const MosqueBackdrop(child: TeravihPage()),
+    ),
     GoRoute(
       path: '/fasting',
       builder: (_, _) => const MosqueBackdrop(child: FastingPage()),
@@ -343,6 +348,12 @@ class HomePage extends ConsumerWidget {
                             icon: Icons.brightness_2_outlined,
                             label: l10n.text('home.fasting'),
                             onPressed: () => context.push('/fasting'),
+                          ),
+                        if (ramadan.isVisible)
+                          _QuickAction(
+                            icon: Icons.nights_stay_outlined,
+                            label: l10n.text('home.teravih'),
+                            onPressed: () => context.push('/teravih'),
                           ),
                         _QuickAction(
                           icon: Icons.calendar_month_outlined,
