@@ -215,23 +215,36 @@ void main() {
       }
     });
 
-    test('uyarlanabilir simge tanımı zemin rengini gösterir', () {
-      final definition = File(
-        'android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml',
-      );
-      expect(definition.existsSync(), isTrue);
-      final xml = definition.readAsStringSync();
-      expect(xml, contains('@color/ic_launcher_background'));
-      expect(xml, contains('@mipmap/ic_launcher_foreground'));
+    test('uyarlanabilir simge tanımı degrade zemin katmanını gösterir', () {
+      // Zemin artık düz renk değil: tasarımın zemini degrade ve düz renk
+      // katman, küçültülen ön planın kenarında renk farkı bırakıyordu.
+      for (final name in ['ic_launcher.xml', 'ic_launcher_round.xml']) {
+        final definition = File(
+          'android/app/src/main/res/mipmap-anydpi-v26/$name',
+        );
+        expect(definition.existsSync(), isTrue, reason: '$name yok.');
+        final xml = definition.readAsStringSync();
+        expect(
+          xml,
+          contains('@mipmap/ic_launcher_background'),
+          reason: '$name düz renk zemine dönmüş.',
+        );
+        expect(xml, contains('@mipmap/ic_launcher_foreground'));
+      }
+    });
 
-      final colors = File('android/app/src/main/res/values/colors.xml');
-      expect(
-        colors.existsSync(),
-        isTrue,
-        reason:
-            'ic_launcher.xml olmayan bir renge işaret ediyor; derleme kırılır.',
-      );
-      expect(colors.readAsStringSync(), contains('ic_launcher_background'));
+    test('her yoğunlukta zemin katmanı da var', () {
+      // Tanım olmayan bir çizime işaret ederse derleme kırılır.
+      for (final density in densities) {
+        final background = File(
+          'android/app/src/main/res/mipmap-$density/ic_launcher_background.png',
+        );
+        expect(
+          background.existsSync(),
+          isTrue,
+          reason: '$density için zemin katmanı üretilmemiş.',
+        );
+      }
     });
   });
 }

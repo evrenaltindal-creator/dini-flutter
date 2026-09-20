@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Uyarlanabilir simgenin zemini. assets/branding/app_icon_source.png
-         tasarımının düz zemin rengiyle BİREBİR aynı olmalı; ayrıldıklarında
-         ön planın kenarında ince bir renk halkası görünür. -->
-    <color name="ic_launcher_background">#FF1C6153</color>
+    <!-- Uyarlanabilir simgenin zemini artık düz renk DEĞİL, üretilen bir PNG
+         katmanıdır (tasarımın zemini degrade; düz renk ön planın kenarında
+         renk farkı bırakıyordu). Bkz. mipmap-anydpi-v26/ic_launcher.xml ve
+         tool/generate_app_icon.py. Renk kaydı, eski sürümlerden kalan
+         başvurular kırılmasın diye duruyor. -->
+    <color name="ic_launcher_background">#FF143E46</color>
 </resources>

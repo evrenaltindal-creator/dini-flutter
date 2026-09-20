@@ -64,7 +64,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 41 dosyada 496 test var; hepsi geçmelidir.
+- Depoda şu an 41 dosyada 497 test var; hepsi geçmelidir.
 
 ## Git akışı
 
@@ -148,13 +148,18 @@ flutter test --reporter expanded
 - Simge ve bildirim tonu PNG/WAV dosyaları `tool/` altındaki betiklerden
   üretilir. Dosyaları elle düzenleme; betiği değiştirip yeniden çalıştır.
   Betikler `pip install Pillow` ister, başka bağımlılıkları yoktur.
-- **Simgenin kaynağı `assets/branding/app_icon_source.png`** (1024×1024, düz
-  yeşil zemin). `pubspec.yaml` varlık listesine eklenmez: uygulama onu çalışma
-  anında yüklemez. Zemin rengi `values/colors.xml` içindeki
-  `ic_launcher_background` ile birebir aynı olmalıdır, yoksa Android
-  uyarlanabilir simgede ön planın kenarında renk halkası görünür. Küçük
-  boyutlar (≤76 px) tasarımdan %14 kırpılarak üretilir; tam kadraj o ölçekte
-  ince halkaları birbirine karıştırıyor.
+- **Simgenin kaynağı `assets/branding/app_icon_source.png`** (1024×1024,
+  degrade zemin). **Tam kenar olmalı**: kare, saydamlıksız, köşeleri
+  yuvarlatılmamış ve etrafına "saydamlık" damaları çizilmemiş — betik bunları
+  kontrol edip hata veriyor, sessizce kabul etmiyor. `pubspec.yaml` varlık
+  listesine eklenmez: uygulama onu çalışma anında yüklemez.
+- **Android uyarlanabilir simgede zemin düz renk DEĞİL**, üretilen bir PNG
+  katmandır (`ic_launcher_background.png`): tasarımın zemini degrade olduğu
+  için düz renk, küçültülen ön planın kenarında renk farkı bırakıyordu. Ön
+  plan da yalnızca altın hatları taşır; zemini de taşısaydı madalyonun
+  çevresinde daire şeklinde dikiş görünürdü. Küçültme oranı ölçülen içerik
+  yayılımından hesaplanır (`CONTENT_EXTENT`), tasarım değişirse yeniden
+  ölçülmeli.
 - **Kıble açısı gerçek (coğrafi) kuzeye göredir.** Android'in pusulası
   manyetik kuzeye göre ölçer; `MagneticDeclinationService` farkı
   `GeomagneticField` üzerinden kapatır. iOS zaten `trueHeading` verir.

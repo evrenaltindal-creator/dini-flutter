@@ -2,24 +2,25 @@
 """Uygulama simgesini üretir.
 
 Kaynak, `assets/branding/app_icon_source.png` dosyasındaki 1024x1024
-tasarımdır (altın hatlı cami, pusula ve halkalar; düz yeşil zemin). PNG'ler
-bu betikten türetilir: boyut listesi değiştiğinde ya da kaynak tasarım
-yenilendiğinde simgeleri elle kesmek gerekmez.
+tasarımdır: degrade zemin üzerinde altın hatlı cami, pusula, halkalar ve
+vakit adları.
+
+Kaynak **tam kenar** olmalıdır: kare, saydamlıksız, köşeleri yuvarlatılmamış
+ve etrafında "saydamlık" damalı deseni çizilmemiş. iOS ve Android simgeye
+kendi maskesini uygular; hazır yuvarlatılmış ya da damalı bir kaynak köşede
+beyaz kırıntı veya dama tahtası olarak görünür. `_source` bunları kontrol
+eder ve sessizce kabul etmez.
+
+Uyarlanabilir (Android) simgede sistem ön planın dışını kırpar; güvenli daire
+tuvalin %30,5'idir. Tasarımın altın içeriği tuval yarı-genişliğinin %88'ine
+kadar uzandığı için ön plan küçültülür — ölçüldü, tahmin edilmedi. Zemin
+degrade olduğu için uyarlanabilir simgenin zemini de düz renk değil, üretilen
+bir PNG katmanıdır.
 
 Çalıştırmak için:
 
     pip install Pillow
     python3 tool/generate_app_icon.py
-
-İki ayrı çıktı üretilir:
-
-* **iOS ve Android eski simge** — tasarım olduğu gibi, tuvali doldurarak.
-  Köşeleri sistem yuvarlatır; kaynak kare ve saydamlıksız olmalıdır.
-* **Android uyarlanabilir simge ön planı** — sistem ön planın dışını kırpar
-  ve güvenli alan ortadaki dairedir. Tasarımın dış halkası tuvalin %77'sine
-  kadar uzandığı için ön plan küçültülür; aksi halde halka kırpılırdı.
-  Zemin düz renk olduğu için ön planda zemin şeffaflaştırılır ve renk
-  `values/colors.xml` üzerinden verilir.
 """
 
 import json
@@ -29,79 +30,123 @@ from PIL import Image, ImageDraw
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Kaynak tasarımın düz zemin rengi. Uyarlanabilir simgede zemin ayrı katman
-# olduğu için bu renk `values/colors.xml` ile birebir aynı olmalıdır; aksi
-# halde ön planın kenarında ince bir renk halkası görünür.
-BACKGROUND = (28, 97, 83)
+SOURCE = os.path.join(ROOT, "assets/branding/app_icon_source.png")
 
 # Kaynak tasarım yalnızca bu betik tarafından, derleme öncesinde okunur.
 # `pubspec.yaml` içindeki `assets:` listesine EKLENMEZ: uygulama onu çalışma
-# anında yüklemiyor, eklemek pakete boşuna ~400 KB bindirirdi.
-SOURCE = os.path.join(ROOT, "assets/branding/app_icon_source.png")
+# anında yüklemiyor, eklemek pakete boşuna yer bindirirdi.
 
-# Uyarlanabilir simgede sistem ön planın dışını kırpar; güvenli daire tuvalin
-# ortadaki %61'idir. Tasarımın en dış halkası merkeze 425/1024 piksel
-# uzaklıkta bittiği için içerik bu oranla küçültülür (ölçüldü, tahmin değil).
-ADAPTIVE_SAFE = 0.74
+# Altın içeriğin merkeze uzaklığı / tuval yarı-genişliği. Ölçülerek bulundu;
+# tasarım değişirse yeniden ölçülmelidir.
+CONTENT_EXTENT = 0.88
+
+# Uyarlanabilir simgenin güvenli dairesi: tuvalin %30,5'i.
+SAFE_RADIUS = 0.305
+
+# Ön planın küçültme oranı; içerik güvenli daireye bu oranla sığar.
+ADAPTIVE_SAFE = SAFE_RADIUS / (CONTENT_EXTENT / 2)
+
+_cache = {}
 
 
 def _source():
-    """Kaynak tasarım. Bulunamazsa sessizce varsayılana düşmez: simgeyi
-    yanlışlıkla eski haliyle üretmek, değişikliğin kaybolduğunu fark
-    ettirmez."""
+    """Kaynak tasarım; tam kenar olduğu doğrulanır.
+
+    Sessizce düzeltmeye çalışmak yerine hata verir: damalı ya da yuvarlatılmış
+    bir kaynak fark edilmeden mağazaya gidebilir.
+    """
+    if "source" in _cache:
+        return _cache["source"]
     if not os.path.exists(SOURCE):
         raise SystemExit(f"kaynak tasarım yok: {SOURCE}")
-    return Image.open(SOURCE).convert("RGB")
+
+    image = Image.open(SOURCE)
+    if image.mode in ("RGBA", "LA") and image.getchannel("A").getextrema()[0] < 250:
+        raise SystemExit("kaynakta saydamlık var; simge tam kenar olmalı")
+    image = image.convert("RGB")
+    if image.size[0] != image.size[1]:
+        raise SystemExit(f"kaynak kare değil: {image.size}")
+
+    width, height = image.size
+    for x, y in ((2, 2), (width - 3, 2), (2, height - 3), (width - 3, height - 3)):
+        red, green, blue = image.getpixel((x, y))
+        if abs(red - green) < 12 and abs(green - blue) < 12 and red > 180:
+            raise SystemExit(
+                "kaynağın köşesi açık gri: tasarım ya yuvarlatılmış ya da "
+                "etrafına saydamlık damaları çizilmiş; tuvali dolduran bir "
+                "sürüm gerekir"
+            )
+    _cache["source"] = image
+    return image
 
 
-def _keyed(image, tolerance=26):
-    """Düz zemini saydamlaştırır; uyarlanabilir simgenin ön planı için."""
-    result = image.convert("RGBA")
-    pixels = result.load()
-    width, height = result.size
+def _artwork():
+    """Altın hatlar; zemin saydam.
+
+    Uyarlanabilir simgenin ön planı zemini TAŞIMAMALI: ön plan küçültüldüğü
+    için kendi degrade parçası arka katmanın degradesiyle uyuşmuyor ve
+    madalyonun çevresinde daire şeklinde bir dikiş görünüyordu. Zemin koyu,
+    hatlar altın olduğu için ayrım parlaklıkla yapılır; yumuşak geçiş
+    korunsun diye alfa kademelidir.
+    """
+    if "artwork" in _cache:
+        return _cache["artwork"]
+    source = _source()
+    width, height = source.size
+    result = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+    src_pixels = source.load()
+    out_pixels = result.load()
     for y in range(height):
         for x in range(width):
-            r, g, b, _ = pixels[x, y]
-            if all(abs(c - t) <= tolerance for c, t in zip((r, g, b), BACKGROUND)):
-                pixels[x, y] = (r, g, b, 0)
+            red, green, blue = src_pixels[x, y]
+            # Altın: parlak ve sıcak. Koyu yeşil/lacivert zeminden bu ikisiyle
+            # ayrılır.
+            warmth = red - blue
+            level = (red + green) / 2
+            alpha = 0.0
+            if warmth > 10 and level > 70:
+                alpha = min(1.0, (level - 70) / 90) * min(1.0, (warmth - 10) / 40)
+            if alpha > 0:
+                out_pixels[x, y] = (red, green, blue, int(round(alpha * 255)))
+    _cache["artwork"] = result
     return result
-
-
-# Küçük boyutlarda tasarım kalabalık kalıyor: ince altın halkalar 40 pikselde
-# birbirine giriyor. Bu ölçülerde kenardan biraz kırpılır, böylece cami ve
-# pusula büyür. Apple her boyut için ayrı dosya beklediği ve bu dosyalar
-# ayrı ayrı üretildiği için bu serbesttir. Kırpma oranı denenerek seçildi:
-# %22'de dış halka kesiliyordu.
-SMALL_SIZE_LIMIT = 76
-SMALL_CROP = 0.14
 
 
 def render(size, *, background=True, scale=1.0):
     """Simgeyi `size` piksellik kare olarak üretir.
 
-    `background` kapalıyken zemin saydamlaşır (Android uyarlanabilir simgenin
-    ön planı). `scale`, içeriği güvenli alana sığdırmak için küçültür.
+    `background` açıkken tasarım tuvali doldurur (iOS ve Android eski simge).
+    Kapalıyken yalnızca madalyon döner ve `scale` ile güvenli alana sığdırılır
+    (Android uyarlanabilir simgenin ön planı).
     """
-    source = _source()
     if background:
-        if size <= SMALL_SIZE_LIMIT:
-            edge = source.size[0]
-            inset = round(edge * SMALL_CROP / 2)
-            source = source.crop((inset, inset, edge - inset, edge - inset))
-        return source.resize((size, size), Image.LANCZOS).convert("RGBA")
+        return _source().resize((size, size), Image.LANCZOS).convert("RGBA")
 
     content = max(1, int(size * scale))
     layer = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    keyed = _keyed(source).resize((content, content), Image.LANCZOS)
+    artwork = _artwork().resize((content, content), Image.LANCZOS)
     inset = (size - content) // 2
-    layer.paste(keyed, (inset, inset), keyed)
+    layer.paste(artwork, (inset, inset), artwork)
     return layer
+
+
+def render_background(size):
+    """Uyarlanabilir simgenin zemin katmanı.
+
+    Tasarımın zemini degradedir; düz renk bir katman ön planın kenarında renk
+    farkı bırakırdı. Madalyonun olmadığı köşe bölgesi büyütülerek tuvali
+    dolduran bir degrade elde edilir.
+    """
+    corner = _source()
+    edge = corner.size[0]
+    corner = corner.crop((0, 0, int(edge * 0.22), int(edge * 0.22)))
+    return corner.resize((size, size), Image.LANCZOS).convert("RGBA")
 
 
 def _write(image, path, *, opaque):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     if opaque:
-        flat = Image.new("RGB", image.size, BACKGROUND)
+        flat = Image.new("RGB", image.size, (20, 62, 70))
         flat.paste(image, (0, 0), image)
         image = flat
     image.save(path, "PNG", optimize=True)
@@ -138,13 +183,19 @@ def build_android():
             os.path.join(res, folder, "ic_launcher.png"),
             opaque=True,
         )
-        # Uyarlanabilir simge katmanları 108dp'lik tuval ister. Zemin düz
-        # renk olduğu için PNG değil, values/colors.xml'deki renk kullanılır.
+        # Uyarlanabilir simge katmanları 108dp'lik tuval ister. Zemin DEGRADE
+        # olduğu için düz renk değil, ayrı bir PNG katmanı üretilir; düz renk
+        # kullanıldığında ön planın kenarında renk farkı görünüyordu.
         adaptive = round(pixels * 108 / 48)
         _write(
             render(adaptive, background=False, scale=ADAPTIVE_SAFE),
             os.path.join(res, folder, "ic_launcher_foreground.png"),
             opaque=False,
+        )
+        _write(
+            render_background(adaptive),
+            os.path.join(res, folder, "ic_launcher_background.png"),
+            opaque=True,
         )
 
 
