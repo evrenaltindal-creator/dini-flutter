@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/storage/storage_provider.dart';
 import '../../notifications/data/notification_scheduler.dart';
 import '../../widgets/data/live_activity_controller.dart';
-import '../../widgets/domain/widget_snapshot.dart';
+import '../../widgets/data/widget_snapshot_builder.dart';
 import '../domain/prayer_settings.dart';
 import 'settings_controller.dart';
 
@@ -41,6 +41,14 @@ Future<void> savePrayerSettings(WidgetRef ref, PrayerSettings value) async {
     ),
   );
 
-  // Widget tazeleme kozmetiktir ve native köprüye bağlıdır; beklenmez.
-  unawaited(const WidgetSnapshotService().refresh());
+  // Widget'a VERİ yazılır, yalnızca "tazele" denmez: uzantı okuyacağı
+  // değerleri uygulamadan alır ve bu yol yazılana kadar hiç yazılmıyordu.
+  // Kozmetiktir ve native köprüye bağlıdır; beklenmez.
+  unawaited(
+    pushWidgetSnapshot(
+      storage: ref.read(localStorageProvider),
+      settings: value,
+      now: DateTime.now(),
+    ),
+  );
 }

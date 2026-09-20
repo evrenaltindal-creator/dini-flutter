@@ -12,6 +12,13 @@ class WidgetSnapshot {
   final Prayer? nextPrayer;
   final DateTime? nextPrayerTime;
   final MosqueScenePeriod scenePeriod;
+
+  /// Vakit adlarının kullanıcının dilindeki karşılığı.
+  ///
+  /// Uzantının uygulamanın çeviri haritasına erişimi yok; adlar hazır metin
+  /// olarak gönderilmezse widget'ta enum adları ("maghrib") görünür.
+  final Map<Prayer, String> labels;
+
   const WidgetSnapshot({
     required this.effectiveDate,
     required this.locationName,
@@ -19,6 +26,7 @@ class WidgetSnapshot {
     required this.nextPrayer,
     required this.nextPrayerTime,
     required this.scenePeriod,
+    this.labels = const {},
   });
   Map<String, dynamic> toJson({required bool showLocationName}) => {
     'effectiveDate': effectiveDate.toIso8601String(),
@@ -30,8 +38,10 @@ class WidgetSnapshot {
     'maghrib': prayers[Prayer.maghrib]?.toIso8601String(),
     'isha': prayers[Prayer.isha]?.toIso8601String(),
     'nextPrayer': nextPrayer?.name,
+    'nextPrayerLabel': nextPrayer == null ? null : labels[nextPrayer],
     'nextPrayerTime': nextPrayerTime?.toIso8601String(),
     'scenePeriod': scenePeriod.name,
+    for (final entry in labels.entries) 'label_${entry.key.name}': entry.value,
   };
 }
 

@@ -27,9 +27,17 @@ struct DiniWidgetProvider: TimelineProvider {
     }
     private static func entry(at date: Date = Date()) -> DiniWidgetEntry {
         let defaults = UserDefaults(suiteName: appGroup)
-        let nextName = defaults?.string(forKey: "nextPrayer") ?? "Sıradaki namaz"
+        // Adlar Flutter tarafından kullanıcının dilinde gelir. Eski
+        // sürümlerden kalan kayıtlarda etiket olmayabilir; o zaman anahtarın
+        // kendisi kullanılır.
+        let nextName = defaults?.string(forKey: "nextPrayerLabel")
+            ?? defaults?.string(forKey: "nextPrayer")
+            ?? "Sıradaki namaz"
         let nextTime = format(defaults?.string(forKey: "nextPrayerTime"))
-        let line = ["fajr", "dhuhr", "asr", "maghrib", "isha"].map { key in "\(key.capitalized) \(format(defaults?.string(forKey: key)))" }.joined(separator: "  ·  ")
+        let line = ["fajr", "dhuhr", "asr", "maghrib", "isha"].map { key in
+            let label = defaults?.string(forKey: "label_\(key)") ?? key.capitalized
+            return "\(label) \(format(defaults?.string(forKey: key)))"
+        }.joined(separator: "  ·  ")
         return DiniWidgetEntry(date: date, nextName: nextName, nextTime: nextTime, prayerLine: line, locationName: defaults?.string(forKey: "locationName"), scenePeriod: defaults?.string(forKey: "scenePeriod") ?? "night")
     }
     private static func format(_ iso: String?) -> String { guard let iso, let date = ISO8601DateFormatter().date(from: iso) else { return "—" }; return DateFormatter.localizedString(from: date, dateStyle: .none, timeStyle: .short) }
@@ -38,19 +46,67 @@ struct DiniWidgetProvider: TimelineProvider {
 struct DiniWidgetView: View {
     let entry: DiniWidgetProvider.Entry
     @Environment(\.widgetFamily) private var family
+
     var body: some View {
+        if #available(iOS 16.0, *), isAccessory {
+            // Kilit ekranı boyutları tek renktir ve çok küçüktür; ana ekran
+            // düzeni buraya sığmaz, zemin de çizilmez.
+            accessory.containerBackground(for: .widget) { Color.clear }
+        } else {
+            home.containerBackground(for: .widget) { Color(red: 0.06, green: 0.15, blue: 0.23) }
+        }
+    }
+
+    private var isAccessory: Bool {
+        guard #available(iOS 16.0, *) else { return false }
+        return family == .accessoryCircular || family == .accessoryRectangular || family == .accessoryInline
+    }
+
+    private var home: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(entry.nextName).font(.caption).foregroundStyle(.secondary)
             Text(entry.nextTime).font(.title.bold()).foregroundStyle(Color(red: 0.95, green: 0.75, blue: 0.35))
             if family == .systemMedium { Text(entry.prayerLine).font(.caption2).minimumScaleFactor(0.6) }
             if let location = entry.locationName, !location.isEmpty { Text(location).font(.caption2).foregroundStyle(.secondary) }
-        }.containerBackground(for: .widget) { Color(red: 0.06, green: 0.15, blue: 0.23) }
+        }
+    }
+
+    @available(iOS 16.0, *)
+    @ViewBuilder private var accessory: some View {
+        switch family {
+        case .accessoryInline:
+            // Tek satır: ad ve saat yan yana sığmalı.
+            Text("\(entry.nextName) \(entry.nextTime)")
+        case .accessoryCircular:
+            VStack(spacing: 0) {
+                Text(entry.nextTime).font(.headline).minimumScaleFactor(0.6)
+                Text(entry.nextName).font(.system(size: 9)).minimumScaleFactor(0.5).lineLimit(1)
+            }
+        default:
+            VStack(alignment: .leading, spacing: 2) {
+                Text(entry.nextName).font(.caption)
+                Text(entry.nextTime).font(.title3.bold())
+                if let location = entry.locationName, !location.isEmpty {
+                    Text(location).font(.caption2).foregroundStyle(.secondary)
+                }
+            }
+        }
     }
 }
 
 struct DiniPrayerWidget: Widget {
     let kind = "DiniPrayerWidget"
-    var body: some WidgetConfiguration { StaticConfiguration(kind: kind, provider: DiniWidgetProvider()) { entry in DiniWidgetView(entry: entry) }.configurationDisplayName("Dini Namaz Vakitleri").description("Sıradaki namazı ve günlük vakitleri gösterir.").supportedFamilies([.systemSmall, .systemMedium]) }
+
+    /// Desteklenen boyutlar. Kilit ekranı boyutları (accessory*) iOS 16 ile
+    /// gelir; eski sürümlerde yalnızca ana ekran boyutları kalır.
+    static var families: [WidgetFamily] {
+        var result: [WidgetFamily] = [.systemSmall, .systemMedium]
+        if #available(iOS 16.0, *) {
+            result.append(contentsOf: [.accessoryCircular, .accessoryRectangular, .accessoryInline])
+        }
+        return result
+    }
+    var body: some WidgetConfiguration { StaticConfiguration(kind: kind, provider: DiniWidgetProvider()) { entry in DiniWidgetView(entry: entry) }.configurationDisplayName("Dini Namaz Vakitleri").description("Sıradaki namazı ve günlük vakitleri gösterir.").supportedFamilies(Self.families) }
 }
 
 @main

@@ -61,7 +61,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 40 dosyada 488 test var; hepsi geçmelidir.
+- Depoda şu an 41 dosyada 496 test var; hepsi geçmelidir.
 
 ## Git akışı
 
@@ -128,6 +128,11 @@ flutter test --reporter expanded
   `Scaffold`'u sahneyi tamamen örter. Yeni sayfa `BackdropScaffold`
   kullanmalı (ya da `backgroundColor: Colors.transparent` vermeli);
   `backdrop_coverage_test.dart` bütün rotaları dolaşıp bunu bekçiler.
+- **Widget'a veri `pushWidgetSnapshot` ile yazılır.** Yalnızca
+  `WidgetSnapshotService.refresh()` çağırmak uzantıya "çizelgeni yenile"
+  demektir; okuyacağı değerleri yazmaz. Vakitleri etkileyen her yol
+  (açılış, ayar kaydı, konum adı anahtarı) anlık görüntüyü yeniden
+  göndermelidir.
 - **Canlı etkinliğin (Live Activity) Swift tarafı DERLENMEDİ.**
   `PrayerLiveActivity.swift` ve `LiveActivityBridge.swift` yazıldı ama
   `project.pbxproj` değiştirilmediği için Xcode hedeflerine eklenmedi

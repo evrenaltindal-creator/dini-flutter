@@ -193,7 +193,16 @@ yönlendirir.
 ## 3. Faz 2 — Ekosistem
 
 - Apple Watch ve Wear OS için bağımsız çalışan komplikasyonlar.
-- Genişletilmiş iOS widget seçenekleri, kilit ekranı sayaçları.
+- ~~Genişletilmiş iOS widget seçenekleri, kilit ekranı sayaçları.~~ Kilit
+  ekranı boyutları (`accessoryCircular`, `accessoryRectangular`,
+  `accessoryInline`) eklendi. **Swift tarafı derlenmedi**, ama dosya zaten
+  Xcode hedefinde olduğu için yeni dosya eklemek gerekmiyor.
+  Bu iş sırasında asıl kusur çıktı: **widget'a hiç veri yazılmıyordu.**
+  Uygulama yalnızca `refresh()` çağırıyor, yani uzantıya "zaman çizelgeni
+  yenile" diyordu; okuyacağı değerleri kimse yazmamıştı ve widget kurulduğu
+  günden beri yer tutucu gösteriyordu. Artık açılışta, ayar kaydında ve
+  konum-adı anahtarı değişince anlık görüntü gönderiliyor; vakit adları da
+  kullanıcının dilinde gidiyor (eskiden gitse bile "maghrib" yazacaktı).
 - AR kıble. **Bedeli var:** kamera izni istemek, "hiçbir şey toplamıyoruz"
   duruşunu zayıflatır. 2D pusula zaten doğru çalışıyor; bu bir gereklilik değil
   gösteriş özelliğidir.
