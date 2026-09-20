@@ -85,7 +85,7 @@ flutter test --reporter expanded
 | Kalıcı veri | `lib/core/storage/local_storage.dart` soyutlaması üzerinden |
 | Ortak model/enum | `lib/shared/models/domain.dart` |
 | Test | `test/` |
-| Uygulama simgesi | `tool/generate_app_icon.py` (PNG'leri elle düzenleme) |
+| Uygulama simgesi | Kaynak tasarım `assets/branding/app_icon_source.png`; PNG'ler `tool/generate_app_icon.py` ile üretilir (elle düzenleme) |
 | Bildirim tonu | `tool/generate_notification_tone.py` |
 
 ## Bilinmesi gereken tuzaklar
@@ -148,6 +148,13 @@ flutter test --reporter expanded
 - Simge ve bildirim tonu PNG/WAV dosyaları `tool/` altındaki betiklerden
   üretilir. Dosyaları elle düzenleme; betiği değiştirip yeniden çalıştır.
   Betikler `pip install Pillow` ister, başka bağımlılıkları yoktur.
+- **Simgenin kaynağı `assets/branding/app_icon_source.png`** (1024×1024, düz
+  yeşil zemin). `pubspec.yaml` varlık listesine eklenmez: uygulama onu çalışma
+  anında yüklemez. Zemin rengi `values/colors.xml` içindeki
+  `ic_launcher_background` ile birebir aynı olmalıdır, yoksa Android
+  uyarlanabilir simgede ön planın kenarında renk halkası görünür. Küçük
+  boyutlar (≤76 px) tasarımdan %14 kırpılarak üretilir; tam kadraj o ölçekte
+  ince halkaları birbirine karıştırıyor.
 - **Kıble açısı gerçek (coğrafi) kuzeye göredir.** Android'in pusulası
   manyetik kuzeye göre ölçer; `MagneticDeclinationService` farkı
   `GeomagneticField` üzerinden kapatır. iOS zaten `trueHeading` verir.

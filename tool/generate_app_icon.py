@@ -1,23 +1,25 @@
 #!/usr/bin/env python3
 """Uygulama simgesini üretir.
 
-Simge bir vektör tarifi olarak burada durur; PNG'ler bu betikten üretilir.
-Böylece boyut listesi değiştiğinde ya da renkler temaya göre güncellendiğinde
-simgeyi elle yeniden çizmek gerekmez.
+Kaynak, `assets/branding/app_icon_source.png` dosyasındaki 1024x1024
+tasarımdır (altın hatlı cami, pusula ve halkalar; düz yeşil zemin). PNG'ler
+bu betikten türetilir: boyut listesi değiştiğinde ya da kaynak tasarım
+yenilendiğinde simgeleri elle kesmek gerekmez.
 
 Çalıştırmak için:
 
     pip install Pillow
     python3 tool/generate_app_icon.py
 
-Tasarım: koyu yeşil zemin üzerinde altın renkli bir mihrap KAPISI (dolu
-kemer değil, hat); boşluğunda hilal durur ve eşikten öne doğru genişleyen bir
-yol geçer — uygulamanın adı "Namaz Yolu". Dolu kemer denendi ve bırakıldı:
-altındaki yol kaideye dönüşüp simge satranç taşına benziyordu. Renkler `lib/core/theme/app_theme.dart` içindeki tohum renk (#0b3d3a)
-ve ikincil renkten (#cda45e) alınmıştır.
+İki ayrı çıktı üretilir:
 
-Küçük boyut belirleyicidir: simge 40 pikselde de okunmalı. Bu yüzden yol iki
-kalın dilime bölünür; ince "kaldırım taşları" o ölçekte çamura dönüşürdü.
+* **iOS ve Android eski simge** — tasarım olduğu gibi, tuvali doldurarak.
+  Köşeleri sistem yuvarlatır; kaynak kare ve saydamlıksız olmalıdır.
+* **Android uyarlanabilir simge ön planı** — sistem ön planın dışını kırpar
+  ve güvenli alan ortadaki dairedir. Tasarımın dış halkası tuvalin %77'sine
+  kadar uzandığı için ön plan küçültülür; aksi halde halka kırpılırdı.
+  Zemin düz renk olduğu için ön planda zemin şeffaflaştırılır ve renk
+  `values/colors.xml` üzerinden verilir.
 """
 
 import json
@@ -27,185 +29,79 @@ from PIL import Image, ImageDraw
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Tema renkleri.
-GREEN_DARK = (7, 40, 38)
-GREEN_LIGHT = (18, 77, 72)
-GOLD_TOP = (232, 200, 140)
-GOLD_BOTTOM = (186, 143, 74)
+# Kaynak tasarımın düz zemin rengi. Uyarlanabilir simgede zemin ayrı katman
+# olduğu için bu renk `values/colors.xml` ile birebir aynı olmalıdır; aksi
+# halde ön planın kenarında ince bir renk halkası görünür.
+BACKGROUND = (28, 97, 83)
 
-# Kenar yumuşatma: her şey bu katsayıyla büyütülüp sonra küçültülür.
-SS = 4
+# Kaynak tasarım yalnızca bu betik tarafından, derleme öncesinde okunur.
+# `pubspec.yaml` içindeki `assets:` listesine EKLENMEZ: uygulama onu çalışma
+# anında yüklemiyor, eklemek pakete boşuna ~400 KB bindirirdi.
+SOURCE = os.path.join(ROOT, "assets/branding/app_icon_source.png")
 
-
-def _lerp(a, b, t):
-    return tuple(round(x + (y - x) * t) for x, y in zip(a, b))
-
-
-def _background(size):
-    """Merkezi hafifçe açılan dikey degrade."""
-    image = Image.new("RGB", (size, size), GREEN_DARK)
-    draw = ImageDraw.Draw(image)
-    for y in range(size):
-        # Üstte açık, altta koyu; tepe noktası 0.35 yükseklikte.
-        t = abs(y / size - 0.35) / 0.75
-        draw.line([(0, y), (size, y)], fill=_lerp(GREEN_LIGHT, GREEN_DARK, min(t, 1.0)))
-    return image
+# Uyarlanabilir simgede sistem ön planın dışını kırpar; güvenli daire tuvalin
+# ortadaki %61'idir. Tasarımın en dış halkası merkeze 425/1024 piksel
+# uzaklıkta bittiği için içerik bu oranla küçültülür (ölçüldü, tahmin değil).
+ADAPTIVE_SAFE = 0.74
 
 
-def _arch_mask(size, *, width_ratio, apex_ratio, spring_ratio, bottom_ratio):
-    """İki merkezli (sivri) mihrap kemerinin maskesi.
-
-    Kemer, yay merkezleri omuz hizasında olan iki dairenin kesişimidir; omuz
-    hizasının altı düz gövdedir. Ölçüler dışarıdan verilir: aynı biçim hem dış
-    hat hem iç boşluk için kullanılır, ikisinin farkı kapı halkasını verir.
-    """
-    mask = Image.new("L", (size, size), 0)
-    draw = ImageDraw.Draw(mask)
-
-    cx = size / 2
-    width = width_ratio * size
-    half = width / 2
-    spring = spring_ratio * size  # omuz hizası
-    apex = apex_ratio * size  # tepe
-    bottom = bottom_ratio * size
-
-    height = spring - apex
-    # d: yay merkezinin eksenden kayması. h^2 = W^2/4 + W*d denkleminden.
-    offset = (height * height - half * half) / width
-    radius = half + offset
-
-    draw.rectangle([cx - half, spring, cx + half, bottom], fill=255)
-    # Sağ yayın merkezi solda kalır ve tersi; kesişimleri sivri ucu verir.
-    left = Image.new("L", (size, size), 0)
-    ImageDraw.Draw(left).ellipse(
-        [cx - offset - radius, spring - radius, cx - offset + radius, spring + radius],
-        fill=255,
-    )
-    right = Image.new("L", (size, size), 0)
-    ImageDraw.Draw(right).ellipse(
-        [cx + offset - radius, spring - radius, cx + offset + radius, spring + radius],
-        fill=255,
-    )
-    lens = Image.new("L", (size, size), 0)
-    lens.paste(Image.composite(left, Image.new("L", (size, size), 0), right), (0, 0))
-    # Yalnızca omuz hizasının üstündeki kısmı al.
-    top = Image.new("L", (size, size), 0)
-    ImageDraw.Draw(top).rectangle([0, 0, size, spring], fill=255)
-    lens = Image.composite(lens, Image.new("L", (size, size), 0), top)
-
-    mask.paste(255, (0, 0), lens)
-    return mask
+def _source():
+    """Kaynak tasarım. Bulunamazsa sessizce varsayılana düşmez: simgeyi
+    yanlışlıkla eski haliyle üretmek, değişikliğin kaybolduğunu fark
+    ettirmez."""
+    if not os.path.exists(SOURCE):
+        raise SystemExit(f"kaynak tasarım yok: {SOURCE}")
+    return Image.open(SOURCE).convert("RGB")
 
 
-# Kapının dış hattı ve boşluğu. Dolu bir kemer, altındaki her şeyi kaide gibi
-# gösteriyordu; kapı olarak çizilince yol içinden geçip derinlik kazanıyor.
-DOOR_OUTER = dict(width_ratio=0.52, apex_ratio=0.12, spring_ratio=0.44, bottom_ratio=0.72)
-DOOR_INNER = dict(width_ratio=0.36, apex_ratio=0.21, spring_ratio=0.47, bottom_ratio=0.76)
+def _keyed(image, tolerance=26):
+    """Düz zemini saydamlaştırır; uyarlanabilir simgenin ön planı için."""
+    result = image.convert("RGBA")
+    pixels = result.load()
+    width, height = result.size
+    for y in range(height):
+        for x in range(width):
+            r, g, b, _ = pixels[x, y]
+            if all(abs(c - t) <= tolerance for c, t in zip((r, g, b), BACKGROUND)):
+                pixels[x, y] = (r, g, b, 0)
+    return result
 
 
-def _door_mask(size):
-    """Kapının altın hattı: dış kemerden iç boşluk çıkarılır."""
-    outer = _arch_mask(size, **DOOR_OUTER)
-    inner = _arch_mask(size, **DOOR_INNER)
-    outer.paste(0, (0, 0), inner)
-    return outer
-
-
-def _crescent_mask(size):
-    """Kapı boşluğunda duran hilal."""
-    # Hilalin görsel ağırlık merkezi oyuk yüzünden sola kayar; kemerin
-    # ortasında dursun diye tamamı hafifçe sağa alınır.
-    cx = size / 2 + 0.022 * size
-    cy = 0.355 * size
-    outer = 0.105 * size
-    inner = 0.091 * size
-    # İç daireyi sağa ve yukarı kaydırmak sola açılan bir hilal bırakır.
-    ix = cx + 0.052 * size
-    iy = cy - 0.025 * size
-
-    full = Image.new("L", (size, size), 0)
-    ImageDraw.Draw(full).ellipse([cx - outer, cy - outer, cx + outer, cy + outer], fill=255)
-    cut = Image.new("L", (size, size), 0)
-    ImageDraw.Draw(cut).ellipse([ix - inner, iy - inner, ix + inner, iy + inner], fill=255)
-    return Image.composite(Image.new("L", (size, size), 0), full, cut)
-
-
-def _path_mask(size):
-    """Kapıdan geçip öne doğru genişleyen yol.
-
-    Perspektif hissi için alt kenarda geniş, kapının eşiğinde dardır. Tek
-    parça çizilir: iki dilime bölmek 48 pikselde üst üste binen bantlara
-    dönüşüyordu. Bu haliyle aynı zamanda mihraba uzanan bir seccade okuması
-    verir.
-    """
-    mask = Image.new("L", (size, size), 0)
-    draw = ImageDraw.Draw(mask)
-
-    cx = size / 2
-    top = 0.56 * size  # eşik: kapının boşluğunun içinde başlar
-    bottom = 0.83 * size
-    half_top = 0.055 * size
-    half_bottom = 0.185 * size
-
-    # Yol, kapının tabanından (0.72) geçerken ayakların arasında kalmalı;
-    # taştığında kapı bir kaidenin üstünde duruyormuş gibi görünüyor.
-
-    def half_at(y):
-        t = (y - top) / (bottom - top)
-        return half_top + (half_bottom - half_top) * t
-
-    draw.polygon(
-        [
-            (cx - half_at(top), top),
-            (cx + half_at(top), top),
-            (cx + half_at(bottom), bottom),
-            (cx - half_at(bottom), bottom),
-        ],
-        fill=255,
-    )
-    return mask
-
-
-def _gold(size):
-    image = Image.new("RGB", (size, size), GOLD_TOP)
-    draw = ImageDraw.Draw(image)
-    for y in range(size):
-        draw.line([(0, y), (size, y)], fill=_lerp(GOLD_TOP, GOLD_BOTTOM, y / size))
-    return image
+# Küçük boyutlarda tasarım kalabalık kalıyor: ince altın halkalar 40 pikselde
+# birbirine giriyor. Bu ölçülerde kenardan biraz kırpılır, böylece cami ve
+# pusula büyür. Apple her boyut için ayrı dosya beklediği ve bu dosyalar
+# ayrı ayrı üretildiği için bu serbesttir. Kırpma oranı denenerek seçildi:
+# %22'de dış halka kesiliyordu.
+SMALL_SIZE_LIMIT = 76
+SMALL_CROP = 0.14
 
 
 def render(size, *, background=True, scale=1.0):
     """Simgeyi `size` piksellik kare olarak üretir.
 
-    `background` kapalıyken yalnızca kemer döner (Android uyarlanabilir
-    simgesinin ön planı için). `scale`, ön planı güvenli alana sığdırmak için
-    içeriği küçültür.
+    `background` kapalıyken zemin saydamlaşır (Android uyarlanabilir simgenin
+    ön planı). `scale`, içeriği güvenli alana sığdırmak için küçültür.
     """
-    work = size * SS
-    layer = Image.new("RGBA", (work, work), (0, 0, 0, 0))
-
-    content = int(work * scale)
-    arch = _door_mask(content)
-    arch.paste(255, (0, 0), _crescent_mask(content))
-    arch.paste(255, (0, 0), _path_mask(content))
-
-    gold = _gold(content).convert("RGBA")
-    gold.putalpha(arch)
-    inset = (work - content) // 2
-    layer.paste(gold, (inset, inset), gold)
-
+    source = _source()
     if background:
-        base = _background(work).convert("RGBA")
-        base.alpha_composite(layer)
-        layer = base
+        if size <= SMALL_SIZE_LIMIT:
+            edge = source.size[0]
+            inset = round(edge * SMALL_CROP / 2)
+            source = source.crop((inset, inset, edge - inset, edge - inset))
+        return source.resize((size, size), Image.LANCZOS).convert("RGBA")
 
-    return layer.resize((size, size), Image.LANCZOS)
+    content = max(1, int(size * scale))
+    layer = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    keyed = _keyed(source).resize((content, content), Image.LANCZOS)
+    inset = (size - content) // 2
+    layer.paste(keyed, (inset, inset), keyed)
+    return layer
 
 
 def _write(image, path, *, opaque):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     if opaque:
-        flat = Image.new("RGB", image.size, GREEN_DARK)
+        flat = Image.new("RGB", image.size, BACKGROUND)
         flat.paste(image, (0, 0), image)
         image = flat
     image.save(path, "PNG", optimize=True)
@@ -233,11 +129,6 @@ ANDROID_LEGACY = {
     "mipmap-xxhdpi": 144,
     "mipmap-xxxhdpi": 192,
 }
-
-# Uyarlanabilir simgede sistem ön planın dış %25'ini kırpabilir; içerik
-# güvenli daireye sığsın diye küçültülür.
-ADAPTIVE_SAFE = 0.62
-
 
 def build_android():
     res = os.path.join(ROOT, "android/app/src/main/res")
