@@ -23,6 +23,7 @@ import '../features/calendar/presentation/ramadan_headline.dart';
 import '../features/calendar/presentation/calendar_page.dart';
 import '../features/prayer_times/presentation/imsakiye_page.dart';
 import '../features/ramadan/presentation/fasting_page.dart';
+import '../features/tracker/presentation/qada_page.dart';
 import '../features/ramadan/presentation/teravih_page.dart';
 import '../features/prayer_times/presentation/location_page.dart';
 import '../features/prayer_times/presentation/save_settings.dart';
@@ -158,6 +159,10 @@ GoRouter createRouter({String initialLocation = '/'}) => GoRouter(
     ),
     GoRoute(path: '/location', builder: (_, _) => const LocationPage()),
     GoRoute(path: '/onboarding', builder: (_, _) => const OnboardingPage()),
+    GoRoute(
+      path: '/qada',
+      builder: (_, _) => const MosqueBackdrop(child: QadaPage()),
+    ),
     GoRoute(
       path: '/teravih',
       builder: (_, _) => const MosqueBackdrop(child: TeravihPage()),

@@ -133,9 +133,16 @@ Uygulama burada bir hüküm vermez; işaret kullanıcının kendi kaydıdır ve
 cihazında kalır. Muafiyet ayrı bir anahtar altında saklanır
 (`dini.tracker.exempt.<tarih>`), namaz kaydına karışmaz.
 
-### 2.4 Kaza takibi
+### 2.4 Kaza takibi ✅
 
-Biriken kaza namazlarının sayımı. 2.2 ile aynı veri modelini paylaşır.
+**Yapıldı.** Vakit başına kaza sayacı (`/qada`, takip ekranından açılır).
+Biriken kaza gün ya da yıl olarak hatırlandığı için 1 / 7 / 30 / 365 günlük
+hazır ekleme düğmeleri var; beş vakte birden yazar. Kılındıkça tek tek düşer,
+sayı sıfırın altına inmez.
+
+**Uygulama kaç kaza borcu olduğunu hesaplamaz.** Sayıyı kullanıcı girer;
+ekran, hesabın ve hükmün bir fetva konusu olduğunu söyleyip Diyanet'e
+yönlendirir.
 
 ### 2.5 Ramazan
 - [x] İftar ve sahur uyarıları, ayarlanabilir süreler, üç dilde metin

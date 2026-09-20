@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/storage/storage_provider.dart';
@@ -213,6 +214,15 @@ class _PrayerTrackerViewState extends ConsumerState<PrayerTrackerView> {
                 );
               },
             ),
+        const SizedBox(height: 12),
+        Card(
+          child: ListTile(
+            leading: const Icon(Icons.history_toggle_off_outlined),
+            title: Text(context.l10n.text('qada.open')),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/qada'),
+          ),
+        ),
         const SizedBox(height: 12),
         Text(
           context.l10n.text('tracker.privacy'),
