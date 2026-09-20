@@ -111,13 +111,16 @@ göstermek, hiç göstermemekten kötüdür.
 **Yapılacak:** Sıradaki vakte kalan süreyi kilit ekranında ve Dynamic Island'da
 göstermek. iOS tarafında en görünür farkı bu yaratır.
 
-### 2.2 Streak ve ısı haritası
+### 2.2 Streak ve ısı haritası ✅
 
-**Durum:** `PrayerTrackerDay` yalnızca bugünü tutuyor; geçmiş günlere
-dokunulamıyor.
+**Yapıldı.** Takip ekranında güncel seri, en uzun seri, tamamlanan gün sayısı
+ve son on yedi haftayı gösteren ısı haritası.
 
-**Yapılacak:** Gün bazlı erişim + GitHub benzeri ısı haritası. Repository
-altyapısı hazır, ekranı yok.
+Gün ancak **beş vaktin hepsi** işaretlenince tamamlanmış sayılır; daha gevşek
+bir ölçü seriyi anlamsız kılardı. **Bugün henüz boşken seri bozulmaz** — gün
+bitmeden "seriyi kaybettin" demek, sabah namazından sonra uygulamayı açan
+herkese yanlış söylerdi. Isı haritasında gelecek günler boş bırakılır, sıfırla
+doldurulmaz: tutulmamış bir gün ile henüz gelmemiş bir gün aynı şey değildir.
 
 ### 2.3 Muafiyet modu
 

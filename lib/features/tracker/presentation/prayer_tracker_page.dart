@@ -5,9 +5,23 @@ import '../../../core/localization/app_localizations.dart';
 import '../../../core/storage/storage_provider.dart';
 import '../data/prayer_tracker_repository.dart';
 import '../domain/prayer_tracker.dart';
+import '../domain/streak.dart';
+import 'streak_view.dart';
 import '../../prayer_times/domain/timezone_service.dart';
 import '../../prayer_times/presentation/providers.dart';
 import '../../../shared/models/domain.dart';
+
+/// Isı haritası ve seri için okunan geçmiş.
+///
+/// [heatmapWeeks] hafta artı ilk haftanın başındaki boşluk kadar gün okunur;
+/// daha azı haritanın ilk sütununu eksik bırakır.
+final trackerHistoryProvider =
+    FutureProvider.family<List<PrayerTrackerDay>, DateTime>((ref, today) {
+      final repository = LocalPrayerTrackerRepository(
+        ref.watch(localStorageProvider),
+      );
+      return repository.recent(today, days: heatmapWeeks * 7 + 7);
+    });
 
 class PrayerTrackerPage extends StatelessWidget {
   const PrayerTrackerPage({super.key});
@@ -47,7 +61,7 @@ class _PrayerTrackerViewState extends ConsumerState<PrayerTrackerView> {
     final times = ref.watch(prayerTimesProvider);
     return TimezoneService.inLocation(
       times.timezoneId ?? 'Europe/Istanbul',
-      DateTime.now(),
+      ref.watch(clockProvider)(),
     );
   }
 
@@ -128,12 +142,38 @@ class _PrayerTrackerViewState extends ConsumerState<PrayerTrackerView> {
                   final next = current.toggle(prayer);
                   setState(() => day = next);
                   await repository.save(next);
+                  // Seri ve ısı haritası bu kayda bakar; tazelenmezse
+                  // işaretleme ekranda karşılık bulmaz.
+                  ref.invalidate(trackerHistoryProvider(today));
                 },
                 controlAffinity: ListTileControlAffinity.trailing,
               );
             }).toList(),
           ),
         ),
+        const SizedBox(height: 12),
+        ref
+            .watch(trackerHistoryProvider(today))
+            .when(
+              loading: () => const SizedBox.shrink(),
+              error: (error, stack) => const SizedBox.shrink(),
+              data: (history) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  StreakCard(
+                    summary: streakOf(history, today: today),
+                    todayComplete: trackerDayIsComplete(current),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    context.l10n.text('tracker.heatmap'),
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 8),
+                  HeatmapView(weeks: heatmapOf(history, today: today)),
+                ],
+              ),
+            ),
         const SizedBox(height: 12),
         Text(
           context.l10n.text('tracker.privacy'),
