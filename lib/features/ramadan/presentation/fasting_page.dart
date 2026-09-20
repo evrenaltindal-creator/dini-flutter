@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/storage/storage_provider.dart';
+import '../../home/presentation/mosque_backdrop.dart';
 import '../../prayer_times/presentation/providers.dart';
 import '../data/fasting_repository.dart';
 import '../domain/fasting_log.dart';
@@ -40,8 +41,8 @@ class FastingPage extends ConsumerWidget {
     final l10n = context.l10n;
     final async = ref.watch(fastingLogProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.text('fasting.title'))),
+    return BackdropScaffold(
+      title: l10n.text('fasting.title'),
       body: SafeArea(
         child: async.when(
           loading: () => const Center(child: CircularProgressIndicator()),

@@ -202,6 +202,8 @@ kanıtlarıyla yazıldı.
 ## 6. Süregelen borç
 
 - `claude/upbeat-gates-1t7ls6` ve `claude/ramadan-reminders` main'e girmedi.
+- Arka plan sahnesi yedi sayfada örtülüyordu (kendi Scaffold'ları opaktı);
+  düzeltildi ve her rotayı dolaşan bir test eklendi.
 - Gerçek cihazda hiçbir şey doğrulanmadı: pusula, sessiz moddaki ses,
   bildirimlerin gerçekten çalması.
 - Mahyanın harfleri yalnızca testteki yazı tipiyle görüldü (her harf dolu

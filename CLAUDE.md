@@ -61,7 +61,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 37 dosyada 429 test var; hepsi geçmelidir.
+- Depoda şu an 38 dosyada 446 test var; hepsi geçmelidir.
 
 ## Git akışı
 
@@ -123,6 +123,11 @@ flutter test --reporter expanded
   `DateTime.now()` çağıran ekran testte sabitlenemez.
 - **Ramazan gecesi akşam ezanıyla başlar** (`ramadanNightDate`): mahya ve
   teravih akşamdan sonra ertesi günü gösterir.
+- **Her sayfanın arkasında cami durur.** Rotayı `MosqueBackdrop` ile
+  sarmalamak YETMEZ: temanın zemin rengi opaktır ve sayfanın kendi düz
+  `Scaffold`'u sahneyi tamamen örter. Yeni sayfa `BackdropScaffold`
+  kullanmalı (ya da `backgroundColor: Colors.transparent` vermeli);
+  `backdrop_coverage_test.dart` bütün rotaları dolaşıp bunu bekçiler.
 - **Mahya yalnızca Ramazan gecelerinde yanar.** Minare çapaları görselden
   ölçüldü ve `BoxFit.cover` kırpmasına göre çözülür; `assets/scenes/*.png`
   dosyalarını farklı oranda bir görselle değiştirirsen mahya boşluğa asılır

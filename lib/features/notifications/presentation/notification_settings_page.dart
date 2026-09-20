@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/storage/storage_provider.dart';
+import '../../home/presentation/mosque_backdrop.dart';
 import '../../prayer_times/presentation/providers.dart';
 import '../../../shared/models/domain.dart';
 import '../data/notification_preferences_repository.dart';
@@ -15,8 +16,8 @@ class NotificationSettingsPage extends StatelessWidget {
   const NotificationSettingsPage({super.key});
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(context.l10n.text('settings.notifications'))),
+  Widget build(BuildContext context) => BackdropScaffold(
+    title: context.l10n.text('settings.notifications'),
     body: const SafeArea(child: NotificationSettingsView()),
   );
 }

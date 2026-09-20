@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../home/presentation/mosque_backdrop.dart';
 import '../../../shared/models/domain.dart';
 import 'providers.dart';
 
@@ -88,8 +89,10 @@ class _ImsakiyePageState extends ConsumerState<ImsakiyePage> {
     final extent = rowHeight(context);
     _revealToday(timetable.days.indexWhere((day) => day.date == today), extent);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.text('imsakiye.title'))),
+    // BackdropScaffold: düz Scaffold temanın OPAK zeminini çizer ve
+    // arkadaki camiyi tamamen örter.
+    return BackdropScaffold(
+      title: l10n.text('imsakiye.title'),
       body: SafeArea(
         child: Column(
           children: [

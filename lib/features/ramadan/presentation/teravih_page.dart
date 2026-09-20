@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/storage/storage_provider.dart';
+import '../../home/presentation/mosque_backdrop.dart';
 import '../../../shared/models/domain.dart';
 import '../../prayer_times/domain/timezone_service.dart';
 import '../../prayer_times/presentation/providers.dart';
@@ -51,8 +52,8 @@ class TeravihPage extends ConsumerWidget {
     final l10n = context.l10n;
     final async = ref.watch(teravihLogProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.text('teravih.title'))),
+    return BackdropScaffold(
+      title: l10n.text('teravih.title'),
       body: SafeArea(
         child: async.when(
           loading: () => const Center(child: CircularProgressIndicator()),

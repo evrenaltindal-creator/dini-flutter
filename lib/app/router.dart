@@ -146,7 +146,10 @@ GoRouter createRouter({String initialLocation = '/'}) => GoRouter(
         ),
       ],
     ),
-    GoRoute(path: '/premium', builder: (_, _) => const PremiumStorePage()),
+    GoRoute(
+      path: '/premium',
+      builder: (_, _) => const MosqueBackdrop(child: PremiumStorePage()),
+    ),
     GoRoute(path: '/privacy', builder: (_, _) => const PrivacyPage()),
     GoRoute(path: '/about', builder: (_, _) => const AboutPage()),
     GoRoute(

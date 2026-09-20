@@ -5,6 +5,7 @@ import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../home/presentation/mosque_backdrop.dart';
 import '../../prayer_times/domain/prayer_engine.dart';
 import '../../prayer_times/presentation/providers.dart';
 import '../data/magnetic_declination.dart';
@@ -114,8 +115,8 @@ class _QiblaPageState extends ConsumerState<QiblaPage> {
         : calculator.turnDifference(bearing: bearing, heading: _heading!);
     final aligned = difference != null && difference.abs() < 4;
 
-    return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.text('home.qibla'))),
+    return BackdropScaffold(
+      title: context.l10n.text('home.qibla'),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsetsDirectional.fromSTEB(20, 18, 20, 28),

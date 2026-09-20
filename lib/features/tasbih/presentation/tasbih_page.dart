@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../home/presentation/mosque_backdrop.dart';
 import '../../../core/storage/storage_provider.dart';
 import '../data/tasbih_repository.dart';
 import '../domain/tasbih.dart';
@@ -41,14 +42,16 @@ class _TasbihPageState extends ConsumerState<TasbihPage> {
   Widget build(BuildContext context) {
     final current = session;
     if (current == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const BackdropScaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
     }
     final option = defaultDhikr.firstWhere(
       (item) => item.id == current.dhikrId,
       orElse: () => defaultDhikr.first,
     );
-    return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.text('home.tasbih'))),
+    return BackdropScaffold(
+      title: context.l10n.text('home.tasbih'),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(20),
