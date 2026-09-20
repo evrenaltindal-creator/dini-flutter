@@ -61,7 +61,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 39 dosyada 468 test var; hepsi geçmelidir.
+- Depoda şu an 40 dosyada 488 test var; hepsi geçmelidir.
 
 ## Git akışı
 
@@ -128,6 +128,11 @@ flutter test --reporter expanded
   `Scaffold`'u sahneyi tamamen örter. Yeni sayfa `BackdropScaffold`
   kullanmalı (ya da `backgroundColor: Colors.transparent` vermeli);
   `backdrop_coverage_test.dart` bütün rotaları dolaşıp bunu bekçiler.
+- **Canlı etkinliğin (Live Activity) Swift tarafı DERLENMEDİ.**
+  `PrayerLiveActivity.swift` ve `LiveActivityBridge.swift` yazıldı ama
+  `project.pbxproj` değiştirilmediği için Xcode hedeflerine eklenmedi
+  (`ROADMAP.md` 2.1). Dart tarafı süren etkinliğin aynasını cihazda tutar;
+  bu ayna olmadan uygulama her açıldığında ikinci bir sayaç açılır.
 - **Mahya yalnızca Ramazan gecelerinde yanar.** Minare çapaları görselden
   ölçüldü ve `BoxFit.cover` kırpmasına göre çözülür; `assets/scenes/*.png`
   dosyalarını farklı oranda bir görselle değiştirirsen mahya boşluğa asılır

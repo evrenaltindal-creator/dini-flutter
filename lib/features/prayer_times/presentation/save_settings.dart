@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/storage/storage_provider.dart';
 import '../../notifications/data/notification_scheduler.dart';
+import '../../widgets/data/live_activity_controller.dart';
 import '../../widgets/domain/widget_snapshot.dart';
 import '../domain/prayer_settings.dart';
 import 'settings_controller.dart';
@@ -28,6 +29,16 @@ Future<void> savePrayerSettings(WidgetRef ref, PrayerSettings value) async {
     // servisinin ikinci kez kurulmasına ve testlerde sahte servisin hiç
     // devreye girmemesine yol açardı.
     service: ref.read(notificationServiceProvider),
+  );
+
+  // Kilit ekranındaki canlı etkinlik de vakitlere bağlıdır; şehir değişince
+  // eski şehrin sayacı kilit ekranında asılı kalırdı.
+  unawaited(
+    syncLiveActivity(
+      storage: ref.read(localStorageProvider),
+      settings: value,
+      now: DateTime.now(),
+    ),
   );
 
   // Widget tazeleme kozmetiktir ve native köprüye bağlıdır; beklenmez.

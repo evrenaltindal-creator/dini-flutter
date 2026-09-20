@@ -16,6 +16,7 @@ import 'features/audio/presentation/opening_takbir.dart';
 import 'core/storage/local_storage.dart';
 import 'features/notifications/data/notification_scheduler.dart';
 import 'features/prayer_times/data/prayer_settings_repository.dart';
+import 'features/widgets/data/live_activity_controller.dart';
 import 'features/prayer_times/presentation/settings_controller.dart';
 
 final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
@@ -58,6 +59,13 @@ Future<void> _rescheduleNotifications(LocalStorage storage) async {
   try {
     final settings = await PrayerSettingsRepository(storage).load();
     await reschedulePrayerNotifications(storage: storage, settings: settings);
+    // Canlı etkinlik uygulamadan uzun yaşar; açılışta sıradaki vakte göre
+    // yeniden kurulur ya da geçmişse kapatılır.
+    await syncLiveActivity(
+      storage: storage,
+      settings: settings,
+      now: DateTime.now(),
+    );
   } catch (_) {
     // Bildirim eklentisi veya kayıtlı ayar olmayan ortamlarda sessiz geç.
   }

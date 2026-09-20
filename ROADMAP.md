@@ -103,13 +103,32 @@ düğme; `OnboardingRepository.reset()` hazır).
 Faz 0 bitmeden buraya geçilmez: kilit ekranında yanlış şehrin sayacını
 göstermek, hiç göstermemekten kötüdür.
 
-### 2.1 iOS Live Activities / Dynamic Island
+### 2.1 iOS Live Activities / Dynamic Island — kod yazıldı, DERLENMEDİ
 
-**Durum:** `ios/DiniWidget` gerçek bir WidgetKit uzantısı olarak var.
-`ActivityKit` kullanımı sıfır.
+**Dart tarafı bitti ve test edildi.** Kilit ekranında sıradaki vaktin sayacı:
 
-**Yapılacak:** Sıradaki vakte kalan süreyi kilit ekranında ve Dynamic Island'da
-göstermek. iOS tarafında en görünür farkı bu yaratır.
+- Etkinlik vakte **bir saat kala** belirir, vakit girdikten **on beş dakika**
+  sonra kapanır. Bütün gün duran bir canlı etkinlik kilit ekranını meşgul eder
+  ve iOS onu zaten sekiz saatle sınırlar.
+- Süren etkinliğin **aynası cihazda saklanır**: etkinlik uygulamadan uzun
+  yaşar, uygulama yeniden açıldığında ikinci kez `start` çağrılsaydı kilit
+  ekranında iki sayaç birden görünürdü.
+- **Metinler Dart tarafında çevrilir.** Uzantının çeviri haritasına erişimi
+  yok; vakit adı hazır metin olarak gönderilir.
+- Sayaç SwiftUI'da `Text(timerInterval:)` ile işletilir: uygulama her dakika
+  güncelleme göndermek zorunda değildir.
+
+**Yapılması gerekenler (bu ortamda yapılamaz, Xcode ister):**
+
+1. `ios/DiniWidget/PrayerLiveActivity.swift` ve
+   `ios/Runner/LiveActivityBridge.swift` dosyalarını Xcode'da ilgili
+   hedeflere (target) ekleyin — `project.pbxproj` bilinçli olarak
+   değiştirilmedi (bkz. `CLAUDE.md` 6. kural).
+2. `PrayerActivityAttributes` hem uzantı hem Runner hedefinde görünmeli;
+   köprü onu kullanıyor.
+3. Gerçek cihazda deneyin: simülatörde Dynamic Island davranışı eksiktir.
+
+Derlenmediği için bu madde **tamamlandı sayılmaz**.
 
 ### 2.2 Streak ve ısı haritası ✅
 
@@ -223,3 +242,5 @@ kanıtlarıyla yazıldı.
   kutu çizilir); okunaklılık cihazda kontrol edilmeli.
 - TestFlight'a build gönderilmedi.
 - `MainActivity.kt` değişikliği derlenmedi (bkz. 1.5).
+- Canlı etkinliğin Swift tarafı derlenmedi ve Xcode hedeflerine eklenmedi
+  (bkz. 2.1).

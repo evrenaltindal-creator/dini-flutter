@@ -54,4 +54,11 @@ struct DiniPrayerWidget: Widget {
 }
 
 @main
-struct DiniWidgetBundle: WidgetBundle { var body: some Widget { DiniPrayerWidget() } }
+struct DiniWidgetBundle: WidgetBundle {
+    var body: some Widget {
+        DiniPrayerWidget()
+        // Canlı etkinlik iOS 16.2 ile gelir; eski sürümlerde paket yalnızca
+        // ana ekran widget'ını taşır.
+        if #available(iOS 16.2, *) { PrayerLiveActivity() }
+    }
+}
