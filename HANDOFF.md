@@ -1,7 +1,7 @@
 # HANDOFF — Neler yaptık, nerede kaldık
 
 Son güncelleme: 2026-09-20 · Oturum: Claude Code (remote, Linux konteyner)
-Branch: `claude/location` (`2293279`) · Taban: `origin/main` (14 commit önde)
+Branch: `claude/location` (`7fb22d3`) · Taban: `origin/main` (17 commit önde)
 Aynı commit `claude/upbeat-gates-1t7ls6` dalına da itildi.
 
 Kapı: `dart format` temiz (Dart 3.13.1), `flutter analyze` sıfır sorun,
@@ -22,6 +22,8 @@ Kapı: `dart format` temiz (Dart 3.13.1), `flutter analyze` sıfır sorun,
 | Kaza takibi | `features/tracker/.../qada*` | Gün gün toplu ekleme |
 | Canlı etkinlik (iOS) | `features/widgets/.../live_activity*` | **Swift derlenmedi** |
 | Kilit ekranı widget boyutları | `ios/DiniWidget/DiniWidget.swift` | **Swift derlenmedi** |
+| Uygulamanın adı: **Namaz Yolu** | `appTitle` (3 dil), iOS/Android görünen ad | en: Prayer Path, ar: طريق الصلاة |
+| Yeni simge | `assets/branding/app_icon_source.png` + `tool/generate_app_icon.py` | Verilen tasarımdan üretiliyor |
 
 ## 2. Yol boyunca bulunan üç gerçek hata
 
@@ -64,5 +66,13 @@ Yol haritasında tek başıma ilerleyebileceğim iş kalmadı:
 - **Karar bekleyenler:** AR kıble (kamera izni gizlilik duruşunu zayıflatıyor —
   `ROADMAP.md` bunu gereklilik değil gösteriş sayıyor), Apple Watch / Wear OS
   (yeni native hedefler), Kuran ekranı (meal telifi).
+- **Simge küçük boyutta detaysız.** 40 pikselde ince altın halkalar birbirine
+  giriyor; ≤76 px için %14 kırpma uygulandı ama bu tam çözüm değil. Küçük
+  boyutlar için sadeleştirilmiş bir kaynak tasarım gerekir
+  (`SMALL_SIZE_LIMIT` o eşiği zaten ayırıyor).
+- **Adın müsaitliği doğrulanmadı:** App Store, Play ve TÜRKPATENT kontrolü
+  kullanıcıya ait; bu ortamdan erişilemiyor. Ayrıca ilk simge taslağında
+  "Huzur Rehberi" de geçiyordu; mağaza alt başlığı olarak kullanılıp
+  kullanılmayacağı açık.
 
 Ayrıntılar ve gerekçeler için `ROADMAP.md`, çalışma kuralları için `CLAUDE.md`.
