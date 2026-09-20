@@ -22,6 +22,7 @@ import '../features/calendar/domain/ramadan_status.dart';
 import '../features/calendar/presentation/ramadan_headline.dart';
 import '../features/calendar/presentation/calendar_page.dart';
 import '../features/prayer_times/presentation/imsakiye_page.dart';
+import '../features/ramadan/presentation/fasting_page.dart';
 import '../features/prayer_times/presentation/location_page.dart';
 import '../features/prayer_times/presentation/save_settings.dart';
 import '../features/tasbih/presentation/tasbih_page.dart';
@@ -153,6 +154,10 @@ GoRouter createRouter({String initialLocation = '/'}) => GoRouter(
     ),
     GoRoute(path: '/location', builder: (_, _) => const LocationPage()),
     GoRoute(path: '/onboarding', builder: (_, _) => const OnboardingPage()),
+    GoRoute(
+      path: '/fasting',
+      builder: (_, _) => const MosqueBackdrop(child: FastingPage()),
+    ),
     GoRoute(
       path: '/imsakiye',
       builder: (_, _) => const MosqueBackdrop(child: ImsakiyePage()),
@@ -331,6 +336,14 @@ class HomePage extends ConsumerWidget {
                           label: l10n.text('home.tracker'),
                           onPressed: () => context.push('/tracker'),
                         ),
+                        // Oruç takibi yalnızca Ramazan görünürken çıkar;
+                        // yılın geri kalanında ana ekranı meşgul etmez.
+                        if (ramadan.isVisible)
+                          _QuickAction(
+                            icon: Icons.brightness_2_outlined,
+                            label: l10n.text('home.fasting'),
+                            onPressed: () => context.push('/fasting'),
+                          ),
                         _QuickAction(
                           icon: Icons.calendar_month_outlined,
                           label: l10n.text('home.calendar'),

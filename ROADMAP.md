@@ -141,7 +141,12 @@ Biriken kaza namazlarının sayımı. 2.2 ile aynı veri modelini paylaşır.
       `BoxFit.cover` kırpması hesaba katılıyor; minareler ekran dışında
       kalırsa mahya çizilmez. Perdesi koyu ekranlarda mahya söner, çünkü
       içeriğin okunabilirliği önce gelir.
-- [ ] Oruç takibi (30 kutu, tutuldu/tutulmadı, sebebi)
+- [x] **Oruç takibi** — Ramazan'ın her günü için kutu; tutuldu / tutulmadı
+      (hastalık, yolculuk, âdet-loğusalık, gebelik-emzirme, diğer). Gelecek
+      gün işaretlenemez. Kayıt hicri yıl + gün anahtarıyla saklanır, miladi
+      tarihle değil: kullanıcı tarih düzeltmesini değiştirdiğinde kayıt
+      kaymamalı. Gün sayısı sabit değil sayılır. Uygulama kaza ya da fidye
+      hükmü vermez; ekran bunun için Diyanet'e yönlendirir.
 - [ ] Teravih sayacı (tesbih sayacının motoru kullanılır)
 
 ---
