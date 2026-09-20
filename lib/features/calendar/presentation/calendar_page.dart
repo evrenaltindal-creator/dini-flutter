@@ -86,6 +86,9 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
               ),
               TextButton(
                 onPressed: _goToday,
+                style: TextButton.styleFrom(
+                  foregroundColor: BackdropPalette.text,
+                ),
                 child: Text(l10n.text('calendar.today')),
               ),
             ],

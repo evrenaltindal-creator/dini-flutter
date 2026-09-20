@@ -64,7 +64,11 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 41 dosyada 497 test var; hepsi geçmelidir.
+- Depoda şu an 42 dosyada 503 test var; hepsi geçmelidir.
+  (`test/promo_shots_test.dart` sayıma girmez: `promo` etiketi
+  `dart_test.yaml` ile atlanır, çünkü görüntüyü diske yazdıktan sonra
+  koşucu kapanmıyor ve `flutter test` asılı kalırdı. Görselleri üretmek
+  için `tool/capture_promo_shots.sh`.)
 
 ## Git akışı
 
@@ -126,6 +130,17 @@ flutter test --reporter expanded
   `DateTime.now()` çağıran ekran testte sabitlenemez.
 - **Ramazan gecesi akşam ezanıyla başlar** (`ramadanNightDate`): mahya ve
   teravih akşamdan sonra ertesi günü gösterir.
+- **Perdenin üstündeki metin `BackdropPalette`'ten renklenir.** Cami sahnesi
+  her temada koyudur; kart içinde OLMAYAN metin temanın renkleriyle
+  yazılırsa aydınlık kipte koyu yazı koyu zemine düşer (imsakiye çizelgesi
+  ve takvim ızgarası böyle okunmaz hâle gelmişti). Kartların içi kendi
+  zeminine göre renklenmeye devam eder. `backdrop_contrast_test.dart` iki
+  ekranı iki temada dolaşıp bunu bekçiler.
+- **Web tanıtım paketi `docs/promo/` altındadır.** Simge ve görseller
+  `tool/generate_app_icon.py` + `tool/generate_web_assets.py`, ekran
+  görüntüleri `tool/capture_promo_shots.sh` ile üretilir. Kaynak
+  tasarımdaki "Huzur Rehberi" ve "Namazlar" yazıları betikte silinir;
+  PNG'leri elle düzenleme.
 - **Her sayfanın arkasında cami durur.** Rotayı `MosqueBackdrop` ile
   sarmalamak YETMEZ: temanın zemin rengi opaktır ve sayfanın kendi düz
   `Scaffold`'u sahneyi tamamen örter. Yeni sayfa `BackdropScaffold`
