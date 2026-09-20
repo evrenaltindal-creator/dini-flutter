@@ -71,8 +71,8 @@ Yol haritasında tek başıma ilerleyebileceğim iş kalmadı:
   boyutlar için sadeleştirilmiş bir kaynak tasarım gerekir
   (`SMALL_SIZE_LIMIT` o eşiği zaten ayırıyor).
 - **Adın müsaitliği doğrulanmadı:** App Store, Play ve TÜRKPATENT kontrolü
-  kullanıcıya ait; bu ortamdan erişilemiyor. Ayrıca ilk simge taslağında
-  "Huzur Rehberi" de geçiyordu; mağaza alt başlığı olarak kullanılıp
-  kullanılmayacağı açık.
+  kullanıcıya ait; bu ortamdan erişilemiyor. (İlk simge taslağında geçen
+  "Huzur Rehberi" ibaresi **tamamen bırakıldı**; tek ad Namaz Yolu'dur.
+  Kodda zaten hiç geçmiyordu.)
 
 Ayrıntılar ve gerekçeler için `ROADMAP.md`, çalışma kuralları için `CLAUDE.md`.
