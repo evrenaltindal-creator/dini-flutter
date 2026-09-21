@@ -64,7 +64,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 42 dosyada 503 test var; hepsi geçmelidir.
+- Depoda şu an 43 dosyada 509 test var; hepsi geçmelidir.
   (`test/promo_shots_test.dart` sayıma girmez: `promo` etiketi
   `dart_test.yaml` ile atlanır, çünkü görüntüyü diske yazdıktan sonra
   koşucu kapanmıyor ve `flutter test` asılı kalırdı. Görselleri üretmek
@@ -151,11 +151,22 @@ flutter test --reporter expanded
   demektir; okuyacağı değerleri yazmaz. Vakitleri etkileyen her yol
   (açılış, ayar kaydı, konum adı anahtarı) anlık görüntüyü yeniden
   göndermelidir.
-- **Canlı etkinliğin (Live Activity) Swift tarafı DERLENMEDİ.**
-  `PrayerLiveActivity.swift` ve `LiveActivityBridge.swift` yazıldı ama
-  `project.pbxproj` değiştirilmediği için Xcode hedeflerine eklenmedi
-  (`ROADMAP.md` 2.1). Dart tarafı süren etkinliğin aynasını cihazda tutar;
-  bu ayna olmadan uygulama her açıldığında ikinci bir sayaç açılır.
+- **Yazdığın her Swift dosyasını Xcode hedefine de ekle.**
+  `LiveActivityBridge.swift` hedefe eklenmemişti ama `AppDelegate` ona
+  başvuruyordu: depo iOS'ta hiç derlenmiyordu ve bunu hiçbir test
+  yakalamıyordu (Linux'ta iOS derlemesi yok). `ios_targets_test.dart`
+  artık `ios/Runner` ve `ios/DiniWidget` altındaki her `.swift` dosyasının
+  `project.pbxproj` içinde bir Sources aşamasında olduğunu bekçiler.
+  Canlı etkinlik dosyaları artık hedeflerde; yine de gerçek cihazda
+  DENENMEDİ.
+- **Native taraf Dart'ın ISO 8601 biçimini çözmek zorunda.** Dart
+  `TZDateTime.toIso8601String()` yazıyor: `...T05:17:00.000+0300`. Salt
+  `ISO8601DateFormatter()` saliseyi kabul etmez, nil döner — widget bütün
+  vakitleri "—" gösterir, canlı etkinlik hiç açılmaz.
+  `withFractionalSeconds` şart; iki testi var.
+- **Widget'ın yazı renkleri açıkça verilir.** Zemini her görünümde koyudur;
+  `.secondary` ya da varsayılan renk sistemin görünümünü izlediği için
+  telefon aydınlık kipteyken widget okunmuyordu.
 - **Mahya yalnızca Ramazan gecelerinde yanar.** Minare çapaları görselden
   ölçüldü ve `BoxFit.cover` kırpmasına göre çözülür; `assets/scenes/*.png`
   dosyalarını farklı oranda bir görselle değiştirirsen mahya boşluğa asılır

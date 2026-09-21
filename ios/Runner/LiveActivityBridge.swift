@@ -6,6 +6,29 @@ import Flutter
 /// Canlı etkinlik iOS 16.2 ve üzerinde vardır; daha eski sürümlerde ve
 /// kullanıcı kilit ekranı etkinliklerini kapattığında çağrılar sessizce
 /// başarısız olur. Uygulamanın geri kalanı bundan etkilenmez.
+/// Flutter'ın yazdığı ISO 8601 metnini çözer.
+///
+/// Dart "2026-09-21T05:17:00.000+0300" gönderiyor; `ISO8601DateFormatter()`
+/// varsayılan seçeneklerle saliseyi kabul etmez ve nil döner — köprü de
+/// INVALID_STATE verip kilit ekranında hiçbir şey açmazdı. Aynı çözümleyici
+/// uzantı hedefindeki `DiniWidget.swift` içinde de var (ayrı hedefler).
+enum LiveActivityIsoDate {
+  private static let formatters: [ISO8601DateFormatter] = {
+    let fractional = ISO8601DateFormatter()
+    fractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    let plain = ISO8601DateFormatter()
+    plain.formatOptions = [.withInternetDateTime]
+    return [fractional, plain]
+  }()
+
+  static func parse(_ raw: String) -> Date? {
+    for formatter in formatters {
+      if let date = formatter.date(from: raw) { return date }
+    }
+    return nil
+  }
+}
+
 final class LiveActivityBridge {
   static let channelName = "dini/live_activity"
 
@@ -46,7 +69,7 @@ final class LiveActivityBridge {
       let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
       let label = object["prayerLabel"] as? String,
       let time = object["prayerTime"] as? String,
-      let date = ISO8601DateFormatter().date(from: time)
+      let date = LiveActivityIsoDate.parse(time)
     else { return nil }
     return PrayerActivityAttributes.ContentState(
       prayerLabel: label,

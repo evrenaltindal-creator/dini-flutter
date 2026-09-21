@@ -320,6 +320,20 @@ void main() {
       expect(bundle, contains('PrayerLiveActivity()'));
     });
 
+    test('köprü Dart\'ın yazdığı tarih biçimini çözebiliyor', () {
+      // Dart "2026-09-21T05:17:00.000+0300" gönderiyor; salt
+      // `ISO8601DateFormatter()` saliseyi kabul etmediği için çözümleme
+      // nil dönüyor, köprü INVALID_STATE veriyor ve kilit ekranında hiçbir
+      // şey açılmıyordu.
+      final bridge = File('ios/Runner/LiveActivityBridge.swift')
+          .readAsStringSync();
+      expect(
+        bridge,
+        contains('withFractionalSeconds'),
+        reason: 'Köprü saliseli ISO 8601 biçimini çözemiyor.',
+      );
+    });
+
     test('kanal adı iki tarafta aynı', () {
       // Ad ayrılırsa çağrılar sessizce boşa gider.
       final bridge = File('ios/Runner/LiveActivityBridge.swift')

@@ -207,6 +207,60 @@ void main() {
       expect(widget, contains('label_'));
     });
 
+    test('uzantı Dart\'ın yazdığı tarih biçimini çözebiliyor', () {
+      // Dart tarafı TZDateTime yazıyor: "2026-09-21T05:17:00.000+0300".
+      // Salt `ISO8601DateFormatter()` saliseyi kabul etmez ve nil döner;
+      // widget o zaman bütün vakitleri "—" gösterir. Telefondaki widget
+      // tam olarak böyle görünüyordu.
+      final snapshot = buildWidgetSnapshot(
+        settings: const PrayerSettings(),
+        now: DateTime.utc(2026, 9, 21, 3),
+        languageCode: 'tr',
+      ).toJson(showLocationName: true);
+
+      final written = snapshot['fajr'] as String;
+      expect(
+        written,
+        matches(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}[+-]\d{4}$'),
+        reason: 'Yazılan biçim değişti; native çözümleyici buna göre yazıldı.',
+      );
+      expect(
+        widget,
+        contains('withFractionalSeconds'),
+        reason:
+            'Uzantı saliseli ISO 8601 biçimini çözemiyor; bütün vakitler '
+            '"—" görünür.',
+      );
+    });
+
+    test('ana ekran düzeninde her yazının rengi açıkça veriliyor', () {
+      // Widget'ın zemini her görünümde koyu; `.secondary` ve varsayılan yazı
+      // rengi ise sistemin görünümünü izler ve aydınlık kipte koyulaşır.
+      // Telefondaki widget bu yüzden okunmuyordu.
+      final start = widget.indexOf('private var home: some View {');
+      expect(start, isNot(-1), reason: 'Ana ekran düzeni bulunamadı.');
+      final end = widget.indexOf('\n    }', start);
+      final body = widget.substring(start, end);
+
+      for (final line in body.split('\n')) {
+        if (!line.contains('Text(')) continue;
+        expect(
+          line,
+          contains('foregroundStyle('),
+          reason:
+              'Rengi verilmemiş bir yazı var, koyu zeminde kaybolur:\n'
+              '${line.trim()}',
+        );
+        expect(
+          line,
+          isNot(contains('foregroundStyle(.secondary)')),
+          reason:
+              '`.secondary` sistemin görünümünü izler; aydınlık kipte '
+              'koyu zeminde okunmaz:\n${line.trim()}',
+        );
+      }
+    });
+
     test('kilit ekranı boyutları destekleniyor', () {
       for (final family in [
         'accessoryCircular',

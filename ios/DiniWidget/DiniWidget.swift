@@ -3,6 +3,33 @@ import SwiftUI
 
 private let appGroup = "group.com.dini.diniFlutter"
 
+/// Flutter'ın yazdığı ISO 8601 metnini çözer.
+///
+/// Dart tarafı TZDateTime yazıyor: "2026-09-21T05:17:00.000+0300".
+/// `ISO8601DateFormatter()` varsayılan seçeneklerle saliseyi KABUL ETMEZ ve
+/// nil döner; widget da bütün vakitleri "—" gösterir. Aynı çözümleyici
+/// `LiveActivityBridge.swift` içinde de var — iki dosya ayrı Xcode
+/// hedeflerinde derlendiği için kopya; biri değişirse diğeri de değişmeli
+/// (`widget_snapshot_test.dart` ve `live_activity_test.dart` ikisini de
+/// bekçiliyor).
+enum IsoDate {
+    private static let formatters: [ISO8601DateFormatter] = {
+        let fractional = ISO8601DateFormatter()
+        fractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let plain = ISO8601DateFormatter()
+        plain.formatOptions = [.withInternetDateTime]
+        return [fractional, plain]
+    }()
+
+    static func parse(_ raw: String?) -> Date? {
+        guard let raw else { return nil }
+        for formatter in formatters {
+            if let date = formatter.date(from: raw) { return date }
+        }
+        return nil
+    }
+}
+
 struct DiniWidgetEntry: TimelineEntry {
     let date: Date
     let nextName: String
@@ -20,7 +47,7 @@ struct DiniWidgetProvider: TimelineProvider {
         let now = Date()
         var dates = [now]
         for key in ["fajr", "sunrise", "dhuhr", "asr", "maghrib", "isha", "nextPrayerTime"] {
-            if let value = defaults?.string(forKey: key), let date = ISO8601DateFormatter().date(from: value), date > now { dates.append(date) }
+            if let date = IsoDate.parse(defaults?.string(forKey: key)), date > now { dates.append(date) }
         }
         let entries = dates.sorted().map { Self.entry(at: $0) }
         completion(Timeline(entries: entries, policy: .atEnd))
@@ -40,7 +67,7 @@ struct DiniWidgetProvider: TimelineProvider {
         }.joined(separator: "  ·  ")
         return DiniWidgetEntry(date: date, nextName: nextName, nextTime: nextTime, prayerLine: line, locationName: defaults?.string(forKey: "locationName"), scenePeriod: defaults?.string(forKey: "scenePeriod") ?? "night")
     }
-    private static func format(_ iso: String?) -> String { guard let iso, let date = ISO8601DateFormatter().date(from: iso) else { return "—" }; return DateFormatter.localizedString(from: date, dateStyle: .none, timeStyle: .short) }
+    private static func format(_ iso: String?) -> String { guard let date = IsoDate.parse(iso) else { return "—" }; return DateFormatter.localizedString(from: date, dateStyle: .none, timeStyle: .short) }
 }
 
 struct DiniWidgetView: View {
@@ -62,12 +89,20 @@ struct DiniWidgetView: View {
         return family == .accessoryCircular || family == .accessoryRectangular || family == .accessoryInline
     }
 
+    // Ana ekran boyutunun zemini HER GÖRÜNÜMDE koyudur (aşağıdaki
+    // containerBackground). `.secondary` ve varsayılan yazı rengi ise
+    // sistemin görünümünü izler: telefon aydınlık kipteyken koyu gri olur ve
+    // koyu zeminin üstünde okunmaz. Widget telefonda tam olarak böyle
+    // görünüyordu, bu yüzden renkler burada açıkça veriliyor.
+    private static let cream = Color(red: 0.96, green: 0.94, blue: 0.89)
+    private static let gold = Color(red: 0.95, green: 0.75, blue: 0.35)
+
     private var home: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(entry.nextName).font(.caption).foregroundStyle(.secondary)
-            Text(entry.nextTime).font(.title.bold()).foregroundStyle(Color(red: 0.95, green: 0.75, blue: 0.35))
-            if family == .systemMedium { Text(entry.prayerLine).font(.caption2).minimumScaleFactor(0.6) }
-            if let location = entry.locationName, !location.isEmpty { Text(location).font(.caption2).foregroundStyle(.secondary) }
+            Text(entry.nextName).font(.caption).foregroundStyle(Self.cream.opacity(0.78))
+            Text(entry.nextTime).font(.title.bold()).foregroundStyle(Self.gold)
+            if family == .systemMedium { Text(entry.prayerLine).font(.caption2).minimumScaleFactor(0.6).foregroundStyle(Self.cream) }
+            if let location = entry.locationName, !location.isEmpty { Text(location).font(.caption2).foregroundStyle(Self.cream.opacity(0.6)) }
         }
     }
 
