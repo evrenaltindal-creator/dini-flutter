@@ -183,6 +183,12 @@ void main() {
         'worship': (route: '/worship', now: null, heading: null, seed: null),
         'calendar': (route: '/calendar', now: null, heading: null, seed: null),
         'tasbih': (route: '/tasbih', now: null, heading: null, seed: null),
+        'leaf': (
+          route: '/leaf/2026-09-25',
+          now: null,
+          heading: null,
+          seed: null,
+        ),
       };
 
   screens.forEach((name, screen) {

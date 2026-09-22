@@ -7,6 +7,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../prayer_times/presentation/providers.dart';
 import '../domain/islamic_calendar.dart';
 import '../domain/religious_events.dart';
+import 'daily_leaf_page.dart';
 
 class CalendarPage extends ConsumerStatefulWidget {
   const CalendarPage({super.key});
@@ -208,6 +209,12 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
             icon: const Icon(Icons.schedule_outlined),
             label: Text(l10n.text('imsakiye.open')),
           ),
+          const SizedBox(height: 8),
+          FilledButton.tonalIcon(
+            onPressed: () => context.push('/leaf'),
+            icon: const Icon(Icons.auto_stories_outlined),
+            label: Text(l10n.text('leaf.today')),
+          ),
           const SizedBox(height: 16),
           _selectedPanel(context),
         ],
@@ -251,6 +258,13 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
               ),
             const SizedBox(height: 8),
             Text(context.l10n.text('calendar.dateNotice')),
+            const SizedBox(height: 12),
+            // Seçilen günün takvim yaprağı.
+            FilledButton.tonalIcon(
+              onPressed: () => context.push(DailyLeafPage.routeFor(selected)),
+              icon: const Icon(Icons.auto_stories_outlined),
+              label: Text(context.l10n.text('leaf.open')),
+            ),
           ],
         ),
       ),

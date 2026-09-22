@@ -12,7 +12,7 @@
 set -u
 cd "$(dirname "$0")/.."
 
-screens=(home qibla imsakiye tracker worship calendar tasbih)
+screens=(home qibla imsakiye tracker worship calendar tasbih leaf)
 for name in "${screens[@]}"; do
   rm -f "build/promo_shots/$name.png"
   # --run-skipped: dart_test.yaml bu etiketi CI'da atlıyor.

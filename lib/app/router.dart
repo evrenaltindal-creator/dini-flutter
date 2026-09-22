@@ -38,6 +38,7 @@ import '../features/premium/presentation/premium_page.dart';
 import '../features/quran/presentation/quran_coming_soon_page.dart';
 import '../features/info/diyanet_flow.dart';
 import '../features/audio/presentation/opening_takbir.dart';
+import '../features/calendar/presentation/daily_leaf_page.dart';
 import '../features/worship/presentation/prayer_guide_view.dart';
 import '../features/worship/presentation/worship_hub_page.dart';
 import '../features/onboarding/data/onboarding_repository.dart';
@@ -186,6 +187,19 @@ GoRouter createRouter({String initialLocation = '/'}) => GoRouter(
       path: '/tracker',
       builder: (_, _) =>
           const MosqueBackdrop(child: WorshipHubPage(initialIndex: 0)),
+    ),
+    // Günün takvim yaprağı; tarih verilmezse seçilen şehrin bugünü.
+    GoRoute(
+      path: '/leaf',
+      builder: (_, _) => const MosqueBackdrop(child: DailyLeafPage()),
+    ),
+    GoRoute(
+      path: '/leaf/:date',
+      builder: (_, state) => MosqueBackdrop(
+        child: DailyLeafPage(
+          initialDate: DailyLeafPage.parse(state.pathParameters['date']),
+        ),
+      ),
     ),
     // Ana ekranda bir vakte dokununca o namazın kılınışı açılır.
     GoRoute(

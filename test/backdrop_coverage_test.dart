@@ -47,6 +47,7 @@ const routes = [
   '/tracker',
   '/notifications',
   '/guide/prayer/dhuhr',
+  '/leaf/2026-09-22',
 ];
 
 Widget _app(String location) => ProviderScope(
