@@ -21,7 +21,6 @@ import 'features/widgets/data/widget_snapshot_builder.dart';
 import 'features/watch/data/watch_schedule_builder.dart';
 import 'features/prayer_times/presentation/settings_controller.dart';
 
-final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
 final localeProvider = StateProvider<Locale>((ref) => const Locale('tr'));
 
 Future<void> main() async {
@@ -93,9 +92,14 @@ class DiniApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) => MaterialApp.router(
     debugShowCheckedModeBanner: false,
     onGenerateTitle: (context) => context.l10n.text('appTitle'),
-    theme: AppTheme.light,
+    // Uygulamanın tek bir koyu tasarımı var. Her sayfanın arkasında koyu
+    // cami sahnesi durur; aydınlık tema bu zeminde kart dışında kalan her
+    // yazıyı koyu-üstüne-koyu çiziyordu (17 sayfanın 12'si). Telefon
+    // aydınlık kipte olsa da uygulama koyu çizilir;
+    // backdrop_legibility_test.dart bunu her rotada bekçiler.
+    theme: AppTheme.dark,
     darkTheme: AppTheme.dark,
-    themeMode: ref.watch(themeModeProvider),
+    themeMode: ThemeMode.dark,
     // İlk açılışta seçilen dil anında uygulanmalı ki sonraki adımlar
     // yeni dilde okunsun.
     locale: ref.watch(onboardingLocaleProvider) ?? ref.watch(localeProvider),

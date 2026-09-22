@@ -64,7 +64,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 44 dosyada 540 test var; hepsi geçmelidir.
+- Depoda şu an 46 dosyada 559 test var; hepsi geçmelidir.
   (`test/promo_shots_test.dart` sayıma girmez: `promo` etiketi
   `dart_test.yaml` ile atlanır, çünkü görüntüyü diske yazdıktan sonra
   koşucu kapanmıyor ve `flutter test` asılı kalırdı. Görselleri üretmek
@@ -130,6 +130,17 @@ flutter test --reporter expanded
   `DateTime.now()` çağıran ekran testte sabitlenemez.
 - **Ramazan gecesi akşam ezanıyla başlar** (`ramadanNightDate`): mahya ve
   teravih akşamdan sonra ertesi günü gösterir.
+- **Uygulama her zaman KOYU temayla çizilir** (`main.dart`: `theme` de
+  `darkTheme` de `AppTheme.dark`). Her sayfanın arkasında koyu cami sahnesi
+  var; aydınlık tema kart dışındaki yazıyı 17 sayfanın 12'sinde
+  koyu-üstüne-koyu çiziyordu. Tema seçeneği kaldırıldı (zaten yalnızca koyuya
+  geçiyordu ve kaydedilmiyordu). `backdrop_legibility_test.dart` telefon
+  aydınlık kipteyken bütün rotaları dolaşır; aydınlık bir tasarım istenirse
+  cami perdesinin de açık bir örtüyle yeniden düşünülmesi gerekir.
+- **Paylaşım düğmenin ekrandaki yerini taşımalı** (`sharePositionOrigin`).
+  share_plus, pencere balon olarak açılacaksa (iPad, iOS 26'da iPhone) yer
+  verilmezse hata döner ve hiçbir şey açmaz. Başarısız paylaşım metni
+  panoya kopyalar ve söyler; `content_share_test.dart`.
 - **Perdenin üstündeki metin `BackdropPalette`'ten renklenir.** Cami sahnesi
   her temada koyudur; kart içinde OLMAYAN metin temanın renkleriyle
   yazılırsa aydınlık kipte koyu yazı koyu zemine düşer (imsakiye çizelgesi

@@ -32,6 +32,32 @@ class _DailyContentCardState extends State<DailyContentCard> {
     favorite = widget.initiallyFavorite;
   }
 
+  /// Paylaşım penceresini düğmenin yerine bağlayarak açar.
+  ///
+  /// share_plus, pencere balon (popover) olarak açılacaksa düğmenin
+  /// ekrandaki yerini ister; verilmezse hata döner ve pencere HİÇ açılmaz.
+  /// iPad'de hep böyleydi, iOS 26'da iPhone'da da. Konum gönderilmiyor, hata
+  /// da yutuluyordu: kullanıcı paylaşa basıyor, hiçbir şey olmuyordu.
+  /// Paylaşım yine de başarısız olursa metin panoya kopyalanır ve söylenir.
+  Future<void> _share(BuildContext buttonContext, String text) async {
+    final box = buttonContext.findRenderObject() as RenderBox?;
+    final origin = box == null || !box.hasSize
+        ? null
+        : box.localToGlobal(Offset.zero) & box.size;
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final fallback = context.l10n.text('content.shareFailed');
+    try {
+      await Share.share(
+        text,
+        subject: widget.title,
+        sharePositionOrigin: origin,
+      );
+    } catch (_) {
+      await Clipboard.setData(ClipboardData(text: text));
+      messenger?.showSnackBar(SnackBar(content: Text(fallback)));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final text = widget.content.shareText;
@@ -110,11 +136,15 @@ class _DailyContentCardState extends State<DailyContentCard> {
                   color: foreground,
                   icon: const Icon(Icons.copy_outlined),
                 ),
-                IconButton(
-                  tooltip: context.l10n.text('content.share'),
-                  onPressed: () => Share.share(text, subject: widget.title),
-                  color: foreground,
-                  icon: const Icon(Icons.share_outlined),
+                // Builder: paylaşım penceresi düğmenin KENDİ konumuna
+                // bağlanır, kartın değil.
+                Builder(
+                  builder: (buttonContext) => IconButton(
+                    tooltip: context.l10n.text('content.share'),
+                    onPressed: () => _share(buttonContext, text),
+                    color: foreground,
+                    icon: const Icon(Icons.share_outlined),
+                  ),
                 ),
               ],
             ),

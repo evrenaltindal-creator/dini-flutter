@@ -33,14 +33,13 @@ class _MemoryStorage implements LocalStorage {
 
 late final String _citiesJson;
 
-Widget _app(String location, ThemeMode mode) => ProviderScope(
+Widget _app(String location) => ProviderScope(
   overrides: [
     localStorageProvider.overrideWithValue(_MemoryStorage()),
     cityRepositoryProvider.overrideWithValue(
       CityRepository(loadAsset: (_) async => _citiesJson),
     ),
     clockProvider.overrideWithValue(() => DateTime(2026, 9, 20, 12)),
-    themeModeProvider.overrideWith((ref) => mode),
   ],
   child: DiniApp(router: createRouter(initialLocation: location)),
 );
@@ -65,14 +64,16 @@ void main() {
   Future<void> expectLightText(
     WidgetTester tester, {
     required String route,
-    required ThemeMode mode,
+    required Brightness platform,
     required Finder area,
     required Finder excluded,
   }) async {
     await tester.binding.setSurfaceSize(const Size(420, 1000));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    await tester.pumpWidget(_app(route, mode));
+    tester.platformDispatcher.platformBrightnessTestValue = platform;
+    addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+    await tester.pumpWidget(_app(route));
     await tester.pumpAndSettle();
 
     final texts = tester
@@ -107,14 +108,14 @@ void main() {
     }
   }
 
-  for (final mode in [ThemeMode.light, ThemeMode.dark]) {
-    final name = mode == ThemeMode.light ? 'aydınlık' : 'koyu';
+  for (final platform in Brightness.values) {
+    final name = platform == Brightness.light ? 'aydınlık' : 'koyu';
 
     testWidgets('$name kipte imsakiye çizelgesi okunur', (tester) async {
       await expectLightText(
         tester,
         route: '/imsakiye',
-        mode: mode,
+        platform: platform,
         area: find.byType(ListView),
         excluded: find.byKey(ImsakiyePage.todayRowKey),
       );
@@ -124,7 +125,7 @@ void main() {
       await expectLightText(
         tester,
         route: '/calendar',
-        mode: mode,
+        platform: platform,
         area: find.byType(GridView),
         excluded: find.byKey(CalendarPage.selectedDayKey),
       );

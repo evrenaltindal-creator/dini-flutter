@@ -808,11 +808,6 @@ class SettingsPage extends ConsumerWidget {
             onChanged: (v) =>
                 _saveSettings(ref, settings.copyWith(use24Hour: v)),
           ),
-          _Tile(
-            l10n.text('settings.theme'),
-            onTap: () =>
-                ref.read(themeModeProvider.notifier).state = ThemeMode.dark,
-          ),
           _languageSelector(context, ref),
           const OpeningTakbirSettingTile(),
           Card(

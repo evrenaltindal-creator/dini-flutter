@@ -22,10 +22,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Namaz Yolu Premium'), findsOneWidget);
   });
-  test('theme and localization providers have defaults', () {
+  test('localization provider has a default', () {
     final container = ProviderContainer();
     addTearDown(container.dispose);
-    expect(container.read(themeModeProvider), ThemeMode.system);
     expect(container.read(localeProvider), const Locale('tr'));
   });
 }
