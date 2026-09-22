@@ -64,7 +64,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 49 dosyada 592 test var; hepsi geçmelidir.
+- Depoda şu an 49 dosyada 596 test var; hepsi geçmelidir.
   (`test/promo_shots_test.dart` sayıma girmez: `promo` etiketi
   `dart_test.yaml` ile atlanır, çünkü görüntüyü diske yazdıktan sonra
   koşucu kapanmıyor ve `flutter test` asılı kalırdı. Görselleri üretmek
@@ -229,13 +229,16 @@ flutter test --reporter expanded
   için yazı renkleri açıkça verilir: uygulama koyu temada, kartın varsayılan
   yazısı açık renktir.
 - **Ezan sesi: altyapı hazır, kayıt YOK.** Telifi netleşmemiş kayıt
-  uygulamaya alınmaz; lisanslı bir kayıt `tool/prepare_ezan_sound.py` ile
-  (lisans vermeden çalışmaz) 29 saniyeye kırpılıp `assets/audio/ezan.wav` ve
+  uygulamaya alınmaz; ezanın sözleri kimsenin değildir ama her KAYDIN
+  (müezzinin icrası, kaydı yapanın hakkı) sahibi vardır ve "5 saniye serbest"
+  diye bir kural yoktur. Lisanslı bir kayıt `tool/prepare_ezan_sound.py` ile
+  (kaynak ve lisans vermeden çalışmaz) ilk 5 saniyesi alınıp, sesi
+  normalleştirilip son 3 saniyesi kısılarak `assets/audio/ezan.wav` ve
   `res/raw/ezan.wav` olarak yazılır, kaynağı `EZAN_SOURCE.txt`'ye düşer.
-  Kayıt yokken seçenek görünmez; seçilmişse telefonun sesine düşer (olmayan
-  ham kaynak bildirimi sessiz çalardı). iOS bildirim sesini 30 saniyeyle
-  sınırlar. `NotificationSound` sıra numarasıyla saklanır: yeni ses SONA
-  eklenir.
+  Aynı dosya iki yerde çalar: **açılış sesi** (varsa tekbirin yerine,
+  `openingSoundFor`) ve bildirimde "Ezan" seçeneği. Kayıt yokken açılışta eski
+  kısık tekbir çalar, bildirim seçeneği görünmez; seçilmişse telefonun sesine
+  düşer. `NotificationSound` sıra numarasıyla saklanır: yeni ses SONA eklenir.
 - **Android bildirim kanalının sesi oluşturulduktan sonra değiştirilemez.**
   Bu yüzden her ses seçeneği kendi kanal kimliğini taşır; kimlikleri
   birleştirirsen kullanıcı sesi değiştirdiğinde hiçbir şey olmaz.

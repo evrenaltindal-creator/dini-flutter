@@ -24,8 +24,9 @@ enum NotificationSound {
   bundled,
   silent,
 
-  /// Ezan kaydının ilk ~30 saniyesi. Yalnızca kayıt dosyası pakette varsa
-  /// sunulur (bkz. `EzanSound`); iOS bildirim sesini 30 saniyeyle sınırlar.
+  /// Ezan kaydının ilk 5 saniyesi, sonu kısılarak biter (açılışta çalanla
+  /// aynı dosya). Yalnızca kayıt dosyası pakette varsa sunulur (bkz.
+  /// `EzanSound`); iOS bildirim sesini 30 saniyeyle sınırlar.
   ezan,
 }
 

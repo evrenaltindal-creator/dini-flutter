@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dini_flutter/core/storage/local_storage.dart';
+import 'package:dini_flutter/features/audio/presentation/opening_takbir.dart';
 import 'package:dini_flutter/features/notifications/data/flutter_local_notification_service.dart';
 import 'package:dini_flutter/features/notifications/data/notification_preferences_repository.dart';
 import 'package:dini_flutter/features/notifications/data/notification_sound_installer.dart';
@@ -287,6 +288,101 @@ void main() {
     });
   });
 
+  group('açılış sesi', () {
+    test('ezan kaydı varsa açılışta tekbir değil ezan çalar', () {
+      final ezan = openingSoundFor(ezanAvailable: true);
+      // audioplayers AssetSource yolu `assets/` önekini kendisi ekler.
+      expect('assets/${ezan.asset}', EzanSound.assetKey);
+      expect(
+        ezan.volume,
+        1.0,
+        reason:
+            'Ezan normal sesle başlamalı; kısılma dosyanın içindedir '
+            '(tool/prepare_ezan_sound.py).',
+      );
+    });
+
+    test('kayıt yokken eski kısık tekbir kalır', () {
+      final takbir = openingSoundFor(ezanAvailable: false);
+      expect(takbir.asset, 'audio/opening_takbir.mp3');
+      expect(File('assets/${takbir.asset}').existsSync(), isTrue);
+      expect(takbir.volume, lessThan(.5));
+    });
+  });
+
+  group('ezan hazırlama betiği', () {
+    // Betik lisanssız kayıt kabul etmemeli ve klibi "önce normal ses, sonra
+    // kısılarak biter" biçiminde yazmalı.
+    late Directory root;
+    late File input;
+    const rate = 8000;
+
+    setUp(() {
+      root = Directory.systemTemp.createTempSync('ezan');
+      input = File('${root.path}/kayit.wav');
+      // 12 saniyelik sabit genlikli bir ton: kısılma ancak betikten gelir.
+      final samples = Int16List(rate * 12);
+      for (var i = 0; i < samples.length; i++) {
+        samples[i] = i.isEven ? 6000 : -6000;
+      }
+      input.writeAsBytesSync(_wav(samples, rate));
+    });
+    tearDown(() => root.deleteSync(recursive: true));
+
+    Future<ProcessResult> run(List<String> extra) => Process.run('python3', [
+      'tool/prepare_ezan_sound.py',
+      input.path,
+      '--root',
+      root.path,
+      ...extra,
+    ]);
+
+    test('ilk 5 saniye: normal başlar, kısılarak sessize iner', () async {
+      final result = await run(['--source', 'deneme', '--license', 'CC0']);
+      expect(result.exitCode, 0, reason: '${result.stderr}');
+
+      final asset = File('${root.path}/${EzanSound.assetKey}');
+      final android = File(
+        '${root.path}/android/app/src/main/res/raw/ezan.wav',
+      );
+      expect(android.readAsBytesSync(), asset.readAsBytesSync());
+
+      final samples = _samples(asset.readAsBytesSync());
+      expect(samples.length / rate, closeTo(5, .01));
+
+      int peakAt(double second) {
+        final start = (second * rate).round();
+        var peak = 0;
+        for (var i = start; i < start + 200 && i < samples.length; i++) {
+          peak = samples[i].abs() > peak ? samples[i].abs() : peak;
+        }
+        return peak;
+      }
+
+      final full = peakAt(0);
+      expect(
+        full,
+        greaterThan(20000),
+        reason: 'Ses normal seviyede başlamalı.',
+      );
+      expect(peakAt(1.5), full, reason: 'İlk kısım kısılmamalı.');
+      expect(peakAt(3), lessThan(full));
+      expect(peakAt(4), lessThan(peakAt(3)));
+      expect(samples.last.abs(), lessThan(50), reason: 'Kesik bitmemeli.');
+
+      final note = File('${root.path}/assets/audio/EZAN_SOURCE.txt');
+      expect(note.readAsStringSync(), contains('Lisans: CC0'));
+    }, skip: _python ? false : 'python3 yok');
+
+    test('lisans ya da kaynak verilmeden kayıt alınmaz', () async {
+      final noLicense = await run(['--source', 'deneme', '--license', ' ']);
+      expect(noLicense.exitCode, isNot(0));
+      final noSource = await run(['--source', ' ', '--license', 'CC0']);
+      expect(noSource.exitCode, isNot(0));
+      expect(File('${root.path}/${EzanSound.assetKey}').existsSync(), isFalse);
+    }, skip: _python ? false : 'python3 yok');
+  });
+
   test('bozuk ya da ileri sürümden kalan ses kaydı çökertmez', () async {
     final storage = _EzanMemoryStorage()
       ..values['dini.notifications.sound'] = '99';
@@ -303,4 +399,49 @@ class _EzanMemoryStorage implements LocalStorage {
   Future<void> write(String key, String value) async => values[key] = value;
   @override
   Future<void> remove(String key) async => values.remove(key);
+}
+
+final _python = () {
+  try {
+    return Process.runSync('python3', ['--version']).exitCode == 0;
+  } on ProcessException {
+    return false;
+  }
+}();
+
+/// 16 bit tek kanallı PCM WAV.
+Uint8List _wav(Int16List samples, int rate) {
+  final data = samples.buffer.asUint8List();
+  final header = ByteData(44)
+    ..setUint32(0, 0x52494646) // RIFF
+    ..setUint32(4, 36 + data.length, Endian.little)
+    ..setUint32(8, 0x57415645) // WAVE
+    ..setUint32(12, 0x666d7420) // fmt
+    ..setUint32(16, 16, Endian.little)
+    ..setUint16(20, 1, Endian.little)
+    ..setUint16(22, 1, Endian.little)
+    ..setUint32(24, rate, Endian.little)
+    ..setUint32(28, rate * 2, Endian.little)
+    ..setUint16(32, 2, Endian.little)
+    ..setUint16(34, 16, Endian.little)
+    ..setUint32(36, 0x64617461) // data
+    ..setUint32(40, data.length, Endian.little);
+  return Uint8List.fromList([...header.buffer.asUint8List(), ...data]);
+}
+
+Int16List _samples(Uint8List bytes) {
+  final view = ByteData.sublistView(bytes);
+  var offset = 12;
+  while (offset + 8 <= bytes.length) {
+    final id = String.fromCharCodes(bytes.sublist(offset, offset + 4));
+    final size = view.getUint32(offset + 4, Endian.little);
+    if (id == 'data') {
+      return Int16List.fromList([
+        for (var i = 0; i < size ~/ 2; i++)
+          view.getInt16(offset + 8 + i * 2, Endian.little),
+      ]);
+    }
+    offset += 8 + size;
+  }
+  throw StateError('data yok');
 }

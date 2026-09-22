@@ -93,8 +93,9 @@ class NotificationSoundInstaller {
 ///
 /// Kayıt dosyası depoya BİLEREK konmadı: telifi netleşmemiş bir kayıt
 /// uygulamaya alınmaz. Lisansı belli bir kayıt geldiğinde
-/// `tool/prepare_ezan_sound.py` onu iOS'un 30 saniye sınırına göre kırpıp
-/// buraya ve Android'in `res/raw` klasörüne yazar; seçenek o zaman görünür.
+/// `tool/prepare_ezan_sound.py` ilk 5 saniyesini alıp sonunu kısar, buraya
+/// ve Android'in `res/raw` klasörüne yazar; seçenek o zaman görünür ve
+/// açılış tekbirinin yerine de bu ses çalar.
 class EzanSound {
   static const assetKey = 'assets/audio/ezan.wav';
   static const fileName = 'ezan.wav';
