@@ -192,7 +192,13 @@ yönlendirir.
 
 ## 3. Faz 2 — Ekosistem
 
-- Apple Watch ve Wear OS için bağımsız çalışan komplikasyonlar.
+**Kullanıcı kararları (2026-09-22):** Apple Watch / Wear OS **kesin
+yapılacak** (önemli). AR kıble **yapılmayacak**. Premium yaklaşık bir yıl
+sonra düşünülecek; o zamana kadar her şey ücretsiz. Cihazda doğrulandı:
+vakit bildirimleri geliyor, kıble çalışıyor.
+
+- **Apple Watch ve Wear OS** için bağımsız çalışan uygulama ve
+  komplikasyonlar. Kesin; sıradaki büyük iş.
 - ~~Genişletilmiş iOS widget seçenekleri, kilit ekranı sayaçları.~~ Kilit
   ekranı boyutları (`accessoryCircular`, `accessoryRectangular`,
   `accessoryInline`) eklendi. **Swift tarafı derlenmedi**, ama dosya zaten
@@ -203,9 +209,8 @@ yönlendirir.
   günden beri yer tutucu gösteriyordu. Artık açılışta, ayar kaydında ve
   konum-adı anahtarı değişince anlık görüntü gönderiliyor; vakit adları da
   kullanıcının dilinde gidiyor (eskiden gitse bile "maghrib" yazacaktı).
-- AR kıble. **Bedeli var:** kamera izni istemek, "hiçbir şey toplamıyoruz"
-  duruşunu zayıflatır. 2D pusula zaten doğru çalışıyor; bu bir gereklilik değil
-  gösteriş özelliğidir.
+- ~~AR kıble.~~ **Yapılmayacak** (kullanıcı kararı). Kamera izni "hiçbir
+  şey toplamıyoruz" duruşunu zayıflatırdı; 2D pusula cihazda doğru çalışıyor.
 - Kuran ekranı. Meal telif nedeniyle bekliyor; telifsiz ve güvenilir bir
   kaynak bulunmadan açılmaz.
 
@@ -245,8 +250,8 @@ kanıtlarıyla yazıldı.
 - `claude/upbeat-gates-1t7ls6` ve `claude/ramadan-reminders` main'e girmedi.
 - Arka plan sahnesi yedi sayfada örtülüyordu (kendi Scaffold'ları opaktı);
   düzeltildi ve her rotayı dolaşan bir test eklendi.
-- Gerçek cihazda hiçbir şey doğrulanmadı: pusula, sessiz moddaki ses,
-  bildirimlerin gerçekten çalması.
+- Cihazda doğrulanan: vakit bildirimleri ve kıble. Doğrulanmayan: sessiz
+  moddaki ses, widget (onarıldı, yeni build bekliyor), canlı etkinlik.
 - Mahyanın harfleri yalnızca testteki yazı tipiyle görüldü (her harf dolu
   kutu çizilir); okunaklılık cihazda kontrol edilmeli.
 - TestFlight'a build gönderilmedi.

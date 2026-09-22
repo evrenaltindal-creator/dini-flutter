@@ -1,28 +1,28 @@
-Bu yapıda ibadet merkezi, yenilenen kıble ve alarmlar ilk kez test ediliyor.
-Uygulama lansman döneminde tam sürüm: her şey açık, satın alma yok.
+Namaz Yolu — yeni ad, yeni simge ve ana ekran widget'ının onarımı.
+Lansman döneminde tam sürüm: her şey açık, satın alma yok.
 
-Öncelikli olarak şunları doğrulayın:
+Önce şunları deneyin:
 
-- Kıble oku: telefonu yavaşça tam tur çevirin. Ok her zaman kısa taraftan
-  dönmeli; kıble tam arkanızdayken ters yöne tam tur atmamalı.
-- Pusula kalibrasyonu ve metal eşya etkisi; sensör yoksa açıklayıcı uyarı.
-- Alarmlar: bir namazı açın, uygulamayı kapatın ve bildirimin gerçekten
-  geldiğini görün. İzin vermeden açtığınız alarm da izin verdikten sonra
-  çalışmalı.
-- Açılış tekbiri: telefon sessizdeyken çalmamalı, müzik çalıyorsa onu
-  kesmemeli. Ayarlar'dan kapatınca bir daha çalmamalı.
-- İbadet sekmeleri: Takip, Namaz, Abdest ve Alarmlar sekmelerinin dördü de
-  ekranda görünmeli (dar telefonlarda da).
-- Tesbih: sayaç uygulamayı kapatıp açınca korunmalı. Hedefe ulaşınca geçmişe
-  tek kayıt düşmeli, hedefi geçince yenileri eklenmemeli.
-- Namaz takibi: gece yarısını geçtikten sonra işaretleme doğru güne yazılmalı.
-- Namaz vakitlerinin konuma ve tarihe göre doğruluğu, konum izni akışı.
-- Takvim ekranı, tarih geçişleri ve büyük yazı boyutunda hücrelerin taşmaması.
-- Ana ekran küçük/orta widget içerikleri ve yenilenmesi.
+- Widget: uygulamayı bir kez açın, eski widget'ı silip yeniden ekleyin.
+  Sıradaki namaz, saati ve günün vakitleri görünmeli; yazılar aydınlık
+  kipte de okunmalı. (Önceki sürümde widget'a hiç veri gitmiyordu.)
+- Kilit ekranı: kilit ekranı widget'ları (yuvarlak, dikdörtgen, satır).
+  Vakitten yaklaşık bir saat önce kilit ekranında geri sayım açılmalı ve
+  uygulamayı her açtığınızda ikincisi açılmamalı. Bu özellik ilk kez
+  derleniyor.
+- İlk açılış: Ayarlar'dan "ilk açılışı tekrar göster" ile dil, konum,
+  bildirim izni ve pil adımlarını gezin.
+- Konum: Ayarlar → Konum'dan otomatik ya da listeden şehir seçin; vakitler
+  ve saat dilimi o şehre göre değişmeli.
+- İmsakiye ve takvim: aydınlık ve koyu kipte yazılar okunmalı.
+- Namaz takibi: seri, 17 haftalık ısı haritası, "bugün kılmıyorum" (muaf
+  gün) ve kaza sayacı.
+- Ramazan araçları: oruç takibi ve teravih sayacı (Ramazan dışında
+  açıklama gösterir). Mahya yalnızca Ramazan gecelerinde yanar.
+- Her sayfanın arkasında cami sahnesi görünmeli.
+- Yeni simge: ana ekranda ve ayarlarda.
 
 Bilinen eksikler:
 
-- Kuran sekmesi "yakında" ekranı gösteriyor; içerik henüz eklenmedi.
-- Namaz rehberindeki okunacak metinler (Sübhâneke, Ettehiyyâtü vb.) henüz
-  girilmedi, bu yüzden o bölüm görünmüyor.
-- Uygulama simgesi hâlâ Flutter varsayılanı.
+- Kuran sekmesi "yakında" ekranı gösteriyor.
+- Apple Watch sürümü henüz yok.
