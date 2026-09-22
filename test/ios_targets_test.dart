@@ -122,6 +122,15 @@ void main() {
       ).allMatches(project).map((match) => match.group(0)!);
       expect(watchConfigs, hasLength(3));
       for (final config in watchConfigs) {
+        // Flutter derlemede CocoaPods'u çalıştırır ve Pods ayarlarını
+        // Debug/Release.xcconfig'e ekler; bunlar iPhone çerçevelerine
+        // (flutter_compass ...) bağlanır. Saat hedefi onları devralınca
+        // watchOS'ta "Framework 'flutter_compass' not found" ile derlenmedi
+        // (TestFlight #12). Yalnızca sürüm değişkenlerini taşıyan
+        // Generated.xcconfig temel alınır.
+        expect(config, contains('Generated.xcconfig'));
+        expect(config, isNot(contains('Release.xcconfig')));
+        expect(config, isNot(contains('Debug.xcconfig')));
         expect(
           config,
           contains(r'CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)"'),
