@@ -51,11 +51,17 @@ class WatchSchedule {
 
   final DateTime generatedAt;
 
+  /// Seçilen şehrin saat dilimi (IANA). Saat vakitleri bu dilimde yazar;
+  /// yoksa yolculukta telefonla saat farklı saat gösterirdi — telefon
+  /// vakitleri seçilen şehrin duvar saatinde gösterir.
+  final String timezoneId;
+
   const WatchSchedule({
     required this.days,
     required this.labels,
     required this.locationName,
     required this.generatedAt,
+    required this.timezoneId,
     this.texts = const {},
   });
 
@@ -73,6 +79,7 @@ class WatchSchedule {
   Map<String, Object> toPayload() => {
     'version': 1,
     'generatedAt': _seconds(generatedAt),
+    'timezoneId': timezoneId,
     if (locationName != null && locationName!.isNotEmpty)
       'locationName': locationName!,
     'texts': texts,

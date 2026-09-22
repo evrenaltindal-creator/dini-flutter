@@ -25,7 +25,7 @@ void main() {
   bool isCompiled(String project, String fileName) =>
       '$fileName in Sources'.allMatches(project).length >= 2;
 
-  for (final folder in ['ios/Runner', 'ios/DiniWidget']) {
+  for (final folder in ['ios/Runner', 'ios/DiniWidget', 'ios/DiniWatch']) {
     test('$folder altındaki Swift dosyaları bir hedefte derleniyor', () {
       final files = Directory(folder)
           .listSync()
@@ -69,6 +69,7 @@ void main() {
     final files = [
       ...Directory('ios/Runner').listSync(),
       ...Directory('ios/DiniWidget').listSync(),
+      ...Directory('ios/DiniWatch').listSync(),
     ].whereType<File>().where((file) => file.path.endsWith('.swift'));
     for (final file in files) {
       final source = file.readAsStringSync();
@@ -82,6 +83,72 @@ void main() {
         reason: '${file.path}: ActivityAttributes türü sürüm koşulu taşımıyor.',
       );
     }
+  });
+
+  group('Apple Watch uygulaması', () {
+    test('iPhone uygulamasına gömülü', () {
+      // Saat uygulaması ayrı yüklenmez; iPhone uygulamasının içindeki
+      // Watch klasöründen gelir. Gömme aşaması ya da bağımlılık yoksa
+      // IPA'da saat uygulaması olmaz.
+      expect(project, contains('DiniWatch.app in Embed Watch Content'));
+      expect(project, contains(r'dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";'));
+      expect(project, contains('DINI_W_DEP /* PBXTargetDependency */,'));
+    });
+
+    test('paket kimliği iPhone uygulamasının altında', () {
+      // App Store saat uygulamasının kimliğinin iPhone uygulamasının
+      // kimliğiyle başlamasını ister.
+      expect(
+        project,
+        contains(
+          'PRODUCT_BUNDLE_IDENTIFIER = com.dini.diniFlutter.watchkitapp;',
+        ),
+      );
+      final plist = File('ios/DiniWatch/Info.plist').readAsStringSync();
+      expect(
+        RegExp(
+          r'<key>WKCompanionAppBundleIdentifier</key>\s*<string>com\.dini\.diniFlutter</string>',
+        ).hasMatch(plist),
+        isTrue,
+      );
+      expect(plist, contains('<key>WKApplication</key>'));
+    });
+
+    test('sürümü iPhone uygulamasıyla aynı kaynaktan', () {
+      // Saat uygulamasının sürümü iPhone uygulamasınınkinden farklıysa App
+      // Store yüklemeyi reddeder; ikisi de Flutter'ın sürümünü okumalı.
+      final watchConfigs = RegExp(
+        r'DINI_W_(DEBUG|RELEASE|PROFILE) /\* \w+ \*/ = \{[^\n]*',
+      ).allMatches(project).map((match) => match.group(0)!);
+      expect(watchConfigs, hasLength(3));
+      for (final config in watchConfigs) {
+        expect(
+          config,
+          contains(r'CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)"'),
+        );
+        expect(
+          config,
+          contains(r'MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)"'),
+        );
+        expect(config, contains('SDKROOT = watchos;'));
+      }
+    });
+
+    test('simgesi ve gizlilik bildirimi var', () {
+      // Simgesiz saat uygulaması ve gerekçesi bildirilmemiş UserDefaults
+      // kullanımı App Store yüklemesinde reddedilir.
+      final icon = File(
+        'ios/DiniWatch/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png',
+      );
+      expect(icon.existsSync(), isTrue);
+      expect(
+        project,
+        contains('Assets.xcassets in Resources */, DINI_W_BF_PRIVACY'),
+      );
+      final privacy = File('ios/DiniWatch/PrivacyInfo.xcprivacy')
+          .readAsStringSync();
+      expect(privacy, contains('NSPrivacyAccessedAPICategoryUserDefaults'));
+    });
   });
 
   test('canlı etkinlik uzantı hedefinde', () {

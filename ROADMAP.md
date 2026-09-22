@@ -197,8 +197,14 @@ yapılacak** (önemli). AR kıble **yapılmayacak**. Premium yaklaşık bir yıl
 sonra düşünülecek; o zamana kadar her şey ücretsiz. Cihazda doğrulandı:
 vakit bildirimleri geliyor, kıble çalışıyor.
 
-- **Apple Watch ve Wear OS** için bağımsız çalışan uygulama ve
-  komplikasyonlar. Kesin; sıradaki büyük iş.
+- **Apple Watch** — ilk sürüm yazıldı: sıradaki vakit, geri sayım ve
+  günün vakitleri. Telefon 14 günlük çizelgeyi saate gönderir; saat telefondan
+  ayrıyken iki hafta çalışır. **Derlenmesi TestFlight'ta doğrulanacak.**
+  Sırada: saat kadranı komplikasyonları — App Group gerektirir; Apple
+  Developer portalında saat uygulamasının kimliğine (`com.dini.diniFlutter.
+  watchkitapp`) App Group atanması kullanıcıya düşer.
+- **Wear OS** — yapılmadı. Android derlemesi bu ortamda hiç
+  doğrulanmadı; önce Android'in kendisinin derlendiği görülmeli.
 - ~~Genişletilmiş iOS widget seçenekleri, kilit ekranı sayaçları.~~ Kilit
   ekranı boyutları (`accessoryCircular`, `accessoryRectangular`,
   `accessoryInline`) eklendi. **Swift tarafı derlenmedi**, ama dosya zaten

@@ -152,6 +152,23 @@ void main() {
       }
     });
 
+    test('saat vakitleri seçilen şehrin diliminde yazar', () {
+      // Yolculukta saatin kendi dilimi şehirden farklı olabilir; telefon
+      // vakitleri şehrin duvar saatinde gösteriyor, saat de öyle yapmalı.
+      final settings = const PrayerSettings().copyWith(
+        location: const LocationPreference(
+          latitude: 52.52,
+          longitude: 13.405,
+          timezoneId: 'Europe/Berlin',
+          city: 'Berlin',
+        ),
+      );
+      expect(
+        schedule(settings: settings).toPayload()['timezoneId'],
+        'Europe/Berlin',
+      );
+    });
+
     test('vakit adları kullanıcının dilinde', () {
       final tr = schedule(languageCode: 'tr').toPayload()['labels']! as Map;
       final ar = schedule(languageCode: 'ar').toPayload()['labels']! as Map;
@@ -195,6 +212,50 @@ void main() {
       final bridge = File('ios/Runner/WatchBridge.swift').readAsStringSync();
       expect(bridge, contains('pending = schedule'));
       expect(bridge, contains('activationDidCompleteWith'));
+    });
+  });
+
+  group('saat uygulaması', () {
+    test('Dart\'ın gönderdiği her anahtarı okur', () {
+      // Bir anahtarın adı iki tarafta ayrılırsa hiçbir hata olmaz; saat o
+      // alanı sessizce boş gösterir.
+      final reader = File('ios/DiniWatch/WatchSchedule.swift')
+          .readAsStringSync();
+      final payload = schedule(showLocationName: true).toPayload();
+      for (final key in [
+        'generatedAt',
+        'timezoneId',
+        'labels',
+        'texts',
+        'days',
+        'locationName',
+      ]) {
+        expect(reader, contains('"$key"'), reason: 'saat "$key" okumuyor');
+      }
+      expect(payload.keys, containsAll(['generatedAt', 'timezoneId', 'days']));
+      for (final prayer in watchPrayers) {
+        expect(reader, contains('"${prayer.name}"'));
+      }
+      for (final key in watchTextKeys) {
+        expect(reader, contains('"$key"'), reason: 'yedek metin eksik: $key');
+      }
+    });
+
+    test('geri sayım ters aralık kurmaz', () {
+      // Kilit ekranı sayacında "Date()...vakit" aralığı vakit geçince
+      // ters dönüyordu; saat aynı hatayı tekrarlamamalı.
+      final view = File('ios/DiniWatch/ContentView.swift').readAsStringSync();
+      expect(view, isNot(contains('now...next.time')));
+      expect(view, contains('min(now, next.time)...next.time'));
+    });
+
+    test('vakitleri şehrin diliminde yazar', () {
+      final view = File('ios/DiniWatch/ContentView.swift').readAsStringSync();
+      expect(
+        view,
+        isNot(contains('style: .time')),
+        reason: 'Text(date, style: .time) saatin kendi dilimini kullanır.',
+      );
     });
   });
 

@@ -23,7 +23,14 @@ Lansman döneminde tam sürüm: her şey açık, satın alma yok.
 - Her sayfanın arkasında cami sahnesi görünmeli.
 - Yeni simge: ana ekranda ve ayarlarda.
 
+Apple Watch (ilk kez):
+- Eşleşmiş bir saatiniz varsa saat uygulaması kendiliğinden kurulmalı
+  (Watch uygulamasında "Otomatik Uygulama Yükleme" açıksa). Telefonda Namaz
+  Yolu'nu bir kez açın; saatte sıradaki vakit, geri sayım ve günün vakitleri
+  görünmeli. Saatler telefondakiyle aynı olmalı.
+- Telefonu uzaklaştırıp saati açın: vakitler yine görünmeli.
+
 Bilinen eksikler:
 
 - Kuran sekmesi "yakında" ekranı gösteriyor.
-- Apple Watch sürümü henüz yok.
+- Saat kadranı komplikasyonları henüz yok.

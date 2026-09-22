@@ -309,9 +309,47 @@ def build_android():
         )
 
 
+WATCH_ICONS = os.path.join(ROOT, "ios/DiniWatch/Assets.xcassets")
+
+
+def build_watch():
+    """Apple Watch uygulamasının simgesi.
+
+    watchOS tek bir 1024x1024 simge ister; sistem onu daireye kırpar.
+    Simgesi olmayan saat uygulaması App Store yüklemesinde reddedilir.
+    iOS simgesi gibi opaktır: saydamlık da reddedilir.
+    """
+    os.makedirs(WATCH_ICONS, exist_ok=True)
+    with open(os.path.join(WATCH_ICONS, "Contents.json"), "w") as handle:
+        json.dump({"info": {"author": "xcode", "version": 1}}, handle, indent=2)
+        handle.write("\n")
+    folder = os.path.join(WATCH_ICONS, "AppIcon.appiconset")
+    os.makedirs(folder, exist_ok=True)
+    filename = "AppIcon-1024.png"
+    with open(os.path.join(folder, "Contents.json"), "w") as handle:
+        json.dump(
+            {
+                "images": [
+                    {
+                        "filename": filename,
+                        "idiom": "universal",
+                        "platform": "watchos",
+                        "size": "1024x1024",
+                    }
+                ],
+                "info": {"author": "xcode", "version": 1},
+            },
+            handle,
+            indent=2,
+        )
+        handle.write("\n")
+    _write(render(1024), os.path.join(folder, filename), opaque=True)
+
+
 def main():
     build_ios()
     build_android()
+    build_watch()
     preview = os.path.join(ROOT, "build", "icon_preview.png")
     os.makedirs(os.path.dirname(preview), exist_ok=True)
     strip = Image.new("RGB", (1024 + 192 + 96 + 48 + 40, 1024), (245, 245, 245))

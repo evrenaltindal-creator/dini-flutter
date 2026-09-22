@@ -32,6 +32,7 @@ WatchSchedule buildWatchSchedule({
 
   return WatchSchedule(
     generatedAt: now,
+    timezoneId: timezoneId,
     locationName: showLocationName ? location.city : null,
     labels: {
       for (final prayer in watchPrayers) prayer: l10n.prayer(prayer.name),

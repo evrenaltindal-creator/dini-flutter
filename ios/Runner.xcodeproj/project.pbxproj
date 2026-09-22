@@ -10,6 +10,13 @@
 		DINI_BF_BRIDGE /* WidgetSnapshotBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = DINI_FR_BRIDGE /* WidgetSnapshotBridge.swift */; };
 		DINI_BF_LIVE_BRIDGE /* LiveActivityBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = DINI_FR_LIVE_BRIDGE /* LiveActivityBridge.swift */; };
 		DINI_BF_WATCH_BRIDGE /* WatchBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = DINI_FR_WATCH_BRIDGE /* WatchBridge.swift */; };
+		DINI_W_BF_APP /* DiniWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DINI_W_FR_APP /* DiniWatchApp.swift */; };
+		DINI_W_BF_MODEL /* WatchSchedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = DINI_W_FR_MODEL /* WatchSchedule.swift */; };
+		DINI_W_BF_STORE /* ScheduleStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DINI_W_FR_STORE /* ScheduleStore.swift */; };
+		DINI_W_BF_VIEW /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DINI_W_FR_VIEW /* ContentView.swift */; };
+		DINI_W_BF_ASSETS /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DINI_W_FR_ASSETS /* Assets.xcassets */; };
+		DINI_W_BF_PRIVACY /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = DINI_W_FR_PRIVACY /* PrivacyInfo.xcprivacy */; };
+		DINI_W_BF_EMBED /* DiniWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = DINI_W_FR_PRODUCT /* DiniWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		DINI_BF_LIVE_ACT /* PrayerLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = DINI_FR_LIVE_ACT /* PrayerLiveActivity.swift */; };
 		DINI_BF_ATTR_APP /* PrayerActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = DINI_FR_ATTR /* PrayerActivityAttributes.swift */; };
 		DINI_BF_ATTR_EXT /* PrayerActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = DINI_FR_ATTR /* PrayerActivityAttributes.swift */; };
@@ -45,6 +52,13 @@
 			remoteGlobalIDString = DINI_TARGET_WIDGET;
 			remoteInfo = DiniWidgetExtension;
 		};
+		DINI_W_PROXY /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DINI_W_TARGET;
+			remoteInfo = DiniWatch;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -69,12 +83,31 @@
 			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		DINI_W_PHASE_EMBED /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				DINI_W_BF_EMBED /* DiniWatch.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		DINI_FR_BRIDGE /* WidgetSnapshotBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshotBridge.swift; sourceTree = "<group>"; };
 		DINI_FR_LIVE_BRIDGE /* LiveActivityBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityBridge.swift; sourceTree = "<group>"; };
 		DINI_FR_WATCH_BRIDGE /* WatchBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchBridge.swift; sourceTree = "<group>"; };
+		DINI_W_FR_APP /* DiniWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiniWatchApp.swift; sourceTree = "<group>"; };
+		DINI_W_FR_MODEL /* WatchSchedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchSchedule.swift; sourceTree = "<group>"; };
+		DINI_W_FR_STORE /* ScheduleStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleStore.swift; sourceTree = "<group>"; };
+		DINI_W_FR_VIEW /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		DINI_W_FR_ASSETS /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		DINI_W_FR_PLIST /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		DINI_W_FR_PRIVACY /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		DINI_W_FR_PRODUCT /* DiniWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DiniWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DINI_FR_LIVE_ACT /* PrayerLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrayerLiveActivity.swift; sourceTree = "<group>"; };
 		DINI_FR_ATTR /* PrayerActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrayerActivityAttributes.swift; sourceTree = "<group>"; };
 		DINI_FR_APP /* DiniWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = DiniWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -104,6 +137,7 @@
 
 /* Begin PBXFrameworksBuildPhase section */
 		DINI_PHASE_FRAMEWORKS /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		DINI_W_PHASE_FRAMEWORKS /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 		97C146EB1CF9000F007C117D /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -116,7 +150,8 @@
 
 /* Begin PBXGroup section */
 		DINI_GROUP_WIDGET /* DiniWidget */ = {isa = PBXGroup; children = (DINI_FR_SWIFT /* DiniWidget.swift */, DINI_FR_LIVE_ACT /* PrayerLiveActivity.swift */, DINI_FR_ATTR /* PrayerActivityAttributes.swift */, DINI_FR_PLIST /* Info.plist */, DINI_FR_ENT /* DiniWidget.entitlements */, DINI_FR_PRIVACY_WIDGET /* PrivacyInfo.xcprivacy */,); path = DiniWidget; sourceTree = "<group>"; };
-		DINI_GROUP_PRODUCTS /* Widget Products */ = {isa = PBXGroup; children = (DINI_FR_APP /* DiniWidgetExtension.appex */,); name = "Widget Products"; sourceTree = "<group>"; };
+		DINI_GROUP_PRODUCTS /* Widget Products */ = {isa = PBXGroup; children = (DINI_FR_APP /* DiniWidgetExtension.appex */, DINI_W_FR_PRODUCT /* DiniWatch.app */,); name = "Widget Products"; sourceTree = "<group>"; };
+		DINI_W_GROUP /* DiniWatch */ = {isa = PBXGroup; children = (DINI_W_FR_APP /* DiniWatchApp.swift */, DINI_W_FR_MODEL /* WatchSchedule.swift */, DINI_W_FR_STORE /* ScheduleStore.swift */, DINI_W_FR_VIEW /* ContentView.swift */, DINI_W_FR_ASSETS /* Assets.xcassets */, DINI_W_FR_PLIST /* Info.plist */, DINI_W_FR_PRIVACY /* PrivacyInfo.xcprivacy */,); path = DiniWatch; sourceTree = "<group>"; };
 		331C8082294A63A400263BE5 /* RunnerTests */ = {
 			isa = PBXGroup;
 			children = (
@@ -142,6 +177,7 @@
 			children = (
 				9740EEB11CF90186004384FC /* Flutter */,
 					DINI_GROUP_WIDGET /* DiniWidget */,
+					DINI_W_GROUP /* DiniWatch */,
 					DINI_GROUP_PRODUCTS /* Widget Products */,
 				97C146F01CF9000F007C117D /* Runner */,
 				97C146EF1CF9000F007C117D /* Products */,
@@ -181,6 +217,7 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		DINI_W_TARGET /* DiniWatch */ = {isa = PBXNativeTarget; buildConfigurationList = DINI_W_CONFIGLIST /* Build configuration list for DiniWatch */; buildPhases = (DINI_W_PHASE_SOURCES /* Sources */, DINI_W_PHASE_FRAMEWORKS /* Frameworks */, DINI_W_PHASE_RESOURCES /* Resources */); buildRules = (); dependencies = (); name = DiniWatch; productName = DiniWatch; productReference = DINI_W_FR_PRODUCT /* DiniWatch.app */; productType = "com.apple.product-type.application"; };
 		DINI_TARGET_WIDGET /* DiniWidgetExtension */ = {isa = PBXNativeTarget; buildConfigurationList = DINI_CONFIGLIST_WIDGET /* Build configuration list for DiniWidgetExtension */; buildPhases = (DINI_PHASE_SOURCES /* Sources */, DINI_PHASE_FRAMEWORKS /* Frameworks */, DINI_PHASE_RESOURCES /* Resources */); buildRules = (); dependencies = (); name = DiniWidgetExtension; productName = DiniWidgetExtension; productReference = DINI_FR_APP /* DiniWidgetExtension.appex */; productType = "com.apple.product-type.app-extension"; };
 		331C8080294A63A400263BE5 /* RunnerTests */ = {
 			isa = PBXNativeTarget;
@@ -209,12 +246,14 @@
 				97C146EC1CF9000F007C117D /* Resources */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
 				DINI_PHASE_EMBED_EXT /* Embed App Extensions */,
+				DINI_W_PHASE_EMBED /* Embed Watch Content */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				DINI_DEP_WIDGET /* PBXTargetDependency */,
+				DINI_W_DEP /* PBXTargetDependency */,
 			);
 			name = Runner;
 			packageProductDependencies = (
@@ -235,6 +274,9 @@
 				ORGANIZATIONNAME = "";
 				TargetAttributes = {
 					DINI_TARGET_WIDGET = {
+						CreatedOnToolsVersion = 15.0;
+					};
+					DINI_W_TARGET = {
 						CreatedOnToolsVersion = 15.0;
 					};
 					331C8080294A63A400263BE5 = {
@@ -266,12 +308,14 @@
 				97C146ED1CF9000F007C117D /* Runner */,
 				331C8080294A63A400263BE5 /* RunnerTests */,
 				DINI_TARGET_WIDGET /* DiniWidgetExtension */,
+				DINI_W_TARGET /* DiniWatch */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		DINI_PHASE_RESOURCES /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (DINI_BF_PRIVACY_WIDGET /* PrivacyInfo.xcprivacy in Resources */,); runOnlyForDeploymentPostprocessing = 0; };
+		DINI_W_PHASE_RESOURCES /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (DINI_W_BF_ASSETS /* Assets.xcassets in Resources */, DINI_W_BF_PRIVACY /* PrivacyInfo.xcprivacy in Resources */,); runOnlyForDeploymentPostprocessing = 0; };
 		331C807F294A63A400263BE5 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -328,6 +372,7 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		DINI_W_PHASE_SOURCES /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (DINI_W_BF_APP /* DiniWatchApp.swift in Sources */, DINI_W_BF_MODEL /* WatchSchedule.swift in Sources */, DINI_W_BF_STORE /* ScheduleStore.swift in Sources */, DINI_W_BF_VIEW /* ContentView.swift in Sources */,); runOnlyForDeploymentPostprocessing = 0; };
 		DINI_PHASE_SOURCES /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (DINI_BF_SWIFT /* DiniWidget.swift in Sources */, DINI_BF_LIVE_ACT /* PrayerLiveActivity.swift in Sources */, DINI_BF_ATTR_EXT /* PrayerActivityAttributes.swift in Sources */,); runOnlyForDeploymentPostprocessing = 0; };
 		331C807D294A63A400263BE5 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -364,6 +409,11 @@
 			target = DINI_TARGET_WIDGET /* DiniWidgetExtension */;
 			targetProxy = DINI_PROXY_WIDGET /* PBXContainerItemProxy */;
 		};
+		DINI_W_DEP /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DINI_W_TARGET /* DiniWatch */;
+			targetProxy = DINI_W_PROXY /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
@@ -390,6 +440,10 @@
 		DINI_RELEASE /* Release */ = {isa = XCBuildConfiguration; baseConfigurationReference = 7AFA3C8E1D35360C0083082E /* Release.xcconfig */; buildSettings = {APPLICATION_EXTENSION_API_ONLY = YES; CODE_SIGN_ENTITLEMENTS = DiniWidget/DiniWidget.entitlements; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)"; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = DiniWidget/Info.plist; IPHONEOS_DEPLOYMENT_TARGET = 17.0; LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", "@executable_path/../../Frameworks",); MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)"; PRODUCT_BUNDLE_IDENTIFIER = com.dini.diniFlutter.widget; PRODUCT_NAME = "$(TARGET_NAME)"; SKIP_INSTALL = YES; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = "1,2"; }; name = Release; };
 		DINI_PROFILE /* Profile */ = {isa = XCBuildConfiguration; baseConfigurationReference = 7AFA3C8E1D35360C0083082E /* Release.xcconfig */; buildSettings = {APPLICATION_EXTENSION_API_ONLY = YES; CODE_SIGN_ENTITLEMENTS = DiniWidget/DiniWidget.entitlements; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)"; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = DiniWidget/Info.plist; IPHONEOS_DEPLOYMENT_TARGET = 17.0; LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", "@executable_path/../../Frameworks",); MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)"; PRODUCT_BUNDLE_IDENTIFIER = com.dini.diniFlutter.widget; PRODUCT_NAME = "$(TARGET_NAME)"; SKIP_INSTALL = YES; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = "1,2"; }; name = Profile; };
 		DINI_CONFIGLIST_WIDGET /* Build configuration list for DiniWidgetExtension */ = {isa = XCConfigurationList; buildConfigurations = (DINI_DEBUG /* Debug */, DINI_RELEASE /* Release */, DINI_PROFILE /* Profile */,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		DINI_W_DEBUG /* Debug */ = {isa = XCBuildConfiguration; baseConfigurationReference = 9740EEB21CF90195004384FC /* Debug.xcconfig */; buildSettings = {ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)"; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = DiniWatch/Info.plist; LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks",); MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)"; PRODUCT_BUNDLE_IDENTIFIER = com.dini.diniFlutter.watchkitapp; PRODUCT_NAME = "$(TARGET_NAME)"; SDKROOT = watchos; SKIP_INSTALL = YES; SUPPORTED_PLATFORMS = "watchos watchsimulator"; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = 4; WATCHOS_DEPLOYMENT_TARGET = 10.0; }; name = Debug; };
+		DINI_W_RELEASE /* Release */ = {isa = XCBuildConfiguration; baseConfigurationReference = 7AFA3C8E1D35360C0083082E /* Release.xcconfig */; buildSettings = {ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)"; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = DiniWatch/Info.plist; LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks",); MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)"; PRODUCT_BUNDLE_IDENTIFIER = com.dini.diniFlutter.watchkitapp; PRODUCT_NAME = "$(TARGET_NAME)"; SDKROOT = watchos; SKIP_INSTALL = YES; SUPPORTED_PLATFORMS = "watchos watchsimulator"; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = 4; WATCHOS_DEPLOYMENT_TARGET = 10.0; }; name = Release; };
+		DINI_W_PROFILE /* Profile */ = {isa = XCBuildConfiguration; baseConfigurationReference = 7AFA3C8E1D35360C0083082E /* Release.xcconfig */; buildSettings = {ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)"; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = DiniWatch/Info.plist; LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks",); MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)"; PRODUCT_BUNDLE_IDENTIFIER = com.dini.diniFlutter.watchkitapp; PRODUCT_NAME = "$(TARGET_NAME)"; SDKROOT = watchos; SKIP_INSTALL = YES; SUPPORTED_PLATFORMS = "watchos watchsimulator"; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = 4; WATCHOS_DEPLOYMENT_TARGET = 10.0; }; name = Profile; };
+		DINI_W_CONFIGLIST /* Build configuration list for DiniWatch */ = {isa = XCConfigurationList; buildConfigurations = (DINI_W_DEBUG /* Debug */, DINI_W_RELEASE /* Release */, DINI_W_PROFILE /* Profile */,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
 		249021D3217E4FDB00AE95B9 /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {

@@ -64,7 +64,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 44 dosyada 531 test var; hepsi geçmelidir.
+- Depoda şu an 44 dosyada 540 test var; hepsi geçmelidir.
   (`test/promo_shots_test.dart` sayıma girmez: `promo` etiketi
   `dart_test.yaml` ile atlanır, çünkü görüntüyü diske yazdıktan sonra
   koşucu kapanmıyor ve `flutter test` asılı kalırdı. Görselleri üretmek
@@ -167,6 +167,15 @@ flutter test --reporter expanded
   `ISO8601DateFormatter()` saliseyi kabul etmez, nil döner — widget bütün
   vakitleri "—" gösterir, canlı etkinlik hiç açılmaz.
   `withFractionalSeconds` şart; iki testi var.
+- **Apple Watch uygulaması vakitleri HESAPLAMAZ.** Telefon aynı motorla
+  14 günlük çizelge çıkarır (`lib/features/watch/`) ve WatchConnectivity
+  uygulama bağlamıyla gönderir (`ios/Runner/WatchBridge.swift`); saat
+  (`ios/DiniWatch/`) onu saklayıp gösterir. Biçim: null yok, anlar Unix
+  saniyesi, saat vakitleri şehrin diliminde (`timezoneId`) yazar. Çizelge
+  widget'la aynı üç anda gönderilir. Saat hedefi Runner'a "Embed Watch
+  Content" ile gömülüdür; sürümü Flutter'ın sürümünü okur (App Store ikisinin
+  aynı olmasını ister). Komplikasyonlar YOK: App Group ister ve grup
+  ataması Apple portalında elle yapılmalı.
 - **UserDefaults'a asla NSNull yazma.** Dart'ın JSON'undaki `null`
   Swift'te `NSNull` olur; `UserDefaults.set(NSNull)` Objective-C istisnası
   fırlatır ve uygulamayı kapatır. Konum adı ayarı varsayılan kapalı olduğu
