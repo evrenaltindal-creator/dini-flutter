@@ -1,36 +1,24 @@
-Namaz Yolu — yeni ad, yeni simge ve ana ekran widget'ının onarımı.
-Bu build, bir önceki build'in açılışta çökmesini düzeltir.
+Namaz Yolu — Apple Watch, takvim yaprağı ve düzeltmeler.
 Lansman döneminde tam sürüm: her şey açık, satın alma yok.
 
-Önce şunları deneyin:
+Yeni:
+- Apple Watch: eşleşmiş saatinize kendiliğinden kurulmalı (Watch
+  uygulamasında "Otomatik Uygulama Yükleme" açıksa). Telefonda Namaz Yolu'nu
+  bir kez açın; saatte sıradaki vakit, geri sayım ve günün vakitleri
+  görünmeli. Telefon uzaktayken de vakitler görünür.
+- Takvim yaprağı: Takvim → "Bugünün yaprağı" ya da bir gün seçip "Takvim
+  yaprağını aç". Hicri ve Rumi tarih, Hızır/Kasım günü, günün vakitleri ve
+  günün duası; yana kaydırarak ya da oklarla gün değiştirin.
+- Ana ekranda "Bugünün vakitleri"nde bir vakte dokunun: o namazın nasıl
+  kılındığı açılır.
 
-- Widget: uygulamayı bir kez açın, eski widget'ı silip yeniden ekleyin.
-  Sıradaki namaz, saati ve günün vakitleri görünmeli; yazılar aydınlık
-  kipte de okunmalı. (Önceki sürümde widget'a hiç veri gitmiyordu.)
-- Kilit ekranı: kilit ekranı widget'ları (yuvarlak, dikdörtgen, satır).
-  Vakitten yaklaşık bir saat önce kilit ekranında geri sayım açılmalı ve
-  uygulamayı her açtığınızda ikincisi açılmamalı. Bu özellik ilk kez
-  derleniyor.
-- İlk açılış: Ayarlar'dan "ilk açılışı tekrar göster" ile dil, konum,
-  bildirim izni ve pil adımlarını gezin.
-- Konum: Ayarlar → Konum'dan otomatik ya da listeden şehir seçin; vakitler
-  ve saat dilimi o şehre göre değişmeli.
-- İmsakiye ve takvim: aydınlık ve koyu kipte yazılar okunmalı.
-- Namaz takibi: seri, 17 haftalık ısı haritası, "bugün kılmıyorum" (muaf
-  gün) ve kaza sayacı.
-- Ramazan araçları: oruç takibi ve teravih sayacı (Ramazan dışında
-  açıklama gösterir). Mahya yalnızca Ramazan gecelerinde yanar.
-- Her sayfanın arkasında cami sahnesi görünmeli.
-- Yeni simge: ana ekranda ve ayarlarda.
-
-Apple Watch (ilk kez):
-- Eşleşmiş bir saatiniz varsa saat uygulaması kendiliğinden kurulmalı
-  (Watch uygulamasında "Otomatik Uygulama Yükleme" açıksa). Telefonda Namaz
-  Yolu'nu bir kez açın; saatte sıradaki vakit, geri sayım ve günün vakitleri
-  görünmeli. Saatler telefondakiyle aynı olmalı.
-- Telefonu uzaklaştırıp saati açın: vakitler yine görünmeli.
+Düzeltmeler — lütfen deneyin:
+- Bütün sayfalar okunur olmalı (Ayarlar, Konum, Teravih, Oruç ...).
+  Uygulama artık tek bir koyu tasarım kullanıyor.
+- Günün duasında "Paylaş" paylaşım penceresini açmalı.
+- Bildirim sesi: "Telefonun varsayılan sesi" seçeneği.
+- Widget ve kilit ekranı geri sayımı (önceki build'lerden).
 
 Bilinen eksikler:
-
-- Kuran sekmesi "yakında" ekranı gösteriyor.
-- Saat kadranı komplikasyonları henüz yok.
+- Ezan bildirim sesi hazır ama ezan kaydı henüz eklenmedi.
+- Saat kadranı komplikasyonları ve Kuran sekmesi henüz yok.
