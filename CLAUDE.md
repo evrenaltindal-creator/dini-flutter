@@ -64,7 +64,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 43 dosyada 512 test var; hepsi geçmelidir.
+- Depoda şu an 43 dosyada 516 test var; hepsi geçmelidir.
   (`test/promo_shots_test.dart` sayıma girmez: `promo` etiketi
   `dart_test.yaml` ile atlanır, çünkü görüntüyü diske yazdıktan sonra
   koşucu kapanmıyor ve `flutter test` asılı kalırdı. Görselleri üretmek
@@ -167,6 +167,12 @@ flutter test --reporter expanded
   `ISO8601DateFormatter()` saliseyi kabul etmez, nil döner — widget bütün
   vakitleri "—" gösterir, canlı etkinlik hiç açılmaz.
   `withFractionalSeconds` şart; iki testi var.
+- **UserDefaults'a asla NSNull yazma.** Dart'ın JSON'undaki `null`
+  Swift'te `NSNull` olur; `UserDefaults.set(NSNull)` Objective-C istisnası
+  fırlatır ve uygulamayı kapatır. Konum adı ayarı varsayılan kapalı olduğu
+  için TestFlight 1.0.0 (10) HER AÇILIŞTA çöktü. Köprü null'u anahtarı
+  silerek karşılar; iki testi var. Native kanal yanıtları (`result`) ana
+  iş parçacığından verilir.
 - **Widget'ın yazı renkleri açıkça verilir.** Zemini her görünümde koyudur;
   `.secondary` ya da varsayılan renk sistemin görünümünü izlediği için
   telefon aydınlık kipteyken widget okunmuyordu.

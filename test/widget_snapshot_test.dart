@@ -9,6 +9,7 @@ import 'package:dini_flutter/features/widgets/data/widget_preferences_repository
 import 'package:dini_flutter/features/widgets/data/widget_snapshot_builder.dart';
 import 'package:dini_flutter/features/widgets/domain/widget_snapshot.dart';
 import 'package:dini_flutter/shared/models/domain.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
 
@@ -194,6 +195,37 @@ void main() {
     });
   });
 
+  group('kanal hatası', () {
+    testWidgets('native hata uygulamaya sızmaz', (tester) async {
+      // Köprü hata dönerse (bozuk anlık görüntü, eski sürüm) ayar kaydı ve
+      // açılış durmamalı; widget ikincil bir özellik.
+      const channel = MethodChannel('dini/widget_snapshot');
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        channel,
+        (call) async => throw PlatformException(code: 'INVALID_SNAPSHOT'),
+      );
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          channel,
+          null,
+        ),
+      );
+
+      const service = WidgetSnapshotService();
+      final snapshot = buildWidgetSnapshot(
+        settings: const PrayerSettings(),
+        now: DateTime.utc(2026, 9, 21, 3),
+        languageCode: 'tr',
+      );
+      await expectLater(
+        service.update(snapshot, showLocationName: false),
+        completes,
+      );
+      await expectLater(service.refresh(), completes);
+      await expectLater(service.clearSnapshot(), completes);
+    });
+  });
+
   group('native taraf', () {
     late String widget;
 
@@ -259,6 +291,52 @@ void main() {
               'koyu zeminde okunmaz:\n${line.trim()}',
         );
       }
+    });
+
+    test('köprü null değeri UserDefaults\'a yazmaz', () {
+      // Konum adı ayarı varsayılan olarak kapalı; anlık görüntü her
+      // açılışta "locationName": null taşıyor. JSON'daki null Swift'te
+      // NSNull olur ve UserDefaults onu kabul etmez: "Attempt to insert
+      // non-property list object" istisnası uygulamayı AÇILIŞTA çökertti
+      // (TestFlight 1.0.0 (10)).
+      final snapshot = buildWidgetSnapshot(
+        settings: const PrayerSettings(),
+        now: DateTime.utc(2026, 9, 21, 3),
+        languageCode: 'tr',
+      ).toJson(showLocationName: false);
+      expect(
+        snapshot.values.any((value) => value == null),
+        isTrue,
+        reason:
+            'Anlık görüntü artık null taşımıyorsa bu test yeniden '
+            'düşünülmeli.',
+      );
+
+      final bridge = File('ios/Runner/WidgetSnapshotBridge.swift')
+          .readAsStringSync();
+      expect(
+        bridge,
+        contains('is NSNull'),
+        reason:
+            'Köprü NSNull değerini ayıklamıyor; UserDefaults istisna '
+            'fırlatır ve uygulama açılışta çöker.',
+      );
+      expect(bridge, contains('removeObject(forKey:'));
+    });
+
+    test('yenileme çağrısı argümansız da kabul edilir', () {
+      // Dart `refreshWidgets` ve `clearSnapshot`'ı argümansız çağırıyor;
+      // köprü her çağrıda argüman isterse bu ikisi hep hata döner.
+      final bridge = File('ios/Runner/WidgetSnapshotBridge.swift')
+          .readAsStringSync();
+      final guardAt = bridge.indexOf('call.arguments as? [String: Any]');
+      final updateAt = bridge.indexOf('case "updateSnapshot"');
+      expect(guardAt, isNot(-1));
+      expect(
+        guardAt,
+        greaterThan(updateAt),
+        reason: 'Argüman denetimi bütün çağrıların önünde duruyor.',
+      );
     });
 
     test('kilit ekranı boyutları destekleniyor', () {

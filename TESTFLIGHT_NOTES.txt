@@ -1,4 +1,5 @@
 Namaz Yolu — yeni ad, yeni simge ve ana ekran widget'ının onarımı.
+Bu build, bir önceki build'in açılışta çökmesini düzeltir.
 Lansman döneminde tam sürüm: her şey açık, satın alma yok.
 
 Önce şunları deneyin:

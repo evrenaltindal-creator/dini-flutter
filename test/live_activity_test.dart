@@ -351,6 +351,27 @@ void main() {
       expect(view, contains('min(now, prayerTime)...prayerTime'));
     });
 
+    test('köprü Flutter\'a ana iş parçacığından yanıt verir', () {
+      // `Task {}` içindeki `result(nil)` arka plan iş parçacığında
+      // çalışabilir; Flutter kanal yanıtlarının platform iş parçacığından
+      // gelmesini ister, aksi hâlde veri kaybı ya da çökme olabilir.
+      final bridge = File('ios/Runner/LiveActivityBridge.swift')
+          .readAsStringSync();
+      // Eski biçim: `Task { await apply(state); result(nil) }`.
+      expect(
+        RegExp(r'await \w+\([^)]*\); result\(').hasMatch(bridge),
+        isFalse,
+        reason: 'Kanal yanıtı Task içinde ana iş parçacığı dışında veriliyor.',
+      );
+      expect(
+        'MainActor.run { result(nil) }'.allMatches(bridge).length,
+        2,
+        reason:
+            'start/update ve end yanıtlarının ikisi de ana iş '
+            'parçacığından verilmeli.',
+      );
+    });
+
     test('kanal adı iki tarafta aynı', () {
       // Ad ayrılırsa çağrılar sessizce boşa gider.
       final bridge = File('ios/Runner/LiveActivityBridge.swift')

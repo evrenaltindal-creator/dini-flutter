@@ -52,10 +52,18 @@ final class LiveActivityBridge {
           result(FlutterError(code: "INVALID_STATE", message: "State JSON is invalid", details: nil))
           return
         }
-        Task { await apply(state); result(nil) }
+        // Yanıt ana iş parçacığından verilir: `Task` arka planda
+        // çalışabilir, Flutter kanal yanıtını platform iş parçacığında ister.
+        Task {
+          await apply(state)
+          await MainActor.run { result(nil) }
+        }
       case "end":
         if #available(iOS 16.2, *) {
-          Task { await endAll(); result(nil) }
+          Task {
+            await endAll()
+            await MainActor.run { result(nil) }
+          }
         } else {
           result(nil)
         }

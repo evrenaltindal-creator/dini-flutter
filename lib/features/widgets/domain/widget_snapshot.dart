@@ -61,6 +61,9 @@ class WidgetSnapshotService {
       });
     } on MissingPluginException {
       // Native widgets are unavailable in the Linux/test host.
+    } on PlatformException {
+      // Widget ikincil bir özellik: native tarafın hatası ayar kaydını ya da
+      // açılışı durdurmamalı.
     }
   }
 
@@ -69,6 +72,9 @@ class WidgetSnapshotService {
       await _channel.invokeMethod('clearSnapshot');
     } on MissingPluginException {
       // Native widgets are unavailable in the Linux/test host.
+    } on PlatformException {
+      // Widget ikincil bir özellik: native tarafın hatası ayar kaydını ya da
+      // açılışı durdurmamalı.
     }
   }
 
@@ -77,6 +83,9 @@ class WidgetSnapshotService {
       await _channel.invokeMethod('refreshWidgets');
     } on MissingPluginException {
       // Native widgets are unavailable in the Linux/test host.
+    } on PlatformException {
+      // Widget ikincil bir özellik: native tarafın hatası ayar kaydını ya da
+      // açılışı durdurmamalı.
     }
   }
 }
