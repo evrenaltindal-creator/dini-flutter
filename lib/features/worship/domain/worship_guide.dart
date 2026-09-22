@@ -6,7 +6,12 @@ class PrayerPart {
   final PrayerPartKind kind;
   final int rakats;
 
-  const PrayerPart(this.kind, this.rakats);
+  /// Gayr-i müekked (kuvvetli olmayan) sünnet mi? İkindinin ve yatsının ilk
+  /// sünneti böyledir: ilk oturuşta Ettehiyyâtü'nün ardından salavatlar da
+  /// okunur ve üçüncü rekât Sübhâneke ile başlar (Diyanet, Namaz İlmihali).
+  final bool nonConfirmed;
+
+  const PrayerPart(this.kind, this.rakats, {this.nonConfirmed = false});
 }
 
 class DailyPrayerGuide {
@@ -29,7 +34,7 @@ const dailyPrayerGuides = <DailyPrayerGuide>[
     PrayerPart(PrayerPartKind.finalSunnah, 2),
   ]),
   DailyPrayerGuide(Prayer.asr, [
-    PrayerPart(PrayerPartKind.firstSunnah, 4),
+    PrayerPart(PrayerPartKind.firstSunnah, 4, nonConfirmed: true),
     PrayerPart(PrayerPartKind.fard, 4),
   ]),
   DailyPrayerGuide(Prayer.maghrib, [
@@ -37,7 +42,7 @@ const dailyPrayerGuides = <DailyPrayerGuide>[
     PrayerPart(PrayerPartKind.finalSunnah, 2),
   ]),
   DailyPrayerGuide(Prayer.isha, [
-    PrayerPart(PrayerPartKind.firstSunnah, 4),
+    PrayerPart(PrayerPartKind.firstSunnah, 4, nonConfirmed: true),
     PrayerPart(PrayerPartKind.fard, 4),
     PrayerPart(PrayerPartKind.finalSunnah, 2),
     PrayerPart(PrayerPartKind.witr, 3),

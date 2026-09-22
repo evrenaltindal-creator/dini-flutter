@@ -39,6 +39,7 @@ import '../features/quran/presentation/quran_coming_soon_page.dart';
 import '../features/info/diyanet_flow.dart';
 import '../features/audio/presentation/opening_takbir.dart';
 import '../features/calendar/presentation/daily_leaf_page.dart';
+import '../features/worship/presentation/guided_prayer_page.dart';
 import '../features/worship/presentation/prayer_guide_view.dart';
 import '../features/worship/presentation/worship_hub_page.dart';
 import '../features/onboarding/data/onboarding_repository.dart';
@@ -200,6 +201,28 @@ GoRouter createRouter({String initialLocation = '/'}) => GoRouter(
           initialDate: DailyLeafPage.parse(state.pathParameters['date']),
         ),
       ),
+    ),
+    // Namaz hocası: namazı adım adım kıldırır (?part= yalnız o bölüm).
+    GoRoute(
+      path: '/guide/prayer/:prayer/hoca',
+      builder: (_, state) {
+        final guide = PrayerGuideDetailPage.guideFor(
+          state.pathParameters['prayer'],
+        );
+        final part = int.tryParse(state.uri.queryParameters['part'] ?? '');
+        return MosqueBackdrop(
+          child: guide == null
+              ? const WorshipHubPage(initialIndex: 1)
+              : GuidedPrayerPage(
+                  guide: guide,
+                  // Olmayan bölüm numarası bütün namaza düşer.
+                  partIndex:
+                      part != null && part >= 0 && part < guide.parts.length
+                      ? part
+                      : null,
+                ),
+        );
+      },
     ),
     // Ana ekranda bir vakte dokununca o namazın kılınışı açılır.
     GoRoute(

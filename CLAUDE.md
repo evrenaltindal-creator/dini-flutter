@@ -22,7 +22,7 @@ Flutter + Riverpod + go_router. **Tamamen cihaz içi (offline-first) çalışır
 3. **Üç dil zorunlu.** Kullanıcıya görünen her metin
    `lib/core/localization/app_localizations.dart` içindeki `_strings` haritasına
    **`tr`, `en` ve `ar` için birlikte** eklenir. Şu an üç dilde de tam olarak
-   409 anahtar var; `localization_test.dart` bu pariteyi zorunlu kılar.
+   497 anahtar var; `localization_test.dart` bu pariteyi zorunlu kılar.
    Widget'ta düz string yazma; `context.l10n.text('key')` kullan.
 4. **RTL bozulmaz.** Arapça yön desteği `MaterialApp.supportedLocales` içindeki
    `Locale('ar')` + `GlobalWidgetsLocalizations.delegate` üzerinden otomatik gelir.
@@ -64,7 +64,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 49 dosyada 596 test var; hepsi geçmelidir.
+- Depoda şu an 51 dosyada 633 test var; hepsi geçmelidir.
   (`test/promo_shots_test.dart` sayıma girmez: `promo` etiketi
   `dart_test.yaml` ile atlanır, çünkü görüntüyü diske yazdıktan sonra
   koşucu kapanmıyor ve `flutter test` asılı kalırdı. Görselleri üretmek
@@ -228,6 +228,22 @@ flutter test --reporter expanded
   yaprağı"). Doğrulanamayan içerik ("tarihte bugün") yok. Kâğıt krem olduğu
   için yazı renkleri açıkça verilir: uygulama koyu temada, kartın varsayılan
   yazısı açık renktir.
+- **Namaz hocası** (`/guide/prayer/:vakit/hoca`, `?part=` yalnız o bölüm;
+  `features/worship/`). Adımlar `guidedPrayerSteps` ile üretilir ve
+  Diyanet'in Hanefî anlatımını izler: Sübhâneke/Eûzü yalnız 1. rekâtta;
+  farzın 3-4. rekâtında sûre YOK; ilk oturuşta yalnız Ettehiyyâtü, ama
+  gayr-i müekked sünnette (ikindi/yatsı ilk sünneti, `nonConfirmed`)
+  salavatlar da okunur ve 3. rekât Sübhâneke ile başlar; vitirin 3.
+  rekâtında kunut tekbiri ve kunut; sûreler Mushaf sırasıyla (Kevser,
+  İhlâs, Felak, Nâs). `guided_prayer_test.dart` her kuralı bekçiler; bir
+  kuralı değiştirmeden önce kaynağını göster. Figür (`prayer_figure.dart`)
+  eklem açılarıyla çizilir, uzuv boyları sabittir. Sesli okuma telefonun
+  yapay sesidir (`flutter_tts`, internet yok) ve ekranda "tecvidli değildir"
+  denir; lisanslı insan kaydı gelirse `PrayerVoice`'un başka bir uygulaması
+  yazılır. Arapça ses yoksa söylenir, adımlar süreyle ilerler. Sayfa açıkken
+  ekran kararmaz (`wakelock_plus`, win32 çakışması yüzünden <1.6.1).
+  ConsumerState'in `dispose`'unda `ref` kullanılamaz: ses ve ekran nesneleri
+  `initState`'te alınır.
 - **Ezan sesi: altyapı hazır, kayıt YOK.** Telifi netleşmemiş kayıt
   uygulamaya alınmaz; ezanın sözleri kimsenin değildir ama her KAYDIN
   (müezzinin icrası, kaydı yapanın hakkı) sahibi vardır ve "5 saniye serbest"

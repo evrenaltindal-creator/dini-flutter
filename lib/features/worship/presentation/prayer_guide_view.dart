@@ -6,6 +6,7 @@ import '../../../shared/models/domain.dart';
 import '../../home/presentation/mosque_backdrop.dart';
 import '../domain/prayer_flow.dart';
 import '../domain/worship_guide.dart';
+import 'guided_prayer_page.dart';
 
 class PrayerGuideView extends StatelessWidget {
   const PrayerGuideView({super.key});
@@ -105,6 +106,17 @@ class PrayerGuideDetailPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
+          // Namaz hocası: bütün bölümleri sırayla adım adım kıldırır.
+          FilledButton.icon(
+            onPressed: () =>
+                context.push(GuidedPrayerPage.routeFor(guide.prayer)),
+            icon: const Icon(Icons.play_circle_outline),
+            label: Text(l10n.text('hoca.start')),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(52),
+            ),
+          ),
+          const SizedBox(height: 16),
           Text(
             l10n.text('guide.orderTitle'),
             style: Theme.of(context).textTheme.titleLarge,
@@ -117,6 +129,15 @@ class PrayerGuideDetailPage extends StatelessWidget {
                 title: Text(_partLabel(context, entry.$2.kind)),
                 subtitle: Text(
                   l10n.text('guide.rakatCount', {'count': entry.$2.rakats}),
+                ),
+                trailing: IconButton(
+                  tooltip: l10n.text('hoca.startPart', {
+                    'part': _partLabel(context, entry.$2.kind),
+                  }),
+                  icon: const Icon(Icons.play_arrow_rounded),
+                  onPressed: () => context.push(
+                    GuidedPrayerPage.routeFor(guide.prayer, part: entry.$1),
+                  ),
                 ),
               ),
             ),
@@ -275,49 +296,60 @@ class _RecitationSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
     return Column(
       children: [
-        for (final recitation in recitationLibrary.values)
-          if (recitation.isComplete)
-            Card(
-              child: Padding(
-                padding: const EdgeInsetsDirectional.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.text(recitation.nameKey),
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      recitation.arabic,
-                      textDirection: TextDirection.rtl,
-                      style: const TextStyle(fontSize: 22, height: 1.9),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '${l10n.text('guide.transliteration')}: '
-                      '${recitation.transliteration}',
-                      style: const TextStyle(height: 1.45),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      '${l10n.text('guide.meaning')}: '
-                      '${l10n.text(recitation.meaningKey)}',
-                      style: const TextStyle(height: 1.45),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      l10n.text(recitation.sourceKey),
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-              ),
-            ),
+        for (final id in guideRecitationIds)
+          if (recitationLibrary[id]!.isComplete)
+            _RecitationCard(recitation: recitationLibrary[id]!),
       ],
+    );
+  }
+}
+
+class _RecitationCard extends StatelessWidget {
+  final Recitation recitation;
+
+  const _RecitationCard({required this.recitation});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsetsDirectional.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.text(recitation.nameKey),
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              recitation.arabic,
+              textDirection: TextDirection.rtl,
+              style: const TextStyle(fontSize: 22, height: 1.9),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '${l10n.text('guide.transliteration')}: '
+              '${recitation.transliteration}',
+              style: const TextStyle(height: 1.45),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              '${l10n.text('guide.meaning')}: '
+              '${l10n.text(recitation.meaningKey)}',
+              style: const TextStyle(height: 1.45),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.text(recitation.sourceKey),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

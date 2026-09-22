@@ -50,6 +50,12 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  # Namaz hocasının sesli okuması: telefonun kendi konuşma motoru (iOS
+  # AVSpeechSynthesizer, Android TextToSpeech). İnternete çıkmaz.
+  flutter_tts: ^4.2.5
+  # Namaz hocası sürerken ekran kararmasın. 1.6.1 ve sonrası win32 6 istiyor,
+  # share_plus 10 ise win32 5'te; share_plus yükseltilince bu sınır kalkar.
+  wakelock_plus: ">=1.5.2 <1.6.1"
 
 dev_dependencies:
   flutter_test:

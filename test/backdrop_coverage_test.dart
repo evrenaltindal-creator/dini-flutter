@@ -48,6 +48,8 @@ const routes = [
   '/notifications',
   '/guide/prayer/dhuhr',
   '/leaf/2026-09-22',
+  '/guide/prayer/fajr/hoca',
+  '/guide/prayer/isha/hoca?part=3',
 ];
 
 Widget _app(String location) => ProviderScope(

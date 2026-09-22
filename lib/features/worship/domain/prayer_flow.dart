@@ -59,7 +59,39 @@ enum RecitationId {
   rabbenaAtina,
   rabbenagfirli,
   kunut,
+
+  // Namaz hocasının adım adım okuttuğu kısa metinler.
+  tekbir,
+  euzuBesmele,
+  besmele,
+  rukuTesbih,
+  semiallahu,
+  rabbenaLekelHamd,
+  secdeTesbih,
+  selam,
+
+  // Zamm-ı sûre: Fâtiha'dan sonra okunan kısa sûreler. Rekâtlarda Mushaf
+  // sırasıyla (Kevser, İhlâs, Felak, Nâs) okunur; ters sırayla okumak
+  // mekruhtur.
+  kevser,
+  ihlas,
+  felak,
+  nas,
 }
+
+/// Namaz rehberi sayfasında "Okunacak metinler" başlığı altında gösterilen
+/// uzun metinler. Tekbir ve tesbih gibi kısa metinler yalnızca namaz
+/// hocasında, yerinde gösterilir.
+const guideRecitationIds = [
+  RecitationId.subhaneke,
+  RecitationId.fatiha,
+  RecitationId.ettehiyyatu,
+  RecitationId.allahummeSalli,
+  RecitationId.allahummeBarik,
+  RecitationId.rabbenaAtina,
+  RecitationId.rabbenagfirli,
+  RecitationId.kunut,
+];
 
 /// Bir rekâtın akışı. [movementKeys], zaten üç dilde hazır olan
 /// `guide.prayerStepN` yerelleştirme anahtarlarını taşır; bu sınıf yeni bir
@@ -229,5 +261,120 @@ const recitationLibrary = <RecitationId, Recitation>{
         'bi’l-küffâri mülhık.',
     meaningKey: 'recitation.kunut.meaning',
     sourceKey: 'recitation.source.ilmihal',
+  ),
+  RecitationId.tekbir: Recitation(
+    nameKey: 'recitation.tekbir.name',
+    arabic: 'اللَّهُ أَكْبَرُ',
+    transliteration: 'Allâhü ekber.',
+    meaningKey: 'recitation.tekbir.meaning',
+    sourceKey: 'recitation.source.ilmihal',
+  ),
+  RecitationId.euzuBesmele: Recitation(
+    nameKey: 'recitation.euzuBesmele.name',
+    arabic:
+        'أَعُوذُ بِاللَّهِ مِنَ الشَّيْطَانِ الرَّجِيمِ\n'
+        'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
+    transliteration:
+        'Eûzü billâhi mine’ş-şeytâni’r-racîm. Bismillâhirrahmânirrahîm.',
+    meaningKey: 'recitation.euzuBesmele.meaning',
+    sourceKey: 'recitation.source.ilmihal',
+  ),
+  RecitationId.besmele: Recitation(
+    nameKey: 'recitation.besmele.name',
+    arabic: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
+    transliteration: 'Bismillâhirrahmânirrahîm.',
+    meaningKey: 'recitation.besmele.meaning',
+    sourceKey: 'recitation.source.ilmihal',
+  ),
+  RecitationId.rukuTesbih: Recitation(
+    nameKey: 'recitation.rukuTesbih.name',
+    arabic: 'سُبْحَانَ رَبِّيَ الْعَظِيمِ',
+    transliteration: 'Sübhâne rabbiye’l-azîm.',
+    meaningKey: 'recitation.rukuTesbih.meaning',
+    sourceKey: 'recitation.source.ilmihal',
+  ),
+  RecitationId.semiallahu: Recitation(
+    nameKey: 'recitation.semiallahu.name',
+    arabic: 'سَمِعَ اللَّهُ لِمَنْ حَمِدَهُ',
+    transliteration: 'Semiallâhü limen hamideh.',
+    meaningKey: 'recitation.semiallahu.meaning',
+    sourceKey: 'recitation.source.ilmihal',
+  ),
+  RecitationId.rabbenaLekelHamd: Recitation(
+    nameKey: 'recitation.rabbenaLekelHamd.name',
+    arabic: 'رَبَّنَا لَكَ الْحَمْدُ',
+    transliteration: 'Rabbenâ leke’l-hamd.',
+    meaningKey: 'recitation.rabbenaLekelHamd.meaning',
+    sourceKey: 'recitation.source.ilmihal',
+  ),
+  RecitationId.secdeTesbih: Recitation(
+    nameKey: 'recitation.secdeTesbih.name',
+    arabic: 'سُبْحَانَ رَبِّيَ الْأَعْلَى',
+    transliteration: 'Sübhâne rabbiye’l-a’lâ.',
+    meaningKey: 'recitation.secdeTesbih.meaning',
+    sourceKey: 'recitation.source.ilmihal',
+  ),
+  RecitationId.selam: Recitation(
+    nameKey: 'recitation.selam.name',
+    arabic: 'السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّهِ',
+    transliteration: 'Esselâmü aleyküm ve rahmetullâh.',
+    meaningKey: 'recitation.selam.meaning',
+    sourceKey: 'recitation.source.ilmihal',
+  ),
+  RecitationId.kevser: Recitation(
+    nameKey: 'recitation.kevser.name',
+    arabic:
+        'إِنَّا أَعْطَيْنَاكَ الْكَوْثَرَ\n'
+        'فَصَلِّ لِرَبِّكَ وَانْحَرْ\n'
+        'إِنَّ شَانِئَكَ هُوَ الْأَبْتَرُ',
+    transliteration:
+        'İnnâ a’taynâke’l-kevser. Fe salli li-rabbike venhar. '
+        'İnne şânieke hüve’l-ebter.',
+    meaningKey: 'recitation.kevser.meaning',
+    sourceKey: 'recitation.source.kevser',
+  ),
+  RecitationId.ihlas: Recitation(
+    nameKey: 'recitation.ihlas.name',
+    arabic:
+        'قُلْ هُوَ اللَّهُ أَحَدٌ\n'
+        'اللَّهُ الصَّمَدُ\n'
+        'لَمْ يَلِدْ وَلَمْ يُولَدْ\n'
+        'وَلَمْ يَكُنْ لَهُ كُفُوًا أَحَدٌ',
+    transliteration:
+        'Kul hüvallâhü ehad. Allâhü’s-samed. Lem yelid ve lem yûled. '
+        'Ve lem yekün lehû küfüven ehad.',
+    meaningKey: 'recitation.ihlas.meaning',
+    sourceKey: 'recitation.source.ihlas',
+  ),
+  RecitationId.felak: Recitation(
+    nameKey: 'recitation.felak.name',
+    arabic:
+        'قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ\n'
+        'مِنْ شَرِّ مَا خَلَقَ\n'
+        'وَمِنْ شَرِّ غَاسِقٍ إِذَا وَقَبَ\n'
+        'وَمِنْ شَرِّ النَّفَّاثَاتِ فِي الْعُقَدِ\n'
+        'وَمِنْ شَرِّ حَاسِدٍ إِذَا حَسَدَ',
+    transliteration:
+        'Kul eûzü bi-rabbi’l-felak. Min şerri mâ halak. Ve min şerri '
+        'ğâsikın izâ vekab. Ve min şerri’n-neffâsâti fi’l-ukad. Ve min '
+        'şerri hâsidin izâ hased.',
+    meaningKey: 'recitation.felak.meaning',
+    sourceKey: 'recitation.source.felak',
+  ),
+  RecitationId.nas: Recitation(
+    nameKey: 'recitation.nas.name',
+    arabic:
+        'قُلْ أَعُوذُ بِرَبِّ النَّاسِ\n'
+        'مَلِكِ النَّاسِ\n'
+        'إِلَٰهِ النَّاسِ\n'
+        'مِنْ شَرِّ الْوَسْوَاسِ الْخَنَّاسِ\n'
+        'الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ\n'
+        'مِنَ الْجِنَّةِ وَالنَّاسِ',
+    transliteration:
+        'Kul eûzü bi-rabbi’n-nâs. Meliki’n-nâs. İlâhi’n-nâs. Min '
+        'şerri’l-vesvâsi’l-hannâs. Ellezî yüvesvisü fî sudûri’n-nâs. '
+        'Mine’l-cinneti ve’n-nâs.',
+    meaningKey: 'recitation.nas.meaning',
+    sourceKey: 'recitation.source.nas',
   ),
 };

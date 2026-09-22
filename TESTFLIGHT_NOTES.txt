@@ -2,6 +2,13 @@ Namaz Yolu — Apple Watch, takvim yaprağı ve düzeltmeler.
 Lansman döneminde tam sürüm: her şey açık, satın alma yok.
 
 Yeni:
+- Namaz hocası: Namaz rehberinde bir vakti açın, "Hocayla adım adım kıl".
+  Niyetten selâma kadar her adımda figür hareketi gösterir, altta o anda
+  okunacak dua Arapça ve okunuşuyla yazar (istenirse anlamı). "Başlat" ile
+  kendiliğinden ilerler; hız 0,5× ile 2× arası. Hoparlör düğmesiyle dualar
+  telefonun sesiyle okunur (yapay sestir, tecvidli değildir). Bölüm
+  yanındaki ▶ yalnız o bölümü (ör. farzı) kıldırır. Lütfen bir hocaya da
+  gösterin: sıra ve okunanlar doğru mu?
 - Apple Watch: eşleşmiş saatinize kendiliğinden kurulmalı (Watch
   uygulamasında "Otomatik Uygulama Yükleme" açıksa). Telefonda Namaz Yolu'nu
   bir kez açın; saatte sıradaki vakit, geri sayım ve günün vakitleri
