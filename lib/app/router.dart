@@ -32,6 +32,7 @@ import '../features/notifications/presentation/notification_settings_page.dart';
 import '../features/notifications/data/flutter_local_notification_service.dart';
 import '../features/widgets/data/widget_preferences_repository.dart';
 import '../features/widgets/data/widget_snapshot_builder.dart';
+import '../features/watch/data/watch_schedule_builder.dart';
 import '../features/widgets/domain/widget_snapshot.dart';
 import '../features/premium/presentation/premium_page.dart';
 import '../features/quran/presentation/quran_coming_soon_page.dart';
@@ -871,6 +872,12 @@ class SettingsPage extends ConsumerWidget {
                 // Yalnızca tazelemek yetmez: konum adının görünürlüğü
                 // anlık görüntünün içinde taşınır.
                 await pushWidgetSnapshot(
+                  storage: ref.read(localStorageProvider),
+                  settings: settings,
+                  now: DateTime.now(),
+                );
+                // Saat de konum adını aynı ayardan alır.
+                await pushWatchSchedule(
                   storage: ref.read(localStorageProvider),
                   settings: settings,
                   now: DateTime.now(),

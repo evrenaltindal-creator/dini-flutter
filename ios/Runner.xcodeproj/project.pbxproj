@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		DINI_BF_BRIDGE /* WidgetSnapshotBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = DINI_FR_BRIDGE /* WidgetSnapshotBridge.swift */; };
 		DINI_BF_LIVE_BRIDGE /* LiveActivityBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = DINI_FR_LIVE_BRIDGE /* LiveActivityBridge.swift */; };
+		DINI_BF_WATCH_BRIDGE /* WatchBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = DINI_FR_WATCH_BRIDGE /* WatchBridge.swift */; };
 		DINI_BF_LIVE_ACT /* PrayerLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = DINI_FR_LIVE_ACT /* PrayerLiveActivity.swift */; };
 		DINI_BF_ATTR_APP /* PrayerActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = DINI_FR_ATTR /* PrayerActivityAttributes.swift */; };
 		DINI_BF_ATTR_EXT /* PrayerActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = DINI_FR_ATTR /* PrayerActivityAttributes.swift */; };
@@ -73,6 +74,7 @@
 /* Begin PBXFileReference section */
 		DINI_FR_BRIDGE /* WidgetSnapshotBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshotBridge.swift; sourceTree = "<group>"; };
 		DINI_FR_LIVE_BRIDGE /* LiveActivityBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityBridge.swift; sourceTree = "<group>"; };
+		DINI_FR_WATCH_BRIDGE /* WatchBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchBridge.swift; sourceTree = "<group>"; };
 		DINI_FR_LIVE_ACT /* PrayerLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrayerLiveActivity.swift; sourceTree = "<group>"; };
 		DINI_FR_ATTR /* PrayerActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrayerActivityAttributes.swift; sourceTree = "<group>"; };
 		DINI_FR_APP /* DiniWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = DiniWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -169,6 +171,7 @@
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				DINI_FR_BRIDGE /* WidgetSnapshotBridge.swift */,
 				DINI_FR_LIVE_BRIDGE /* LiveActivityBridge.swift */,
+				DINI_FR_WATCH_BRIDGE /* WatchBridge.swift */,
 				7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 			);
@@ -341,6 +344,7 @@
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				DINI_BF_BRIDGE /* WidgetSnapshotBridge.swift in Sources */,
 				DINI_BF_LIVE_BRIDGE /* LiveActivityBridge.swift in Sources */,
+				DINI_BF_WATCH_BRIDGE /* WatchBridge.swift in Sources */,
 				DINI_BF_ATTR_APP /* PrayerActivityAttributes.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */,

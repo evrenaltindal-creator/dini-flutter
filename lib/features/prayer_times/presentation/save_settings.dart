@@ -6,6 +6,7 @@ import '../../../core/storage/storage_provider.dart';
 import '../../notifications/data/notification_scheduler.dart';
 import '../../widgets/data/live_activity_controller.dart';
 import '../../widgets/data/widget_snapshot_builder.dart';
+import '../../watch/data/watch_schedule_builder.dart';
 import '../domain/prayer_settings.dart';
 import 'settings_controller.dart';
 
@@ -46,6 +47,16 @@ Future<void> savePrayerSettings(WidgetRef ref, PrayerSettings value) async {
   // Kozmetiktir ve native köprüye bağlıdır; beklenmez.
   unawaited(
     pushWidgetSnapshot(
+      storage: ref.read(localStorageProvider),
+      settings: value,
+      now: DateTime.now(),
+    ),
+  );
+
+  // Saat vakitleri kendisi hesaplamaz; şehir ya da yöntem değişince yeni
+  // çizelge gönderilmezse eski vakitleri göstermeye devam eder.
+  unawaited(
+    pushWatchSchedule(
       storage: ref.read(localStorageProvider),
       settings: value,
       now: DateTime.now(),

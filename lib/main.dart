@@ -18,6 +18,7 @@ import 'features/notifications/data/notification_scheduler.dart';
 import 'features/prayer_times/data/prayer_settings_repository.dart';
 import 'features/widgets/data/live_activity_controller.dart';
 import 'features/widgets/data/widget_snapshot_builder.dart';
+import 'features/watch/data/watch_schedule_builder.dart';
 import 'features/prayer_times/presentation/settings_controller.dart';
 
 final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
@@ -68,6 +69,12 @@ Future<void> _rescheduleNotifications(LocalStorage storage) async {
       now: DateTime.now(),
     );
     await pushWidgetSnapshot(
+      storage: storage,
+      settings: settings,
+      now: DateTime.now(),
+    );
+    // Açılışta çizelge yenilenir: iki haftalık pencere her gün kayar.
+    await pushWatchSchedule(
       storage: storage,
       settings: settings,
       now: DateTime.now(),
