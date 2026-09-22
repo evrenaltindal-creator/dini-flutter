@@ -9,6 +9,7 @@ import '../../../shared/models/domain.dart';
 import '../data/notification_preferences_repository.dart';
 import '../data/flutter_local_notification_service.dart';
 import '../data/notification_scheduler.dart';
+import '../data/notification_sound_installer.dart';
 import '../domain/notification_system.dart';
 import '../../onboarding/data/system_settings.dart';
 
@@ -40,6 +41,10 @@ class _NotificationSettingsViewState
   /// Tam zamanlı alarm izni. Kapalıyken bildirimler birkaç dakika gecikir;
   /// kullanıcı bunu bilmeli ve açabilmeli.
   ExactAlarmPermission exactAlarms = ExactAlarmPermission.unknown;
+
+  /// Ezan kaydı pakette var mı? Yoksa seçenek hiç gösterilmez: seçilebilen
+  /// ama çalmayan bir ses kullanıcıyı yanıltır.
+  bool ezanAvailable = false;
   @override
   void initState() {
     super.initState();
@@ -54,10 +59,12 @@ class _NotificationSettingsViewState
   Future<void> _load() async {
     final value = await repository.load();
     final exact = await _readExactAlarmPermission();
+    final ezan = await EzanSound.isAvailable();
     if (!mounted) return;
     setState(() {
       preferences = value;
       exactAlarms = exact;
+      ezanAvailable = ezan;
     });
     // Daha önce kaydedilmiş tercihler hiçbir yerde yeniden planlanmıyordu.
     // Ekranı açmak, kayan sekiz günlük pencereyi de tazeler.
@@ -87,11 +94,21 @@ class _NotificationSettingsViewState
         DropdownButtonFormField<NotificationSound>(
           // Dar ekran ve büyük yazı ölçeğinde yatay taşmayı önler.
           isExpanded: true,
-          initialValue: value.sound,
+          initialValue: FlutterLocalNotificationService.effectiveSound(
+            value.sound,
+            ezanAvailable: ezanAvailable,
+          ),
           decoration: InputDecoration(
             labelText: context.l10n.text('notifications.sound'),
+            helperText: ezanAvailable
+                ? context.l10n.text('notifications.ezanHint')
+                : null,
+            helperMaxLines: 3,
           ),
           items: NotificationSound.values
+              .where(
+                (sound) => sound != NotificationSound.ezan || ezanAvailable,
+              )
               .map(
                 (sound) => DropdownMenuItem(
                   value: sound,
@@ -274,6 +291,7 @@ class _NotificationSettingsViewState
           'notifications.bundledSound',
         ),
         NotificationSound.silent => context.l10n.text('notifications.silent'),
+        NotificationSound.ezan => context.l10n.text('notifications.ezanSound'),
       };
   String _permissionLabel(
     BuildContext context,

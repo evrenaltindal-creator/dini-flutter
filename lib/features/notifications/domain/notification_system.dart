@@ -11,7 +11,23 @@ const notificationPrayers = [
   Prayer.isha,
 ];
 
-enum NotificationSound { defaultSound, bundled, silent }
+/// Bildirim sesi.
+///
+/// **Sıra kalıcıdır:** tercih sıra numarasıyla saklanır. Yeni ses her zaman
+/// sona eklenir; araya eklenirse kayıtlı tercihler bir kayar ve kullanıcının
+/// seçtiği ses sessizce değişir.
+enum NotificationSound {
+  /// Telefonun varsayılan bildirim sesi.
+  defaultSound,
+
+  /// Uygulamanın kendi tonu.
+  bundled,
+  silent,
+
+  /// Ezan kaydının ilk ~30 saniyesi. Yalnızca kayıt dosyası pakette varsa
+  /// sunulur (bkz. `EzanSound`); iOS bildirim sesini 30 saniyeyle sınırlar.
+  ezan,
+}
 
 /// Tam zamanlı alarm izninin durumu.
 ///

@@ -17,8 +17,14 @@ class NotificationPreferencesRepository {
         reminderMinutes: raw == null ? null : int.tryParse(raw),
       );
     }
-    final sound = NotificationSound
-        .values[int.tryParse(await storage.read('${_prefix}sound') ?? '') ?? 0];
+    // Aralık dışı bir sıra (eski ya da bozuk kayıt) çökertmez, varsayılana
+    // düşer.
+    final soundIndex =
+        int.tryParse(await storage.read('${_prefix}sound') ?? '') ?? 0;
+    final sound =
+        soundIndex >= 0 && soundIndex < NotificationSound.values.length
+        ? NotificationSound.values[soundIndex]
+        : NotificationSound.defaultSound;
     return NotificationPreferences(
       prayers: prayers,
       sound: sound,

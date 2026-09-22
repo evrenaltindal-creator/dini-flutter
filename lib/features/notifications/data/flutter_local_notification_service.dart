@@ -27,6 +27,9 @@ class FlutterLocalNotificationService implements LocalNotificationService {
   /// eder; yalnızca işletim sistemine bildirim kurulmaz.
   bool _available = false;
 
+  /// Ezan kaydı pakette var mı? [initialize] içinde okunur.
+  bool _ezanAvailable = false;
+
   /// Tam zamanlı alarm izninin son bilinen durumu.
   ExactAlarmPermission _exactAlarms = ExactAlarmPermission.unknown;
 
@@ -84,6 +87,15 @@ class FlutterLocalNotificationService implements LocalNotificationService {
       // Sesin kurulması bildirimlerin çalışmasının önkoşulu değildir; hata
       // durumunda sistem sesi kullanılır.
       await soundInstaller.install();
+      _ezanAvailable = await EzanSound.isAvailable(
+        loadAsset: soundInstaller.loadAsset,
+      );
+      if (_ezanAvailable) {
+        await NotificationSoundInstaller.ezan(
+          loadAsset: soundInstaller.loadAsset,
+          locateDirectory: soundInstaller.locateDirectory,
+        ).install();
+      }
       // Sesi değiştirilemeyen eski tek kanaldan yükseltilen cihazlarda o kanal
       // ayarlarda öylece durur. Kimliği artık kullanılmıyor, silinir.
       await plugin
@@ -160,6 +172,29 @@ class FlutterLocalNotificationService implements LocalNotificationService {
       importance: Importance.high,
       playSound: false,
     ),
+    NotificationSound.ezan => const AndroidNotificationChannel(
+      'dini_prayers_ezan',
+      'Namaz vakitleri (ezan)',
+      description: 'Cihaz üzerinde hesaplanan namaz bildirimleri',
+      importance: Importance.high,
+      sound: RawResourceAndroidNotificationSound(EzanSound.androidResourceName),
+    ),
+  };
+
+  /// Kayıt pakette yoksa ezan seçimi varsayılan sese düşer: olmayan bir
+  /// ham kaynağı gösteren kanal bildirimi SESSİZ çalardı.
+  static NotificationSound effectiveSound(
+    NotificationSound chosen, {
+    required bool ezanAvailable,
+  }) => chosen == NotificationSound.ezan && !ezanAvailable
+      ? NotificationSound.defaultSound
+      : chosen;
+
+  /// iOS'ta bildirimde adı geçen ses dosyası; sistem sesi için null.
+  static String? iosSoundFor(NotificationSound sound) => switch (sound) {
+    NotificationSound.bundled => NotificationSoundInstaller.soundFileName,
+    NotificationSound.ezan => EzanSound.fileName,
+    NotificationSound.defaultSound || NotificationSound.silent => null,
   };
 
   /// Eklentinin kip karşılığı. İzin yokken tam zamanlı alarm kurmaya
@@ -177,6 +212,7 @@ class FlutterLocalNotificationService implements LocalNotificationService {
     NotificationSound sound,
   ) async {
     if (!_available) return;
+    sound = effectiveSound(sound, ezanAvailable: _ezanAvailable);
     final channel = androidChannelFor(sound);
     await plugin
         .resolvePlatformSpecificImplementation<
@@ -197,9 +233,7 @@ class FlutterLocalNotificationService implements LocalNotificationService {
         presentAlert: true,
         presentBadge: true,
         presentSound: sound != NotificationSound.silent,
-        sound: sound == NotificationSound.bundled
-            ? NotificationSoundInstaller.soundFileName
-            : null,
+        sound: iosSoundFor(sound),
       ),
     );
     await plugin.zonedSchedule(

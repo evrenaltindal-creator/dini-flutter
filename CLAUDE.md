@@ -22,7 +22,7 @@ Flutter + Riverpod + go_router. **Tamamen cihaz içi (offline-first) çalışır
 3. **Üç dil zorunlu.** Kullanıcıya görünen her metin
    `lib/core/localization/app_localizations.dart` içindeki `_strings` haritasına
    **`tr`, `en` ve `ar` için birlikte** eklenir. Şu an üç dilde de tam olarak
-   364 anahtar var; `localization_test.dart` bu pariteyi zorunlu kılar.
+   366 anahtar var; `localization_test.dart` bu pariteyi zorunlu kılar.
    Widget'ta düz string yazma; `context.l10n.text('key')` kullan.
 4. **RTL bozulmaz.** Arapça yön desteği `MaterialApp.supportedLocales` içindeki
    `Locale('ar')` + `GlobalWidgetsLocalizations.delegate` üzerinden otomatik gelir.
@@ -64,7 +64,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 47 dosyada 567 test var; hepsi geçmelidir.
+- Depoda şu an 47 dosyada 573 test var; hepsi geçmelidir.
   (`test/promo_shots_test.dart` sayıma girmez: `promo` etiketi
   `dart_test.yaml` ile atlanır, çünkü görüntüyü diske yazdıktan sonra
   koşucu kapanmıyor ve `flutter test` asılı kalırdı. Görselleri üretmek
@@ -219,6 +219,14 @@ flutter test --reporter expanded
   manyetik kuzeye göre ölçer; `MagneticDeclinationService` farkı
   `GeomagneticField` üzerinden kapatır. iOS zaten `trueHeading` verir.
   Bu ayrımı kaldırma, ok birkaç derece kayar.
+- **Ezan sesi: altyapı hazır, kayıt YOK.** Telifi netleşmemiş kayıt
+  uygulamaya alınmaz; lisanslı bir kayıt `tool/prepare_ezan_sound.py` ile
+  (lisans vermeden çalışmaz) 29 saniyeye kırpılıp `assets/audio/ezan.wav` ve
+  `res/raw/ezan.wav` olarak yazılır, kaynağı `EZAN_SOURCE.txt`'ye düşer.
+  Kayıt yokken seçenek görünmez; seçilmişse telefonun sesine düşer (olmayan
+  ham kaynak bildirimi sessiz çalardı). iOS bildirim sesini 30 saniyeyle
+  sınırlar. `NotificationSound` sıra numarasıyla saklanır: yeni ses SONA
+  eklenir.
 - **Android bildirim kanalının sesi oluşturulduktan sonra değiştirilemez.**
   Bu yüzden her ses seçeneği kendi kanal kimliğini taşır; kimlikleri
   birleştirirsen kullanıcı sesi değiştirdiğinde hiçbir şey olmaz.
