@@ -46,6 +46,7 @@ const routes = [
   '/tasbih',
   '/tracker',
   '/notifications',
+  '/guide/prayer/dhuhr',
 ];
 
 Widget _app(String location) => ProviderScope(

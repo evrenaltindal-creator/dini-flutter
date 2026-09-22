@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../../shared/models/domain.dart';
+import '../../home/presentation/mosque_backdrop.dart';
 import '../domain/prayer_flow.dart';
 import '../domain/worship_guide.dart';
 
@@ -23,11 +26,8 @@ class PrayerGuideView extends StatelessWidget {
           (guide) => Card(
             child: InkWell(
               borderRadius: BorderRadius.circular(22),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => PrayerGuideDetailPage(guide: guide),
-                ),
-              ),
+              onTap: () =>
+                  context.push(PrayerGuideDetailPage.routeFor(guide.prayer)),
               child: Padding(
                 padding: const EdgeInsetsDirectional.fromSTEB(18, 16, 12, 16),
                 child: Row(
@@ -74,11 +74,25 @@ class PrayerGuideDetailPage extends StatelessWidget {
 
   const PrayerGuideDetailPage({super.key, required this.guide});
 
+  /// Vaktin rehber sayfasının yolu. Ana ekranda bir vakte dokununca bu
+  /// açılır; güneş doğuşunun rehberi yoktur, o bir namaz vakti değildir.
+  static String routeFor(Prayer prayer) => '/guide/prayer/${prayer.name}';
+
+  /// Yoldaki vakit adından rehber; bilinmeyen addan null.
+  static DailyPrayerGuide? guideFor(String? name) {
+    for (final guide in dailyPrayerGuides) {
+      if (guide.prayer.name == name) return guide;
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.prayer(guide.prayer.name))),
+    // BackdropScaffold: düz Scaffold temanın opak zeminini çizer ve arkadaki
+    // camiyi örterdi.
+    return BackdropScaffold(
+      title: l10n.prayer(guide.prayer.name),
       body: ListView(
         padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 32),
         children: [

@@ -38,6 +38,7 @@ import '../features/premium/presentation/premium_page.dart';
 import '../features/quran/presentation/quran_coming_soon_page.dart';
 import '../features/info/diyanet_flow.dart';
 import '../features/audio/presentation/opening_takbir.dart';
+import '../features/worship/presentation/prayer_guide_view.dart';
 import '../features/worship/presentation/worship_hub_page.dart';
 import '../features/onboarding/data/onboarding_repository.dart';
 import '../features/onboarding/presentation/onboarding_page.dart';
@@ -185,6 +186,22 @@ GoRouter createRouter({String initialLocation = '/'}) => GoRouter(
       path: '/tracker',
       builder: (_, _) =>
           const MosqueBackdrop(child: WorshipHubPage(initialIndex: 0)),
+    ),
+    // Ana ekranda bir vakte dokununca o namazın kılınışı açılır.
+    GoRoute(
+      path: '/guide/prayer/:prayer',
+      builder: (_, state) {
+        final guide = PrayerGuideDetailPage.guideFor(
+          state.pathParameters['prayer'],
+        );
+        // Bilinmeyen vakit adında yanlış bir namazın rehberini açmaktansa
+        // rehber listesine düşülür.
+        return MosqueBackdrop(
+          child: guide == null
+              ? const WorshipHubPage(initialIndex: 1)
+              : PrayerGuideDetailPage(guide: guide),
+        );
+      },
     ),
     GoRoute(
       path: '/notifications',
@@ -400,6 +417,12 @@ class HomePage extends ConsumerWidget {
                         icon: _prayerIcon(p),
                         label: label(p),
                         time: fmt(times.times[p]!),
+                        // Vakte dokununca o namazın nasıl kılındığı açılır.
+                        onTap: () =>
+                            context.push(PrayerGuideDetailPage.routeFor(p)),
+                        tapHint: l10n.text('home.howToPray', {
+                          'prayer': label(p),
+                        }),
                         badge: isCurrent
                             ? l10n.text('home.now')
                             : isNext
@@ -641,16 +664,42 @@ class _PrayerTimeRow extends StatelessWidget {
   final String? badge;
   final bool highlighted;
 
+  /// Dokununca açılacak rehber. Güneş doğuşunun rehberi yoktur; o satır
+  /// dokunulamaz kalır.
+  final VoidCallback? onTap;
+
+  /// Ekran okuyucunun ve uzun basışın söylediği: "Öğle namazı nasıl kılınır".
+  final String? tapHint;
+
   const _PrayerTimeRow({
     required this.icon,
     required this.label,
     required this.time,
     this.badge,
     this.highlighted = false,
+    this.onTap,
+    this.tapHint,
   });
 
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) {
+    final row = _row();
+    if (onTap == null) return row;
+    return Tooltip(
+      message: tapHint ?? label,
+      child: Semantics(
+        button: true,
+        hint: tapHint,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: onTap,
+          child: row,
+        ),
+      ),
+    );
+  }
+
+  Widget _row() => Container(
     margin: const EdgeInsets.symmetric(vertical: 2),
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
     decoration: BoxDecoration(
