@@ -254,7 +254,8 @@ kanıtlarıyla yazıldı.
   moddaki ses, widget (onarıldı, yeni build bekliyor), canlı etkinlik.
 - Mahyanın harfleri yalnızca testteki yazı tipiyle görüldü (her harf dolu
   kutu çizilir); okunaklılık cihazda kontrol edilmeli.
-- TestFlight'a build gönderilmedi.
+- TestFlight: 1.0.0 (10) yüklendi (koşu #10, `985a313`); canlı etkinlik ve
+  widget onarımı bu build'de ilk kez cihaza gidiyor. #9 derlenmemişti.
 - `MainActivity.kt` değişikliği derlenmedi (bkz. 1.5).
 - Canlı etkinliğin Swift tarafı derlenmedi ve Xcode hedeflerine eklenmedi
   (bkz. 2.1).
