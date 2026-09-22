@@ -38,6 +38,12 @@ final class LiveActivityBridge {
     channel.setMethodCallHandler { call, result in
       switch call.method {
       case "start", "update":
+        // Etkinlik türü iOS 16.2 öncesinde yok; çözümlemeden önce sınanır,
+        // yoksa uygulama hedefi (en düşük sürüm 15.0) derlenmez.
+        guard #available(iOS 16.2, *) else {
+          result(nil)
+          return
+        }
         guard
           let args = call.arguments as? [String: Any],
           let raw = args["state"] as? String,
@@ -46,11 +52,7 @@ final class LiveActivityBridge {
           result(FlutterError(code: "INVALID_STATE", message: "State JSON is invalid", details: nil))
           return
         }
-        if #available(iOS 16.2, *) {
-          Task { await apply(state); result(nil) }
-        } else {
-          result(nil)
-        }
+        Task { await apply(state); result(nil) }
       case "end":
         if #available(iOS 16.2, *) {
           Task { await endAll(); result(nil) }
@@ -63,6 +65,7 @@ final class LiveActivityBridge {
     }
   }
 
+  @available(iOS 16.2, *)
   private static func decode(_ raw: String) -> PrayerActivityAttributes.ContentState? {
     guard
       let data = raw.data(using: .utf8),
@@ -100,7 +103,10 @@ final class LiveActivityBridge {
   @available(iOS 16.2, *)
   private static func endAll() async {
     for activity in Activity<PrayerActivityAttributes>.activities {
-      await activity.end(nil, dismissalPolicy: .immediate)
+      await activity.end(
+        nil as ActivityContent<PrayerActivityAttributes.ContentState>?,
+        dismissalPolicy: .immediate
+      )
     }
   }
 }

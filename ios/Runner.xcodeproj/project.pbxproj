@@ -10,6 +10,8 @@
 		DINI_BF_BRIDGE /* WidgetSnapshotBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = DINI_FR_BRIDGE /* WidgetSnapshotBridge.swift */; };
 		DINI_BF_LIVE_BRIDGE /* LiveActivityBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = DINI_FR_LIVE_BRIDGE /* LiveActivityBridge.swift */; };
 		DINI_BF_LIVE_ACT /* PrayerLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = DINI_FR_LIVE_ACT /* PrayerLiveActivity.swift */; };
+		DINI_BF_ATTR_APP /* PrayerActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = DINI_FR_ATTR /* PrayerActivityAttributes.swift */; };
+		DINI_BF_ATTR_EXT /* PrayerActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = DINI_FR_ATTR /* PrayerActivityAttributes.swift */; };
 		DINI_BF_SWIFT /* DiniWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = DINI_FR_SWIFT /* DiniWidget.swift */; };
 		DINI_BF_EMBED /* DiniWidgetExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = DINI_FR_APP /* DiniWidgetExtension.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		DINI_BF_PRIVACY_MAIN /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = DINI_FR_PRIVACY_MAIN /* PrivacyInfo.xcprivacy */; };
@@ -72,6 +74,7 @@
 		DINI_FR_BRIDGE /* WidgetSnapshotBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshotBridge.swift; sourceTree = "<group>"; };
 		DINI_FR_LIVE_BRIDGE /* LiveActivityBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityBridge.swift; sourceTree = "<group>"; };
 		DINI_FR_LIVE_ACT /* PrayerLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrayerLiveActivity.swift; sourceTree = "<group>"; };
+		DINI_FR_ATTR /* PrayerActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrayerActivityAttributes.swift; sourceTree = "<group>"; };
 		DINI_FR_APP /* DiniWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = DiniWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		DINI_FR_SWIFT /* DiniWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiniWidget.swift; sourceTree = "<group>"; };
 		DINI_FR_PLIST /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -110,7 +113,7 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		DINI_GROUP_WIDGET /* DiniWidget */ = {isa = PBXGroup; children = (DINI_FR_SWIFT /* DiniWidget.swift */, DINI_FR_LIVE_ACT /* PrayerLiveActivity.swift */, DINI_FR_PLIST /* Info.plist */, DINI_FR_ENT /* DiniWidget.entitlements */, DINI_FR_PRIVACY_WIDGET /* PrivacyInfo.xcprivacy */,); path = DiniWidget; sourceTree = "<group>"; };
+		DINI_GROUP_WIDGET /* DiniWidget */ = {isa = PBXGroup; children = (DINI_FR_SWIFT /* DiniWidget.swift */, DINI_FR_LIVE_ACT /* PrayerLiveActivity.swift */, DINI_FR_ATTR /* PrayerActivityAttributes.swift */, DINI_FR_PLIST /* Info.plist */, DINI_FR_ENT /* DiniWidget.entitlements */, DINI_FR_PRIVACY_WIDGET /* PrivacyInfo.xcprivacy */,); path = DiniWidget; sourceTree = "<group>"; };
 		DINI_GROUP_PRODUCTS /* Widget Products */ = {isa = PBXGroup; children = (DINI_FR_APP /* DiniWidgetExtension.appex */,); name = "Widget Products"; sourceTree = "<group>"; };
 		331C8082294A63A400263BE5 /* RunnerTests */ = {
 			isa = PBXGroup;
@@ -322,7 +325,7 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		DINI_PHASE_SOURCES /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (DINI_BF_SWIFT /* DiniWidget.swift in Sources */, DINI_BF_LIVE_ACT /* PrayerLiveActivity.swift in Sources */,); runOnlyForDeploymentPostprocessing = 0; };
+		DINI_PHASE_SOURCES /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (DINI_BF_SWIFT /* DiniWidget.swift in Sources */, DINI_BF_LIVE_ACT /* PrayerLiveActivity.swift in Sources */, DINI_BF_ATTR_EXT /* PrayerActivityAttributes.swift in Sources */,); runOnlyForDeploymentPostprocessing = 0; };
 		331C807D294A63A400263BE5 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -338,6 +341,7 @@
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				DINI_BF_BRIDGE /* WidgetSnapshotBridge.swift in Sources */,
 				DINI_BF_LIVE_BRIDGE /* LiveActivityBridge.swift in Sources */,
+				DINI_BF_ATTR_APP /* PrayerActivityAttributes.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */,
 			);

@@ -64,7 +64,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 43 dosyada 509 test var; hepsi geçmelidir.
+- Depoda şu an 43 dosyada 512 test var; hepsi geçmelidir.
   (`test/promo_shots_test.dart` sayıma girmez: `promo` etiketi
   `dart_test.yaml` ile atlanır, çünkü görüntüyü diske yazdıktan sonra
   koşucu kapanmıyor ve `flutter test` asılı kalırdı. Görselleri üretmek
@@ -158,7 +158,10 @@ flutter test --reporter expanded
   artık `ios/Runner` ve `ios/DiniWidget` altındaki her `.swift` dosyasının
   `project.pbxproj` içinde bir Sources aşamasında olduğunu bekçiler.
   Canlı etkinlik dosyaları artık hedeflerde; yine de gerçek cihazda
-  DENENMEDİ.
+  DENENMEDİ. **İki hedefin ortak kullandığı tür iki hedefte de
+  derlenmeli:** `PrayerActivityAttributes.swift` hem Runner hem uzantı
+  Sources aşamasındadır (yalnız uzantıdayken TestFlight #9 derlenmedi).
+  Runner'ın en düşük sürümü 15.0'dır; iOS 16 türleri `@available` ister.
 - **Native taraf Dart'ın ISO 8601 biçimini çözmek zorunda.** Dart
   `TZDateTime.toIso8601String()` yazıyor: `...T05:17:00.000+0300`. Salt
   `ISO8601DateFormatter()` saliseyi kabul etmez, nil döner — widget bütün

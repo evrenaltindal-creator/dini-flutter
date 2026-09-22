@@ -48,6 +48,42 @@ void main() {
     });
   }
 
+  test('canlı etkinlik türü İKİ hedefte de derleniyor', () {
+    // `PrayerActivityAttributes` yalnızca uzantıda tanımlıyken uygulama
+    // "Cannot find 'PrayerActivityAttributes' in scope" ile derlenmedi
+    // (TestFlight koşusu #9). ActivityKit iki tarafın aynı türü
+    // kullanmasını ister: dosya iki Sources aşamasında da olmalı, yani
+    // iki tanım + iki liste girdisi = en az dört geçiş.
+    expect(
+      'PrayerActivityAttributes.swift in Sources'.allMatches(project).length,
+      greaterThanOrEqualTo(4),
+      reason:
+          'Öznitelik dosyası uygulama ve uzantı hedeflerinin ikisinde '
+          'de derlenmiyor.',
+    );
+  });
+
+  test('iOS 16 türleri uygulamanın en düşük sürümünde derlenebilir', () {
+    // Uygulama hedefinin en düşük sürümü 15.0; `ActivityAttributes` 16.1
+    // ile geldi. Sürüm koşulu olmadan uygulama hedefi derlenmez.
+    final files = [
+      ...Directory('ios/Runner').listSync(),
+      ...Directory('ios/DiniWidget').listSync(),
+    ].whereType<File>().where((file) => file.path.endsWith('.swift'));
+    for (final file in files) {
+      final source = file.readAsStringSync();
+      final conformance = RegExp(r'struct \w+: ActivityAttributes')
+          .firstMatch(source);
+      if (conformance == null) continue;
+      final before = source.substring(0, conformance.start);
+      expect(
+        before.trimRight().endsWith('@available(iOS 16.1, *)'),
+        isTrue,
+        reason: '${file.path}: ActivityAttributes türü sürüm koşulu taşımıyor.',
+      );
+    }
+  });
+
   test('canlı etkinlik uzantı hedefinde', () {
     // Widget paketine eklenen PrayerLiveActivity uzantı hedefinde
     // derlenmezse widget paketi derlenmez.

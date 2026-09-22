@@ -334,6 +334,23 @@ void main() {
       );
     });
 
+    test('geri sayım vakit geçince ters aralık kurmaz', () {
+      // Etkinlik vakitten sonra `liveActivityLingerMinutes` boyunca
+      // ekranda kalıyor. "Date()...vakit" o sırada ters bir aralık olur ve
+      // Swift ters ClosedRange kurulunca uzantıyı çökertir.
+      expect(liveActivityLingerMinutes, greaterThan(0));
+      final view = File('ios/DiniWidget/PrayerLiveActivity.swift')
+          .readAsStringSync();
+      expect(
+        view,
+        isNot(contains('Date()...')),
+        reason:
+            'Geri sayım aralığı şimdiki andan başlıyor; vakit geçince '
+            'ters döner ve uzantı çöker.',
+      );
+      expect(view, contains('min(now, prayerTime)...prayerTime'));
+    });
+
     test('kanal adı iki tarafta aynı', () {
       // Ad ayrılırsa çağrılar sessizce boşa gider.
       final bridge = File('ios/Runner/LiveActivityBridge.swift')
