@@ -64,7 +64,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 53 dosyada 651 test var; hepsi geçmelidir.
+- Depoda şu an 54 dosyada 657 test var; hepsi geçmelidir.
   (`test/promo_shots_test.dart` sayıma girmez: `promo` etiketi
   `dart_test.yaml` ile atlanır, çünkü görüntüyü diske yazdıktan sonra
   koşucu kapanmıyor ve `flutter test` asılı kalırdı. Görselleri üretmek
@@ -107,6 +107,12 @@ flutter test --reporter expanded
   açılsa da); sekme çubuğu `quranOpenedProvider`'ı
   artırarak tetikler, çünkü sekme durumu korunur ve sayfa yeniden
   kurulmaz. Dokununca geçer, "hareketi azalt" açıksa oynamaz; testi var.
+  **Sayfa çevirme** (`page_turner.dart`, Mushaf kipi için; meal kipi
+  kaydırmalıdır): cilt solda, sayfa sola çekilince sol kenarı üzerinde
+  döner; yarıda bırakılırsa geri düşer, %35 ya da hızlı fırlatma
+  tamamlar; kenarlara dokunmak da çevirir. Sürükleme başlarken çekilen
+  mesafe SIFIRLANMAZ, yoksa ilk hareket kaybolup sayfa geri düşüyordu.
+  Sayfalar Medine Mushaf'ının 604 sayfası olacak (Tanzil sayfa verisi).
 - `main.dart` özel bir `LocalizationsDelegate` kaydetmez; `AppLocalizations`
   doğrudan `Localizations.localeOf(context)` okur. Bu tasarımı bozma.
 - `SharedPreferences` doğrudan widget'larda kullanılmaz; `LocalStorage` üzerinden
