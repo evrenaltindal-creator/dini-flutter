@@ -64,7 +64,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 52 dosyada 641 test var; hepsi geçmelidir.
+- Depoda şu an 52 dosyada 643 test var; hepsi geçmelidir.
   (`test/promo_shots_test.dart` sayıma girmez: `promo` etiketi
   `dart_test.yaml` ile atlanır, çünkü görüntüyü diske yazdıktan sonra
   koşucu kapanmıyor ve `flutter test` asılı kalırdı. Görselleri üretmek
@@ -247,17 +247,22 @@ flutter test --reporter expanded
   ekran kararmaz (`wakelock_plus`, win32 çakışması yüzünden <1.6.1).
   ConsumerState'in `dispose`'unda `ref` kullanılamaz: ses ve ekran nesneleri
   `initState`'te alınır.
-- **Ezan sesi: altyapı hazır, kayıt YOK.** Telifi netleşmemiş kayıt
-  uygulamaya alınmaz; ezanın sözleri kimsenin değildir ama her KAYDIN
-  (müezzinin icrası, kaydı yapanın hakkı) sahibi vardır ve "5 saniye serbest"
-  diye bir kural yoktur. Lisanslı bir kayıt `tool/prepare_ezan_sound.py` ile
-  (kaynak ve lisans vermeden çalışmaz) ilk 5 saniyesi alınıp, sesi
-  normalleştirilip son 3 saniyesi kısılarak `assets/audio/ezan.wav` ve
-  `res/raw/ezan.wav` olarak yazılır, kaynağı `EZAN_SOURCE.txt`'ye düşer.
-  Aynı dosya iki yerde çalar: **açılış sesi** (varsa tekbirin yerine,
-  `openingSoundFor`) ve bildirimde "Ezan" seçeneği. Kayıt yokken açılışta eski
-  kısık tekbir çalar, bildirim seçeneği görünmez; seçilmişse telefonun sesine
-  düşer. `NotificationSound` sıra numarasıyla saklanır: yeni ses SONA eklenir.
+- **Ezan sesi** (`assets/audio/ezan.wav` + `res/raw/ezan.wav`, 5 sn).
+  Kaynak kaydı uygulama sahibi sağladı ve telifsiz olduğunu beyan etti;
+  künyesi `assets/audio/EZAN_SOURCE.txt`'dedir (okuyan müezzin ve kaynak
+  bağlantısı henüz yazılmadı). Ezanın sözleri kimsenin değildir ama her
+  KAYDIN sahibi vardır ve "5 saniye serbest" diye bir kural yoktur: kaydı
+  değiştiren, lisansını yazmadan değiştiremez. Kayıt `tool/prepare_ezan_sound.py`
+  ile girer (kaynak ve lisans vermeden çalışmaz): MP3 önce ffmpeg ile 16 bit
+  WAV'a çevrilir, `--start auto` baştaki sessizliği atlar (bu kayıtta 5,7 sn),
+  ilk 5 saniye alınır, ses normalleştirilir ve son 3 saniye kısılır. Aynı
+  dosya iki yerde çalar: **açılış sesi** (`openingSoundFor`, tekbirin
+  yerine, normal seviyede) ve bildirimde "Ezan" seçeneği. Dosya silinirse
+  açılışta eski kısık tekbire, bildirimde telefonun sesine düşülür.
+  **`res/raw/keep.xml`**: kanal sesi adıyla çağrıldığı için yayın
+  derlemesinin kaynak küçültücüsü sesleri silebilirdi; her yeni ham ses
+  oraya eklenir (testi var). `NotificationSound` sıra numarasıyla saklanır:
+  yeni ses SONA eklenir.
 - **Android bildirim kanalının sesi oluşturulduktan sonra değiştirilemez.**
   Bu yüzden her ses seçeneği kendi kanal kimliğini taşır; kimlikleri
   birleştirirsen kullanıcı sesi değiştirdiğinde hiçbir şey olmaz.

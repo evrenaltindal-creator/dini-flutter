@@ -34,6 +34,23 @@ void main() {
       expect(raw.lengthSync(), greaterThan(1000));
     });
 
+    test('yayın derlemesi bildirim seslerini silemez', () {
+      // Kanal sesi adıyla çağırır; kaynak küçültücü bunu göremez ve keep.xml
+      // olmadan dosyayı silerdi: bildirim sessiz gelirdi.
+      final keep = File('android/app/src/main/res/raw/keep.xml')
+          .readAsStringSync();
+      final sounds = Directory('android/app/src/main/res/raw')
+          .listSync()
+          .whereType<File>()
+          .map((file) => file.uri.pathSegments.last)
+          .where((name) => name.endsWith('.wav'))
+          .map((name) => name.substring(0, name.length - 4));
+      expect(sounds, isNotEmpty);
+      for (final sound in sounds) {
+        expect(keep, contains('@raw/$sound'), reason: '$sound korunmuyor.');
+      }
+    });
+
     test('iOS için kopyalanacak varlık pubspec içinde bildirilmiş', () {
       expect(File(NotificationSoundInstaller.assetKey).existsSync(), isTrue);
       // assets/audio/ toplu olarak bildirilir; bildirilmezse kopyalama
@@ -285,6 +302,21 @@ void main() {
         lessThan(EzanSound.maxSeconds),
         reason: 'iOS 30 saniyeden uzun sesi çalmaz, varsayılana döner.',
       );
+
+      // Kullanıcı isteği: ezanın ilk 5 saniyesi, normal sesle başlar ve
+      // kısılarak biter.
+      final samples = _samples(bytes);
+      final rate = header.getUint32(24, Endian.little);
+      final channels = header.getUint16(22, Endian.little);
+      expect(samples.length / channels / rate, closeTo(5, .05));
+      int peak(Iterable<int> values) =>
+          values.fold(0, (max, v) => v.abs() > max ? v.abs() : max);
+      final firstSecond = peak(samples.take(rate * channels));
+      final lastTenth = peak(
+        samples.skip(samples.length - rate * channels ~/ 10),
+      );
+      expect(firstSecond, greaterThan(8000), reason: 'Başı sessiz kalmış.');
+      expect(lastTenth, lessThan(firstSecond ~/ 20), reason: 'Kesik bitiyor.');
     });
   });
 
@@ -372,6 +404,34 @@ void main() {
 
       final note = File('${root.path}/assets/audio/EZAN_SOURCE.txt');
       expect(note.readAsStringSync(), contains('Lisans: CC0'));
+    }, skip: _python ? false : 'python3 yok');
+
+    test('--start auto baştaki sessizliği atlar', () async {
+      // Gerçek kayıt 5,7 saniye sessizlikle başlıyordu; "ilk 5 saniye"
+      // alınsaydı açılışta hiçbir şey duyulmazdı.
+      final samples = Int16List(rate * 12);
+      for (var i = rate * 3; i < samples.length; i++) {
+        samples[i] = i.isEven ? 6000 : -6000;
+      }
+      input.writeAsBytesSync(_wav(samples, rate));
+      final result = await run([
+        '--start',
+        'auto',
+        '--source',
+        'deneme',
+        '--license',
+        'CC0',
+      ]);
+      expect(result.exitCode, 0, reason: '${result.stderr}');
+      final clip = _samples(
+        File('${root.path}/${EzanSound.assetKey}').readAsBytesSync(),
+      );
+      // Ses, klibin ilk saniyesinin içinde başlar.
+      final firstLoud = clip.indexWhere((v) => v.abs() > 10000);
+      expect(firstLoud, inInclusiveRange(0, rate ~/ 5));
+      final note = File('${root.path}/assets/audio/EZAN_SOURCE.txt')
+          .readAsStringSync();
+      expect(note, contains('Başlangıç: kaydın 2.90. saniyesi'));
     }, skip: _python ? false : 'python3 yok');
 
     test('lisans ya da kaynak verilmeden kayıt alınmaz', () async {

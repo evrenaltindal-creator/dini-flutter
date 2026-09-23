@@ -6,7 +6,8 @@ bildiriminde. Kayıt depoya bu betikle girer, elle değil. Betik:
 
 * yalnızca 16 bit PCM WAV okur (standart kitaplık dışında bağımlılık yok);
   MP3/M4A ise önce çevirin:  ffmpeg -i ezan.mp3 -ac 1 -ar 44100 ezan.wav
-* kaydın ilk 5 saniyesini alır (`--seconds`); ilk kısmı olduğu gibi,
+* kaydın ilk 5 saniyesini alır (`--seconds`); `--start auto` baştaki
+  sessizliği atlar ve sesin başladığı yerden alır. İlk kısmı olduğu gibi,
   normal sesle çalar, son 3 saniyede sesi yavaşça kısılıp sıfıra iner;
 * sesi normalleştirir: en yüksek nokta tam ölçeğin %70'i olur, kayıttan
   kayda açılış sesi birden patlamasın ya da duyulmayacak kadar kısık
@@ -41,6 +42,35 @@ MAX_SECONDS = 29.0
 # Sesin kısıldığı kısım: sonun 3 saniyesi, kısa klipte en çok %60'ı.
 FADE_SECONDS = 3.0
 PEAK = 0.7
+
+
+# Sesin başladığı sayılan seviye (tam ölçeğe göre, yaklaşık -35 dBFS) ve
+# başlangıçtan önce bırakılan pay: nefes kesilmesin.
+ONSET_LEVEL = 0.018
+ONSET_LEAD = 0.1
+
+
+def find_onset(path):
+    """Baştaki sessizliğin bittiği saniye."""
+    with wave.open(path, "rb") as source:
+        if source.getsampwidth() != 2:
+            raise SystemExit("yalnızca 16 bit PCM WAV okunuyor")
+        channels = source.getnchannels()
+        rate = source.getframerate()
+        window = max(1, rate // 20)  # 50 ms
+        position = 0
+        while True:
+            frames = source.readframes(window)
+            if not frames:
+                raise SystemExit("kayıtta ses bulunamadı")
+            samples = array.array("h")
+            samples.frombytes(frames)
+            if sys.byteorder == "big":
+                samples.byteswap()
+            mean_square = sum(v * v for v in samples) / len(samples)
+            if mean_square ** 0.5 > ONSET_LEVEL * 32767:
+                return max(0.0, position / rate - ONSET_LEAD)
+            position += len(samples) // channels
 
 
 def prepare(path, *, start_seconds=0.0, seconds=DEFAULT_SECONDS, root=ROOT):
@@ -103,7 +133,9 @@ def main():
     parser.add_argument("--source", required=True)
     parser.add_argument("--license", required=True)
     parser.add_argument(
-        "--start", type=float, default=0.0, help="kaydın kaçıncı saniyesinden"
+        "--start",
+        default="0",
+        help="kaydın kaçıncı saniyesinden; 'auto' baştaki sessizliği atlar",
     )
     parser.add_argument(
         "--seconds",
@@ -120,13 +152,15 @@ def main():
     if not 1.0 <= args.seconds <= MAX_SECONDS:
         raise SystemExit(f"--seconds 1 ile {MAX_SECONDS:g} arasında olmalı")
 
+    start = find_onset(args.wav) if args.start == "auto" else float(args.start)
     seconds = prepare(
-        args.wav, start_seconds=args.start, seconds=args.seconds, root=args.root
+        args.wav, start_seconds=start, seconds=args.seconds, root=args.root
     )
     with open(os.path.join(args.root, SOURCE_NOTE), "w", encoding="utf-8") as note:
         note.write("Ezan sesi (açılış ve bildirim)\n")
         note.write(f"Kaynak: {args.source.strip()}\n")
         note.write(f"Lisans: {args.license.strip()}\n")
+        note.write(f"Başlangıç: kaydın {start:.2f}. saniyesi\n")
         note.write(f"Süre: {seconds:.1f} sn, sonu kısılarak biter\n")
     print("wrote", SOURCE_NOTE)
 

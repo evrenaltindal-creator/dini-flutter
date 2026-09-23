@@ -2,6 +2,12 @@ Namaz Yolu — Apple Watch, takvim yaprağı ve düzeltmeler.
 Lansman döneminde tam sürüm: her şey açık, satın alma yok.
 
 Yeni:
+- Ezan sesi: uygulama açılırken tekbirin yerine ezanın ilk 5 saniyesi
+  çalar; normal sesle başlar, kısılarak biter (telefon sessizdeyse çalmaz).
+  Ayarlar → Bildirimler'de bildirim sesi olarak "Ezan" da seçilebilir.
+- Namaz hocasında sesli okuma artık telefonun en kaliteli Arapça sesini
+  kullanır ve âyetler arasında soluk verir. Daha doğal ses için: Ayarlar →
+  Erişilebilirlik → Sözlü İçerik → Sesler → Arapça → "Gelişmiş" sesi indirin.
 - Namaz hocası: Namaz rehberinde bir vakti açın, "Hocayla adım adım kıl".
   Niyetten selâma kadar her adımda figür hareketi gösterir, altta o anda
   okunacak dua Arapça ve okunuşuyla yazar (istenirse anlamı). "Başlat" ile
@@ -27,5 +33,4 @@ Düzeltmeler — lütfen deneyin:
 - Widget ve kilit ekranı geri sayımı (önceki build'lerden).
 
 Bilinen eksikler:
-- Ezan bildirim sesi hazır ama ezan kaydı henüz eklenmedi.
 - Saat kadranı komplikasyonları ve Kuran sekmesi henüz yok.
