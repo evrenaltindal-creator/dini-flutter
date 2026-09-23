@@ -1140,6 +1140,9 @@ class AboutPage extends StatelessWidget {
       Text(context.l10n.text('about.content')),
       const SizedBox(height: 12),
       Text(context.l10n.text('about.diyanet')),
+      const SizedBox(height: 12),
+      // CC BY lisansının tek şartı atıftır: kaydın sahibi burada yazmalı.
+      Text(context.l10n.text('about.ezan')),
     ],
   );
 }

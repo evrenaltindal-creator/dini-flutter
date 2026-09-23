@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:dini_flutter/core/localization/app_localizations.dart';
 import 'package:dini_flutter/core/storage/local_storage.dart';
 import 'package:dini_flutter/features/audio/presentation/opening_takbir.dart';
 import 'package:dini_flutter/features/notifications/data/flutter_local_notification_service.dart';
@@ -8,6 +9,7 @@ import 'package:dini_flutter/features/notifications/data/notification_preference
 import 'package:dini_flutter/features/notifications/data/notification_sound_installer.dart';
 import 'package:dini_flutter/features/notifications/domain/notification_system.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
 
 ByteData _bytes(int length) =>
@@ -278,6 +280,16 @@ void main() {
         multiLine: true,
       ).firstMatch(note.readAsStringSync());
       expect(license?.group(1)?.trim(), isNotEmpty, reason: 'Lisans yok.');
+
+      // CC BY lisanslı kayıt atıfsız kullanılamaz: Hakkında sayfası kaydın
+      // sahibini üç dilde yazmalı.
+      if (license!.group(1)!.contains('CC BY')) {
+        for (final code in ['tr', 'en', 'ar']) {
+          final credit = AppLocalizations(Locale(code)).text('about.ezan');
+          expect(credit, contains('CC BY'), reason: '$code atıf yok');
+          expect(credit, contains('ismail demir'), reason: '$code sahip yok');
+        }
+      }
 
       final android = File('android/app/src/main/res/raw/ezan.wav');
       expect(android.existsSync(), isTrue);

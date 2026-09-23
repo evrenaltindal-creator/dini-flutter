@@ -564,6 +564,7 @@ class AppLocalizations {
       'about.version': 'Sürüm 1.0.0',
       'about.prayer': 'Namaz vakitleri çevrimdışı yerel hesaplama ile üretilir. Hicri tarihler tabular hesaplamadır; yerel ay gözlemi ve resmi ilanlarla farklılık gösterebilir.',
       'about.content': 'Günlük ayet, hadis ve dua içerikleri uygulamayla gelen kaynak metadatasını kullanır. Satın almalar Apple App Store veya Google Play altyapısında işlenir.',
+      'about.ezan': 'Ezan sesi: “1 Ezan 16 Makam”, ismail demir (YouTube), Creative Commons Atıf 3.0 (CC BY 3.0) lisansıyla. Kaydın baştan ilk 5 saniyesi alınmış, sonu kısılarak kullanılmıştır.',
       'about.diyanet': 'Diyanet soru akışı resmi dış servisi tarayıcıda açar. Uygulama Diyanet değildir ve dini hüküm vermez.',
       'ramadan.suhoor':
           'Sahur sonu: {time} · seçili hesaplama yöntemindeki sabah vakti',
@@ -1090,6 +1091,7 @@ class AppLocalizations {
       'about.version': 'Version 1.0.0',
       'about.prayer': 'Prayer times are produced with offline on-device calculations. Hijri dates use a tabular calculation and may differ from local moon sightings and official announcements.',
       'about.content': 'Daily verse, hadith and prayer content uses bundled source metadata. Purchases are processed through Apple App Store or Google Play infrastructure.',
+      'about.ezan': 'Adhan sound: “1 Ezan 16 Makam” by ismail demir (YouTube), licensed under Creative Commons Attribution 3.0 (CC BY 3.0). The first 5 seconds were used, with a fade-out added.',
       'about.diyanet': 'The Diyanet question flow opens the official external service in a browser. This app is not Diyanet and does not issue religious rulings.',
       'ramadan.suhoor':
           'Suhoor ends: {time} · Fajr under the selected calculation method',
@@ -1630,6 +1632,7 @@ class AppLocalizations {
       'about.version': 'الإصدار 1.0.0',
       'about.prayer': 'تُحسب مواقيت الصلاة محليًا دون اتصال. يستخدم التاريخ الهجري حسابًا جدوليًا وقد يختلف عن رؤية الهلال والإعلانات الرسمية.',
       'about.content': 'يستخدم محتوى الآية والحديث والدعاء اليومي بيانات المصادر المضمّنة. تتم المشتريات عبر Apple App Store أو Google Play.',
+      'about.ezan': 'صوت الأذان: «1 Ezan 16 Makam» لـ ismail demir (يوتيوب)، بترخيص المشاع الإبداعي نسب المصنف 3.0 (CC BY 3.0). استُخدمت أول 5 ثوانٍ مع خفوت في النهاية.',
       'about.diyanet': 'يفتح مسار سؤال رئاسة الشؤون الدينية الخدمة الرسمية الخارجية في المتصفح. هذا التطبيق ليس تابعًا للرئاسة ولا يصدر أحكامًا دينية.',
       'ramadan.suhoor':
           'نهاية السحور: {time} · وقت الفجر وفق طريقة الحساب المحددة',

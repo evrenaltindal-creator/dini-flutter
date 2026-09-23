@@ -22,7 +22,7 @@ Flutter + Riverpod + go_router. **Tamamen cihaz içi (offline-first) çalışır
 3. **Üç dil zorunlu.** Kullanıcıya görünen her metin
    `lib/core/localization/app_localizations.dart` içindeki `_strings` haritasına
    **`tr`, `en` ve `ar` için birlikte** eklenir. Şu an üç dilde de tam olarak
-   499 anahtar var; `localization_test.dart` bu pariteyi zorunlu kılar.
+   500 anahtar var; `localization_test.dart` bu pariteyi zorunlu kılar.
    Widget'ta düz string yazma; `context.l10n.text('key')` kullan.
 4. **RTL bozulmaz.** Arapça yön desteği `MaterialApp.supportedLocales` içindeki
    `Locale('ar')` + `GlobalWidgetsLocalizations.delegate` üzerinden otomatik gelir.
@@ -248,9 +248,10 @@ flutter test --reporter expanded
   ConsumerState'in `dispose`'unda `ref` kullanılamaz: ses ve ekran nesneleri
   `initState`'te alınır.
 - **Ezan sesi** (`assets/audio/ezan.wav` + `res/raw/ezan.wav`, 5 sn).
-  Kaynak kaydı uygulama sahibi sağladı ve telifsiz olduğunu beyan etti;
-  künyesi `assets/audio/EZAN_SOURCE.txt`'dedir (okuyan müezzin ve kaynak
-  bağlantısı henüz yazılmadı). Ezanın sözleri kimsenin değildir ama her
+  Kaynak: YouTube "1 Ezan 16 Makam", kanal ismail demir, **CC BY 3.0**;
+  künyesi `assets/audio/EZAN_SOURCE.txt`'dedir. CC BY'nin tek şartı atıftır:
+  Hakkında sayfasındaki `about.ezan` üç dilde sahibi ve lisansı yazar ve
+  test bunu bekçiler — kaydı değiştirirsen atıfı da değiştir. Ezanın sözleri kimsenin değildir ama her
   KAYDIN sahibi vardır ve "5 saniye serbest" diye bir kural yoktur: kaydı
   değiştiren, lisansını yazmadan değiştiremez. Kayıt `tool/prepare_ezan_sound.py`
   ile girer (kaynak ve lisans vermeden çalışmaz): MP3 önce ffmpeg ile 16 bit
