@@ -39,6 +39,7 @@ import '../features/quran/presentation/quran_coming_soon_page.dart';
 import '../features/info/diyanet_flow.dart';
 import '../features/audio/presentation/opening_takbir.dart';
 import '../features/calendar/presentation/daily_leaf_page.dart';
+import '../features/quran/presentation/book_opening.dart';
 import '../features/worship/presentation/guided_prayer_page.dart';
 import '../features/worship/presentation/prayer_guide_view.dart';
 import '../features/worship/presentation/worship_hub_page.dart';
@@ -91,7 +92,16 @@ GoRouter createRouter({String initialLocation = '/'}) => GoRouter(
                   : const NavigationBarThemeData(),
               child: NavigationBar(
                 selectedIndex: shell.currentIndex,
-                onDestinationSelected: shell.goBranch,
+                onDestinationSelected: (index) {
+                  // Kuran sekmesine her girişte kapak yeniden açılır.
+                  if (index == 1 && shell.currentIndex != 1) {
+                    ProviderScope.containerOf(
+                      context,
+                      listen: false,
+                    ).read(quranOpenedProvider.notifier).state++;
+                  }
+                  shell.goBranch(index);
+                },
                 destinations: [
                   NavigationDestination(
                     icon: const Icon(Icons.home_outlined),
@@ -128,7 +138,8 @@ GoRouter createRouter({String initialLocation = '/'}) => GoRouter(
           routes: [
             GoRoute(
               path: '/quran',
-              builder: (_, _) => const QuranComingSoonPage(),
+              builder: (_, _) =>
+                  const BookOpening(child: QuranComingSoonPage()),
             ),
           ],
         ),

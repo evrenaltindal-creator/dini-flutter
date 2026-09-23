@@ -64,7 +64,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 52 dosyada 647 test var; hepsi geçmelidir.
+- Depoda şu an 53 dosyada 651 test var; hepsi geçmelidir.
   (`test/promo_shots_test.dart` sayıma girmez: `promo` etiketi
   `dart_test.yaml` ile atlanır, çünkü görüntüyü diske yazdıktan sonra
   koşucu kapanmıyor ve `flutter test` asılı kalırdı. Görselleri üretmek
@@ -97,8 +97,15 @@ flutter test --reporter expanded
 - `lib/app/router.dart` 979 satırdır; `HomePage`, `SettingsPage`, `PrivacyPage`,
   `AboutPage` ve `PlaceholderPage` bu dosyanın içindedir. Yeni büyük ekranı
   buraya gömme, `lib/features/<alan>/presentation/` altına aç ve router'dan bağla.
-- **`/quran` rotası `QuranComingSoonPage`'tir.** Kuran ekranı henüz yazılmadı;
-  meal telif nedeniyle bilinçli olarak ertelendi.
+- **`/quran` rotası `BookOpening(QuranComingSoonPage)`'tir.** Kuran ekranı
+  Tanzil metni (Uthmani) + Elmalılı (tr) + Pickthall (en) dosyaları gelince
+  yazılacak; tasarımın bileşenleri `quran_style.dart`'ta hazır (tezhipli
+  çerçeve, sûre kartuşu, Rub'ul-hizb madalyon, âyet sonu ۝). Yazı tipleri
+  Amiri Quran + Amiri Bold (OFL, `assets/fonts/`). **Kitap açılışı:**
+  sekmeye her girişte kapalı Mushaf görünür, kapak SAĞDAKİ sırtı üzerinde
+  açılır (Mushaf sağdan açılır); sekme çubuğu `quranOpenedProvider`'ı
+  artırarak tetikler, çünkü sekme durumu korunur ve sayfa yeniden
+  kurulmaz. Dokununca geçer, "hareketi azalt" açıksa oynamaz; testi var.
 - `main.dart` özel bir `LocalizationsDelegate` kaydetmez; `AppLocalizations`
   doğrudan `Localizations.localeOf(context)` okur. Bu tasarımı bozma.
 - `SharedPreferences` doğrudan widget'larda kullanılmaz; `LocalStorage` üzerinden
