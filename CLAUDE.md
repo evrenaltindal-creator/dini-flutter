@@ -102,8 +102,9 @@ flutter test --reporter expanded
   yazılacak; tasarımın bileşenleri `quran_style.dart`'ta hazır (tezhipli
   çerçeve, sûre kartuşu, Rub'ul-hizb madalyon, âyet sonu ۝). Yazı tipleri
   Amiri Quran + Amiri Bold (OFL, `assets/fonts/`). **Kitap açılışı:**
-  sekmeye her girişte kapalı Mushaf görünür, kapak SAĞDAKİ sırtı üzerinde
-  açılır (Mushaf sağdan açılır); sekme çubuğu `quranOpenedProvider`'ı
+  sekmeye her girişte kapalı Mushaf görünür, kapak SOLDAKİ sırtı üzerinde
+  sola açılır (kullanıcı kararı: normal kitap gibi; basılı Mushaf sağdan
+  açılsa da); sekme çubuğu `quranOpenedProvider`'ı
   artırarak tetikler, çünkü sekme durumu korunur ve sayfa yeniden
   kurulmaz. Dokununca geçer, "hareketi azalt" açıksa oynamaz; testi var.
 - `main.dart` özel bir `LocalizationsDelegate` kaydetmez; `AppLocalizations`

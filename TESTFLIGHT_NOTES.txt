@@ -2,7 +2,7 @@ Namaz Yolu — Apple Watch, takvim yaprağı ve düzeltmeler.
 Lansman döneminde tam sürüm: her şey açık, satın alma yok.
 
 Yeni:
-- Kuran sekmesine basınca kapalı bir Mushaf görünür ve kapağı sağdan
+- Kuran sekmesine basınca kapalı bir Mushaf görünür ve kapağı normal bir kitap gibi
   açılır (dokununca hemen geçer). Kuran metni ve meal sonraki sürümde.
 - Takvim sekmesi artık önce günün yaprağıyla açılır; üstteki "Aylık takvim"
   düğmesiyle ay görünümüne geçilir.

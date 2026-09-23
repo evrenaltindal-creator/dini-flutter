@@ -15,8 +15,9 @@ final quranOpenedProvider = StateProvider<int>((ref) => 0);
 
 /// Kuran sekmesine girerken kapalı bir Mushaf görünür ve kapağı açılır.
 ///
-/// Mushaf sağdan açılır: kapağın menteşesi (sırtı) sağdadır ve kapak
-/// izleyene doğru dönerek sağa açılır. Dönerken kapağın iç yüzü (forza
+/// Kapak alışılmış bir kitap gibi açılır: menteşesi (sırtı) solda, kapak
+/// izleyene doğru dönerek sola açılır. (Basılı Mushaf'lar sağdan açılır;
+/// kullanıcı normal kitap açılışını istedi.) Dönerken kapağın iç yüzü (forza
 /// kâğıdı) görünür, arkadan ilk sayfa ve sonra içerik belirir. Dokununca
 /// hemen biter; "hareketi azalt" açıksa hiç oynatılmaz.
 class BookOpening extends ConsumerStatefulWidget {
@@ -116,7 +117,7 @@ class _Book extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 0 → 0°, 1 → 160°: kapak sırtın üzerinde sağa doğru döner.
+    // 0 → 0°, 1 → 160°: kapak soldaki sırtın üzerinde sola doğru döner.
     final angle = open * math.pi * .89;
     final showingInside = angle > math.pi / 2;
     return Stack(
@@ -125,10 +126,10 @@ class _Book extends StatelessWidget {
         // Kapağın altındaki ilk sayfa.
         const _FirstPage(),
         Transform(
-          alignment: Alignment.centerRight,
+          alignment: Alignment.centerLeft,
           transform: Matrix4.identity()
             ..setEntry(3, 2, .0012)
-            ..rotateY(-angle),
+            ..rotateY(angle),
           child: Container(
             key: BookOpening.coverKey,
             child: showingInside
@@ -148,10 +149,11 @@ class _Cover extends StatelessWidget {
   @override
   Widget build(BuildContext context) => DecoratedBox(
     decoration: BoxDecoration(
-      borderRadius: const BorderRadiusDirectional.horizontal(
-        start: Radius.circular(10),
-        end: Radius.circular(4),
-      ).resolve(TextDirection.ltr),
+      // Sırt tarafı (sol) düz, dış kenar (sağ) yuvarlak.
+      borderRadius: const BorderRadius.horizontal(
+        left: Radius.circular(4),
+        right: Radius.circular(10),
+      ),
       gradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
@@ -199,33 +201,29 @@ class _Cover extends StatelessWidget {
   );
 }
 
-/// Kapak süsü: altın çift çerçeve, köşe yıldızları ve sağda sırt gölgesi.
+/// Kapak süsü: altın çift çerçeve, köşe yıldızları ve solda sırt gölgesi.
 class _CoverPainter extends CustomPainter {
   const _CoverPainter();
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Sırt: sağ kenarda koyu şerit ve sırt çizgileri.
-    final spine = Rect.fromLTWH(size.width - 22, 0, 22, size.height);
+    // Sırt: sol kenarda koyu şerit ve sırt çizgileri.
+    final spine = Rect.fromLTWH(0, 0, 22, size.height);
     canvas.drawRect(
       spine,
       Paint()
         ..shader = const LinearGradient(
-          colors: [Color(0x00000000), Color(0x66000000)],
+          colors: [Color(0x66000000), Color(0x00000000)],
         ).createShader(spine),
     );
     final gold = Paint()
       ..color = QuranPalette.gold
       ..style = PaintingStyle.stroke;
     for (final y in [size.height * .12, size.height * .88]) {
-      canvas.drawLine(
-        Offset(size.width - 20, y),
-        Offset(size.width - 2, y),
-        gold..strokeWidth = 1.4,
-      );
+      canvas.drawLine(Offset(2, y), Offset(20, y), gold..strokeWidth = 1.4);
     }
 
-    final outer = Rect.fromLTWH(16, 16, size.width - 52, size.height - 32);
+    final outer = Rect.fromLTWH(36, 16, size.width - 52, size.height - 32);
     canvas.drawRect(outer, gold..strokeWidth = 2.4);
     canvas.drawRect(
       outer.deflate(8),
