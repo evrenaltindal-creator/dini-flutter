@@ -32,15 +32,15 @@ class _MemoryStorage implements LocalStorage {
 }
 
 class _FakeVoice implements PrayerVoice {
-  _FakeVoice({this.available = true});
+  _FakeVoice({this.readiness = VoiceReadiness.natural});
 
-  final bool available;
+  final VoiceReadiness readiness;
   final spoken = <String>[];
   final speeds = <double>[];
   var stops = 0;
 
   @override
-  Future<bool> prepare() async => available;
+  Future<VoiceReadiness> prepare() async => readiness;
 
   @override
   Future<void> speak(String text, {required double speed}) async {
@@ -225,7 +225,7 @@ void main() {
     await open(
       tester,
       GuidedPrayerPage.routeFor(Prayer.fajr, part: 1),
-      withVoice: _FakeVoice(available: false),
+      withVoice: _FakeVoice(readiness: VoiceReadiness.unavailable),
     );
     await tester.tap(find.byTooltip('Sesli oku'));
     await tester.pumpAndSettle();
@@ -237,6 +237,26 @@ void main() {
     await tester.pump(const Duration(milliseconds: 700));
     expect(find.text('Adım 2/${fajrFard.length}'), findsOneWidget);
     expect(voice.spoken, isEmpty);
+  });
+
+  testWidgets('yalnızca temel ses varsa daha iyisinin yeri söylenir', (
+    tester,
+  ) async {
+    await open(
+      tester,
+      GuidedPrayerPage.routeFor(Prayer.fajr, part: 1),
+      withVoice: _FakeVoice(readiness: VoiceReadiness.basic),
+    );
+    await tester.tap(find.byTooltip('Sesli oku'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Ses verilerini yükle'), findsOneWidget);
+    expect(find.textContaining('yapay konuşma sesiyle'), findsOneWidget);
+
+    // İyi ses varken bu öneri gösterilmez.
+    await open(tester, GuidedPrayerPage.routeFor(Prayer.fajr, part: 1));
+    await tester.tap(find.byTooltip('Sesli oku'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Ses verilerini yükle'), findsNothing);
   });
 
   testWidgets('ekran açık kalır, sayfa kapanınca bırakılır', (tester) async {

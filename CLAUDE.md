@@ -22,7 +22,7 @@ Flutter + Riverpod + go_router. **Tamamen cihaz içi (offline-first) çalışır
 3. **Üç dil zorunlu.** Kullanıcıya görünen her metin
    `lib/core/localization/app_localizations.dart` içindeki `_strings` haritasına
    **`tr`, `en` ve `ar` için birlikte** eklenir. Şu an üç dilde de tam olarak
-   497 anahtar var; `localization_test.dart` bu pariteyi zorunlu kılar.
+   499 anahtar var; `localization_test.dart` bu pariteyi zorunlu kılar.
    Widget'ta düz string yazma; `context.l10n.text('key')` kullan.
 4. **RTL bozulmaz.** Arapça yön desteği `MaterialApp.supportedLocales` içindeki
    `Locale('ar')` + `GlobalWidgetsLocalizations.delegate` üzerinden otomatik gelir.
@@ -64,7 +64,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 51 dosyada 633 test var; hepsi geçmelidir.
+- Depoda şu an 52 dosyada 641 test var; hepsi geçmelidir.
   (`test/promo_shots_test.dart` sayıma girmez: `promo` etiketi
   `dart_test.yaml` ile atlanır, çünkü görüntüyü diske yazdıktan sonra
   koşucu kapanmıyor ve `flutter test` asılı kalırdı. Görselleri üretmek
@@ -239,7 +239,10 @@ flutter test --reporter expanded
   kuralı değiştirmeden önce kaynağını göster. Figür (`prayer_figure.dart`)
   eklem açılarıyla çizilir, uzuv boyları sabittir. Sesli okuma telefonun
   yapay sesidir (`flutter_tts`, internet yok) ve ekranda "tecvidli değildir"
-  denir; lisanslı insan kaydı gelirse `PrayerVoice`'un başka bir uygulaması
+  denir; `pickArabicVoice` telefonun en kaliteli YEREL Arapça sesini seçer
+  (internet isteyen ses metni sunucuya göndereceği için ALINMAZ), âyetler
+  satır satır ve arada soluk verilerek okunur; yalnızca temel ses varsa
+  daha iyisinin telefonun ayarlarında nereden indirileceği söylenir; lisanslı insan kaydı gelirse `PrayerVoice`'un başka bir uygulaması
   yazılır. Arapça ses yoksa söylenir, adımlar süreyle ilerler. Sayfa açıkken
   ekran kararmaz (`wakelock_plus`, win32 çakışması yüzünden <1.6.1).
   ConsumerState'in `dispose`'unda `ref` kullanılamaz: ses ve ekran nesneleri

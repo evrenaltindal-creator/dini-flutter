@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -21,6 +22,11 @@ final screenAwakeProvider = Provider<Future<void> Function(bool)>(
     } catch (_) {}
   },
 );
+
+/// Daha iyi Arapça sesin telefonun neresinden indirileceği.
+String get _voiceUpgradeKey => defaultTargetPlatform == TargetPlatform.iOS
+    ? 'hoca.voiceUpgrade.ios'
+    : 'hoca.voiceUpgrade.android';
 
 const _speedKey = 'dini.hoca.speed';
 const _voiceKey = 'dini.hoca.voice';
@@ -69,8 +75,8 @@ class _GuidedPrayerPageState extends ConsumerState<GuidedPrayerPage>
   double speed = 1;
   bool voiceOn = false;
 
-  /// Telefonda Arapça ses var mı? Sesli okuma ilk açıldığında öğrenilir.
-  bool? voiceAvailable;
+  /// Telefondaki Arapça sesin durumu; sesli okuma ilk açıldığında öğrenilir.
+  VoiceReadiness? readiness;
 
   /// Sesli okunan metnin adımdaki sırası; vurgulanır.
   int? speaking;
@@ -111,9 +117,9 @@ class _GuidedPrayerPageState extends ConsumerState<GuidedPrayerPage>
   }
 
   Future<void> _prepareVoice() async {
-    final available = await voice.prepare();
+    final value = await voice.prepare();
     if (!mounted) return;
-    setState(() => voiceAvailable = available);
+    setState(() => readiness = value);
   }
 
   @override
@@ -127,7 +133,10 @@ class _GuidedPrayerPageState extends ConsumerState<GuidedPrayerPage>
   }
 
   bool get _speaks =>
-      voiceOn && voiceAvailable == true && step.recitations.isNotEmpty;
+      voiceOn &&
+      readiness != null &&
+      readiness != VoiceReadiness.unavailable &&
+      step.recitations.isNotEmpty;
 
   /// O anki adımı baştan planlar: süre dolunca ya da okuma bitince geçer.
   void _schedule() {
@@ -215,7 +224,7 @@ class _GuidedPrayerPageState extends ConsumerState<GuidedPrayerPage>
     final next = !voiceOn;
     setState(() => voiceOn = next);
     await ref.read(localStorageProvider).write(_voiceKey, '$next');
-    if (next && voiceAvailable == null) await _prepareVoice();
+    if (next && readiness == null) await _prepareVoice();
     if (mounted) _schedule();
   }
 
@@ -241,6 +250,21 @@ class _GuidedPrayerPageState extends ConsumerState<GuidedPrayerPage>
     final theme = Theme.of(context);
     final posture = finished ? PrayerPosture.sitting : step.posture;
     final speedIndex = guidedSpeeds.indexOf(speed);
+    // Sesli okuma notu duaların üstünde, kaydırılan alanda durur: denetim
+    // kartına konsaydı uzun çevirilerde küçük ekranda taşardı.
+    final voiceNote = !voiceOn || readiness == null
+        ? null
+        : [
+            l10n.text(
+              readiness == VoiceReadiness.unavailable
+                  ? 'hoca.voiceMissing'
+                  : 'hoca.voiceNotice',
+            ),
+            // Temel ses robotik duyulur; daha doğalı telefonun ayarlarından
+            // ücretsiz indirilir.
+            if (readiness != VoiceReadiness.natural)
+              l10n.text(_voiceUpgradeKey),
+          ].join(' ');
 
     return BackdropScaffold(
       title: l10n.text('hoca.title'),
@@ -356,6 +380,7 @@ class _GuidedPrayerPageState extends ConsumerState<GuidedPrayerPage>
                           step: step,
                           showMeaning: showMeaning,
                           speaking: speaking,
+                          voiceNote: voiceNote,
                           onToggleMeaning: () =>
                               setState(() => showMeaning = !showMeaning),
                         ),
@@ -433,23 +458,6 @@ class _GuidedPrayerPageState extends ConsumerState<GuidedPrayerPage>
                           ),
                         ],
                       ),
-                      if (voiceOn)
-                        Padding(
-                          padding: const EdgeInsetsDirectional.fromSTEB(
-                            8,
-                            0,
-                            8,
-                            4,
-                          ),
-                          child: Text(
-                            l10n.text(
-                              voiceAvailable == false
-                                  ? 'hoca.voiceMissing'
-                                  : 'hoca.voiceNotice',
-                            ),
-                            style: theme.textTheme.bodySmall,
-                          ),
-                        ),
                     ],
                   ),
                 ),
@@ -467,6 +475,7 @@ class _RecitationPanel extends StatelessWidget {
   final GuidedStep step;
   final bool showMeaning;
   final int? speaking;
+  final String? voiceNote;
   final VoidCallback onToggleMeaning;
 
   const _RecitationPanel({
@@ -474,6 +483,7 @@ class _RecitationPanel extends StatelessWidget {
     required this.step,
     required this.showMeaning,
     required this.speaking,
+    required this.voiceNote,
     required this.onToggleMeaning,
   });
 
@@ -482,11 +492,32 @@ class _RecitationPanel extends StatelessWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
 
+    final note = voiceNote == null
+        ? null
+        : Padding(
+            padding: const EdgeInsetsDirectional.only(bottom: 10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.record_voice_over_outlined,
+                  size: 18,
+                  color: theme.colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(voiceNote!, style: theme.textTheme.bodySmall),
+                ),
+              ],
+            ),
+          );
+
     if (step.recitations.isEmpty) {
       // Niyet: kalpten edilir; cümlesi yol göstersin diye yazılır.
       return ListView(
         padding: const EdgeInsetsDirectional.all(18),
         children: [
+          ?note,
           Text(
             l10n.text('hoca.intentLabel'),
             style: theme.textTheme.titleSmall,
@@ -507,6 +538,7 @@ class _RecitationPanel extends StatelessWidget {
     return ListView(
       padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 16, 16),
       children: [
+        if (note != null) ...[const SizedBox(height: 10), note],
         AlignmentDirectionalButton(
           label: l10n.text(
             showMeaning ? 'hoca.hideMeaning' : 'hoca.showMeaning',
