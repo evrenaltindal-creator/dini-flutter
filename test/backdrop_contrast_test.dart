@@ -124,7 +124,7 @@ void main() {
     testWidgets('$name kipte takvim ızgarası okunur', (tester) async {
       await expectLightText(
         tester,
-        route: '/calendar',
+        route: '/calendar/month',
         platform: platform,
         area: find.byType(GridView),
         excluded: find.byKey(CalendarPage.selectedDayKey),

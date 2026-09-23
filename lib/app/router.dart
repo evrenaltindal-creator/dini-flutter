@@ -142,7 +142,16 @@ GoRouter createRouter({String initialLocation = '/'}) => GoRouter(
         ),
         StatefulShellBranch(
           routes: [
-            GoRoute(path: '/calendar', builder: (_, _) => const CalendarPage()),
+            // Takvime girince önce günün yaprağı gelir; aylık takvim üstteki
+            // geçişle açılır.
+            GoRoute(
+              path: DailyLeafPage.tabRoute,
+              builder: (_, _) => const DailyLeafPage(embedded: true),
+            ),
+            GoRoute(
+              path: DailyLeafPage.monthRoute,
+              builder: (_, _) => const CalendarPage(),
+            ),
           ],
         ),
         StatefulShellBranch(

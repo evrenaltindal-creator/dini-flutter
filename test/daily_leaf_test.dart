@@ -4,6 +4,7 @@ import 'package:dini_flutter/app/router.dart';
 import 'package:dini_flutter/core/storage/local_storage.dart';
 import 'package:dini_flutter/core/storage/storage_provider.dart';
 import 'package:dini_flutter/features/calendar/presentation/daily_leaf_page.dart';
+import 'package:dini_flutter/features/home/presentation/mosque_backdrop.dart';
 import 'package:dini_flutter/features/prayer_times/data/city_repository.dart';
 import 'package:dini_flutter/features/prayer_times/domain/timezone_service.dart';
 import 'package:dini_flutter/features/prayer_times/presentation/providers.dart';
@@ -170,11 +171,39 @@ void main() {
   }
 
   testWidgets('takvimden seçilen günün yaprağı açılır', (tester) async {
-    await open(tester, '/calendar');
+    await open(tester, '/calendar/month');
     await tester.ensureVisible(find.text('Takvim yaprağını aç'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Takvim yaprağını aç'));
     await tester.pumpAndSettle();
     expect(find.byType(DailyLeafPage), findsOneWidget);
+  });
+
+  testWidgets('takvim sekmesi önce yaprağı açar, geçişle ay gelir', (
+    tester,
+  ) async {
+    // Kullanıcı isteği: "takvim bölümünde ilk önce yaprak tarafı gelsin".
+    await open(tester, '/calendar');
+    expect(find.byKey(DailyLeafPage.paperKey), findsOneWidget);
+    expect(find.byType(CalendarModeSwitch), findsOneWidget);
+    expect(find.byType(GridView), findsNothing);
+
+    await tester.tap(find.text('Aylık takvim'));
+    await tester.pumpAndSettle();
+    expect(find.byType(GridView), findsOneWidget);
+    expect(find.byKey(DailyLeafPage.paperKey), findsNothing);
+
+    await tester.tap(find.text('Günün yaprağı'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(DailyLeafPage.paperKey), findsOneWidget);
+  });
+
+  testWidgets('sekmedeki yaprak ikinci bir cami perdesi çizmez', (
+    tester,
+  ) async {
+    // Sekme kabuğu perdeyi zaten çiziyor; ikincisi sahneyi koyulaştırırdı.
+    await open(tester, '/calendar');
+    expect(find.byType(MosqueBackdrop), findsOneWidget);
+    expect(find.byType(BackdropScaffold), findsNothing);
   });
 }

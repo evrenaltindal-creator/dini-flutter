@@ -64,7 +64,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 52 dosyada 643 test var; hepsi geçmelidir.
+- Depoda şu an 52 dosyada 647 test var; hepsi geçmelidir.
   (`test/promo_shots_test.dart` sayıma girmez: `promo` etiketi
   `dart_test.yaml` ile atlanır, çünkü görüntüyü diske yazdıktan sonra
   koşucu kapanmıyor ve `flutter test` asılı kalırdı. Görselleri üretmek
@@ -219,6 +219,11 @@ flutter test --reporter expanded
   manyetik kuzeye göre ölçer; `MagneticDeclinationService` farkı
   `GeomagneticField` üzerinden kapatır. iOS zaten `trueHeading` verir.
   Bu ayrımı kaldırma, ok birkaç derece kayar.
+- **Takvim sekmesi önce günün yaprağını açar** (`/calendar` →
+  `DailyLeafPage(embedded: true)`); aylık ızgara `/calendar/month`'tadır,
+  üstteki `CalendarModeSwitch` ikisi arasında geçer. Sekmedeki yaprak
+  `BackdropScaffold` KULLANMAZ: kabuk perdeyi zaten çizer, ikincisi sahneyi
+  koyulaştırırdı (testi var).
 - **Günün takvim yaprağı** (`/leaf`, `/leaf/:tarih`;
   `features/calendar/presentation/daily_leaf_page.dart`). Rumi tarih
   geleneksel Jülyen tabanlı hesaptır (yıl Mart'ta başlar, Jülyen yılı − 584);

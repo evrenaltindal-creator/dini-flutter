@@ -33,6 +33,7 @@ const routes = [
   '/quran',
   '/worship',
   '/calendar',
+  '/calendar/month',
   '/settings',
   '/premium',
   '/privacy',

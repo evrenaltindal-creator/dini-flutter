@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/localization/app_localizations.dart';
 import '../../../shared/models/domain.dart';
@@ -34,7 +35,16 @@ class DailyLeafPage extends ConsumerStatefulWidget {
   /// Açılacak gün; verilmezse seçilen şehrin bugünü.
   final DateTime? initialDate;
 
-  const DailyLeafPage({super.key, this.initialDate});
+  /// Takvim sekmesinin içinde mi? Sekme kabuğu cami perdesini ve
+  /// Scaffold'u zaten çizer; ikinci perde sahneyi koyulaştırırdı. Sekmede
+  /// üstte "Günün yaprağı / Aylık takvim" geçişi durur.
+  final bool embedded;
+
+  const DailyLeafPage({super.key, this.initialDate, this.embedded = false});
+
+  /// Takvim sekmesinin yolları: önce yaprak, sonra aylık takvim.
+  static const tabRoute = '/calendar';
+  static const monthRoute = '/calendar/month';
 
   /// Yaprağın kağıdı; testler karşıtlığı buradan ölçer.
   static const paperKey = ValueKey('daily-leaf-paper');
@@ -107,18 +117,30 @@ class _DailyLeafPageState extends ConsumerState<DailyLeafPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final pages = PageView.builder(
+      controller: controller,
+      itemBuilder: (context, index) => _Leaf(
+        date: _dateAt(index),
+        onPrevious: () => _turn(-1),
+        onNext: () => _turn(1),
+      ),
+    );
+    if (widget.embedded) {
+      return SafeArea(
+        child: Column(
+          children: [
+            const Padding(
+              padding: EdgeInsetsDirectional.fromSTEB(16, 12, 16, 0),
+              child: CalendarModeSwitch(showingLeaf: true),
+            ),
+            Expanded(child: pages),
+          ],
+        ),
+      );
+    }
     return BackdropScaffold(
       title: l10n.text('leaf.title'),
-      body: SafeArea(
-        child: PageView.builder(
-          controller: controller,
-          itemBuilder: (context, index) => _Leaf(
-            date: _dateAt(index),
-            onPrevious: () => _turn(-1),
-            onNext: () => _turn(1),
-          ),
-        ),
-      ),
+      body: SafeArea(child: pages),
     );
   }
 }
@@ -366,4 +388,40 @@ class _DateLine extends StatelessWidget {
       ],
     ),
   );
+}
+
+/// Takvim sekmesinin üstündeki geçiş: günün yaprağı ya da aylık takvim.
+///
+/// Kullanıcı isteği: takvime girince önce yaprak gelsin.
+class CalendarModeSwitch extends StatelessWidget {
+  final bool showingLeaf;
+
+  const CalendarModeSwitch({super.key, required this.showingLeaf});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return SizedBox(
+      width: double.infinity,
+      child: SegmentedButton<bool>(
+        showSelectedIcon: false,
+        segments: [
+          ButtonSegment(
+            value: true,
+            icon: const Icon(Icons.auto_stories_outlined),
+            label: Text(l10n.text('leaf.title')),
+          ),
+          ButtonSegment(
+            value: false,
+            icon: const Icon(Icons.calendar_month_outlined),
+            label: Text(l10n.text('calendar.monthView')),
+          ),
+        ],
+        selected: {showingLeaf},
+        onSelectionChanged: (value) => context.go(
+          value.first ? DailyLeafPage.tabRoute : DailyLeafPage.monthRoute,
+        ),
+      ),
+    );
+  }
 }

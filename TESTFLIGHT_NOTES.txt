@@ -2,6 +2,8 @@ Namaz Yolu — Apple Watch, takvim yaprağı ve düzeltmeler.
 Lansman döneminde tam sürüm: her şey açık, satın alma yok.
 
 Yeni:
+- Takvim sekmesi artık önce günün yaprağıyla açılır; üstteki "Aylık takvim"
+  düğmesiyle ay görünümüne geçilir.
 - Ezan sesi: uygulama açılırken tekbirin yerine ezanın ilk 5 saniyesi
   çalar; normal sesle başlar, kısılarak biter (telefon sessizdeyse çalmaz).
   Ayarlar → Bildirimler'de bildirim sesi olarak "Ezan" da seçilebilir.

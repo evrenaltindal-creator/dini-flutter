@@ -44,6 +44,9 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
       child: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          // Yaprak takvim sekmesinin ilk sayfasıdır; buradan geri dönülür.
+          const CalendarModeSwitch(showingLeaf: false),
+          const SizedBox(height: 16),
           // Bu ekranın başlığı, ızgarası ve açıklaması kart içinde değil,
           // doğrudan cami perdesinin üstünde duruyor; temanın koyu yazı
           // renkleriyle aydınlık kipte okunmuyorlardı.
@@ -208,12 +211,6 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
             onPressed: () => context.push('/imsakiye'),
             icon: const Icon(Icons.schedule_outlined),
             label: Text(l10n.text('imsakiye.open')),
-          ),
-          const SizedBox(height: 8),
-          FilledButton.tonalIcon(
-            onPressed: () => context.push('/leaf'),
-            icon: const Icon(Icons.auto_stories_outlined),
-            label: Text(l10n.text('leaf.today')),
           ),
           const SizedBox(height: 16),
           _selectedPanel(context),
