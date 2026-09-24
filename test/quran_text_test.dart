@@ -200,8 +200,9 @@ void main() {
       expect(result.exitCode, 0, reason: '${result.stderr}');
       final out = File('${root.path}/${QuranText.asset}').readAsBytesSync();
       expect(utf8.decode(gzip.decode(out)), raw);
-      // Zaman damgasız: aynı girdi, depodakiyle bayt bayt aynı çıktı.
-      expect(out, bytes);
+      // Sıkıştırılmış baytlar karşılaştırılmaz: zlib sürümü değişince
+      // (CI'daki macOS) aynı içerik başka baytlara sıkışır. İçerik ve
+      // kaynak notundaki özetler aynı olmalı.
       expect(
         File('${root.path}/assets/quran/SOURCE.txt').readAsStringSync(),
         File('assets/quran/SOURCE.txt').readAsStringSync(),
