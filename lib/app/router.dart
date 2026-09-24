@@ -1163,6 +1163,10 @@ class AboutPage extends StatelessWidget {
       const SizedBox(height: 12),
       // CC BY lisansının tek şartı atıftır: kaydın sahibi burada yazmalı.
       Text(context.l10n.text('about.ezan')),
+      const SizedBox(height: 12),
+      // Tanzil'in şartı: kaynak açıkça yazılır ve tanzil.net'e bağlantı
+      // verilir ki kullanıcı metindeki düzeltmeleri izleyebilsin.
+      Text(context.l10n.text('about.quran')),
     ],
   );
 }

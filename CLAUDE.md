@@ -22,7 +22,7 @@ Flutter + Riverpod + go_router. **Tamamen cihaz içi (offline-first) çalışır
 3. **Üç dil zorunlu.** Kullanıcıya görünen her metin
    `lib/core/localization/app_localizations.dart` içindeki `_strings` haritasına
    **`tr`, `en` ve `ar` için birlikte** eklenir. Şu an üç dilde de tam olarak
-   500 anahtar var; `localization_test.dart` bu pariteyi zorunlu kılar.
+   501 anahtar var; `localization_test.dart` bu pariteyi zorunlu kılar.
    Widget'ta düz string yazma; `context.l10n.text('key')` kullan.
 4. **RTL bozulmaz.** Arapça yön desteği `MaterialApp.supportedLocales` içindeki
    `Locale('ar')` + `GlobalWidgetsLocalizations.delegate` üzerinden otomatik gelir.
@@ -64,7 +64,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 54 dosyada 657 test var; hepsi geçmelidir.
+- Depoda şu an 55 dosyada 669 test var; hepsi geçmelidir.
   (`test/promo_shots_test.dart` sayıma girmez: `promo` etiketi
   `dart_test.yaml` ile atlanır, çünkü görüntüyü diske yazdıktan sonra
   koşucu kapanmıyor ve `flutter test` asılı kalırdı. Görselleri üretmek
@@ -113,6 +113,17 @@ flutter test --reporter expanded
   tamamlar; kenarlara dokunmak da çevirir. Sürükleme başlarken çekilen
   mesafe SIFIRLANMAZ, yoksa ilk hareket kaybolup sayfa geri düşüyordu.
   Sayfalar Medine Mushaf'ının 604 sayfası olacak (Tanzil sayfa verisi).
+- **Kuran metni geldi ama tek harfine dokunulmaz.** Tanzil Uthmani 1.1
+  (CC BY 3.0) `tool/import_quran.py` ile girer: dosya telif bloğuyla
+  birlikte OLDUĞU GİBİ gzip'lenir (`assets/quran/quran-uthmani.txt.gz`),
+  özeti `assets/quran/SOURCE.txt`'dedir ve test tek hareke değişse bile
+  düşer. Hakkında'daki `about.quran` Tanzil'i ve tanzil.net'i üç dilde
+  yazar (lisans şartı). Tanzil Besmele'yi 1. âyetin başına yazar;
+  `basmalaOf`/`ayahBody` gösterirken ilk dört kelimeyi ayırır (Tîn ve
+  Kadr'de "بِّسْمِ" şeddelidir). Testte Arapça beklenenleri kod noktasıyla
+  yaz: elle yazılan Arapçada hareke sırası farklı çıkıyor. Sûre adları ve
+  sayfa sınırları için `quran-data.xml`, mealler için Elmalılı ve
+  Pickthall dosyaları henüz gelmedi; tanzil.net bu ortamdan erişilemiyor.
 - `main.dart` özel bir `LocalizationsDelegate` kaydetmez; `AppLocalizations`
   doğrudan `Localizations.localeOf(context)` okur. Bu tasarımı bozma.
 - `SharedPreferences` doğrudan widget'larda kullanılmaz; `LocalStorage` üzerinden

@@ -60,6 +60,8 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  # Kuran metninin Tanzil'den alındığı gibi durduğunu özetiyle denetler.
+  crypto: ^3.0.6
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -84,6 +86,7 @@ flutter:
     - assets/guides/
     - assets/audio/
     - assets/data/
+    - assets/quran/
     # Yazı tipi lisansı yazı tipiyle birlikte dağıtılmalı (OFL 1.1).
     - assets/fonts/OFL-Amiri.txt
 

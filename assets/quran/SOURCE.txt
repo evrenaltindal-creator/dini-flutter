@@ -1,0 +1,9 @@
+Kuran metni
+Kaynak: Tanzil Projesi — https://tanzil.net
+Metin: Tanzil Quran Text (Uthmani, Version 1.1)
+Lisans: Creative Commons Atıf 3.0 (CC BY 3.0)
+Şartlar: metin değiştirilmeden kullanılır, kaynak açıkça
+yazılır ve tanzil.net'e bağlantı verilir (Hakkında sayfası:
+about.quran). Telif bloğu sıkıştırılmış dosyanın içindedir.
+Dosya: assets/quran/quran-uthmani.txt.gz (gzip, içerik değiştirilmedi)
+SHA-256 (sıkıştırılmamış): 7f30c647331a61100ebf24a80507dc0fcdd9f2df97f1312b5b2dfcb982a7f326
