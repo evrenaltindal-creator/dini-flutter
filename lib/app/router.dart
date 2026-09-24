@@ -35,11 +35,14 @@ import '../features/widgets/data/widget_snapshot_builder.dart';
 import '../features/watch/data/watch_schedule_builder.dart';
 import '../features/widgets/domain/widget_snapshot.dart';
 import '../features/premium/presentation/premium_page.dart';
-import '../features/quran/presentation/quran_coming_soon_page.dart';
 import '../features/info/diyanet_flow.dart';
 import '../features/audio/presentation/opening_takbir.dart';
 import '../features/calendar/presentation/daily_leaf_page.dart';
+import '../features/quran/data/quran_book.dart';
 import '../features/quran/presentation/book_opening.dart';
+import '../features/quran/presentation/quran_home_page.dart';
+import '../features/quran/presentation/quran_meal_page.dart';
+import '../features/quran/presentation/quran_reader_page.dart';
 import '../features/worship/presentation/guided_prayer_page.dart';
 import '../features/worship/presentation/prayer_guide_view.dart';
 import '../features/worship/presentation/worship_hub_page.dart';
@@ -138,8 +141,23 @@ GoRouter createRouter({String initialLocation = '/'}) => GoRouter(
           routes: [
             GoRoute(
               path: '/quran',
-              builder: (_, _) =>
-                  const BookOpening(child: QuranComingSoonPage()),
+              builder: (_, _) => const BookOpening(child: QuranHomePage()),
+              routes: [
+                GoRoute(
+                  path: 'page/:page',
+                  builder: (_, state) => QuranReaderPage(
+                    initialPage:
+                        int.tryParse(state.pathParameters['page']!) ?? 1,
+                  ),
+                ),
+                GoRoute(
+                  path: 'surah/:surah',
+                  builder: (_, state) => QuranMealPage(
+                    surah: (int.tryParse(state.pathParameters['surah']!) ?? 1)
+                        .clamp(1, 114),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -1167,6 +1185,10 @@ class AboutPage extends StatelessWidget {
       // Tanzil'in şartı: kaynak açıkça yazılır ve tanzil.net'e bağlantı
       // verilir ki kullanıcı metindeki düzeltmeleri izleyebilsin.
       Text(context.l10n.text('about.quran')),
+      for (final id in quranTranslations.values) ...[
+        const SizedBox(height: 12),
+        Text(context.l10n.text('quran.source.$id')),
+      ],
     ],
   );
 }

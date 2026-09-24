@@ -22,7 +22,7 @@ Flutter + Riverpod + go_router. **Tamamen cihaz içi (offline-first) çalışır
 3. **Üç dil zorunlu.** Kullanıcıya görünen her metin
    `lib/core/localization/app_localizations.dart` içindeki `_strings` haritasına
    **`tr`, `en` ve `ar` için birlikte** eklenir. Şu an üç dilde de tam olarak
-   501 anahtar var; `localization_test.dart` bu pariteyi zorunlu kılar.
+   512 anahtar var; `localization_test.dart` bu pariteyi zorunlu kılar.
    Widget'ta düz string yazma; `context.l10n.text('key')` kullan.
 4. **RTL bozulmaz.** Arapça yön desteği `MaterialApp.supportedLocales` içindeki
    `Locale('ar')` + `GlobalWidgetsLocalizations.delegate` üzerinden otomatik gelir.
@@ -64,7 +64,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 55 dosyada 669 test var; hepsi geçmelidir.
+- Depoda şu an 56 dosyada 699 test var; hepsi geçmelidir.
   (`test/promo_shots_test.dart` sayıma girmez: `promo` etiketi
   `dart_test.yaml` ile atlanır, çünkü görüntüyü diske yazdıktan sonra
   koşucu kapanmıyor ve `flutter test` asılı kalırdı. Görselleri üretmek
@@ -97,33 +97,43 @@ flutter test --reporter expanded
 - `lib/app/router.dart` 979 satırdır; `HomePage`, `SettingsPage`, `PrivacyPage`,
   `AboutPage` ve `PlaceholderPage` bu dosyanın içindedir. Yeni büyük ekranı
   buraya gömme, `lib/features/<alan>/presentation/` altına aç ve router'dan bağla.
-- **`/quran` rotası `BookOpening(QuranComingSoonPage)`'tir.** Kuran ekranı
-  Tanzil metni (Uthmani) + Elmalılı (tr) + Pickthall (en) dosyaları gelince
-  yazılacak; tasarımın bileşenleri `quran_style.dart`'ta hazır (tezhipli
-  çerçeve, sûre kartuşu, Rub'ul-hizb madalyon, âyet sonu ۝). Yazı tipleri
-  Amiri Quran + Amiri Bold (OFL, `assets/fonts/`). **Kitap açılışı:**
-  sekmeye her girişte kapalı Mushaf görünür, kapak SOLDAKİ sırtı üzerinde
-  sola açılır (kullanıcı kararı: normal kitap gibi; basılı Mushaf sağdan
-  açılsa da); sekme çubuğu `quranOpenedProvider`'ı
-  artırarak tetikler, çünkü sekme durumu korunur ve sayfa yeniden
-  kurulmaz. Dokununca geçer, "hareketi azalt" açıksa oynamaz; testi var.
-  **Sayfa çevirme** (`page_turner.dart`, Mushaf kipi için; meal kipi
-  kaydırmalıdır): cilt solda, sayfa sola çekilince sol kenarı üzerinde
-  döner; yarıda bırakılırsa geri düşer, %35 ya da hızlı fırlatma
-  tamamlar; kenarlara dokunmak da çevirir. Sürükleme başlarken çekilen
-  mesafe SIFIRLANMAZ, yoksa ilk hareket kaybolup sayfa geri düşüyordu.
-  Sayfalar Medine Mushaf'ının 604 sayfası olacak (Tanzil sayfa verisi).
-- **Kuran metni geldi ama tek harfine dokunulmaz.** Tanzil Uthmani 1.1
-  (CC BY 3.0) `tool/import_quran.py` ile girer: dosya telif bloğuyla
-  birlikte OLDUĞU GİBİ gzip'lenir (`assets/quran/quran-uthmani.txt.gz`),
-  özeti `assets/quran/SOURCE.txt`'dedir ve test tek hareke değişse bile
-  düşer. Hakkında'daki `about.quran` Tanzil'i ve tanzil.net'i üç dilde
-  yazar (lisans şartı). Tanzil Besmele'yi 1. âyetin başına yazar;
-  `basmalaOf`/`ayahBody` gösterirken ilk dört kelimeyi ayırır (Tîn ve
-  Kadr'de "بِّسْمِ" şeddelidir). Testte Arapça beklenenleri kod noktasıyla
-  yaz: elle yazılan Arapçada hareke sırası farklı çıkıyor. Sûre adları ve
-  sayfa sınırları için `quran-data.xml`, mealler için Elmalılı ve
-  Pickthall dosyaları henüz gelmedi; tanzil.net bu ortamdan erişilemiyor.
+- **Kuran sekmesi** (`features/quran/`): `/quran` → `BookOpening(QuranHomePage)`
+  (kaldığın yer, Sûreler/Cüzler), `/quran/page/:n` Mushaf (604 sayfa,
+  `PageTurner`), `/quran/surah/:n` meal kipi (kaydırmalı). Tasarım
+  `quran_style.dart`'ta (tezhipli çerçeve, sûre kartuşu, ۝ âyet sonu);
+  yazı tipleri Amiri Quran + Amiri Bold (OFL). **Kitap açılışı:** sekmeye
+  her girişte kapak SOLDAKİ sırtı üzerinde sola açılır (kullanıcı kararı:
+  normal kitap gibi); sekme çubuğu `quranOpenedProvider`'ı artırır, çünkü
+  sekme durumu korunur. **Sayfa çevirme:** cilt solda, %35 ya da hızlı
+  fırlatma tamamlar, kenara dokunmak çevirir; sürükleme başlarken çekilen
+  mesafe SIFIRLANMAZ. **Mushaf sayfası** (`mushaf_page.dart`) âyetleri
+  sığacak en büyük boyla yazar (16–30, ikili arama, sonuç saklanır).
+  Ölçüm ile çizim aynı biçimi görmeli: sayfa temanın `DefaultTextStyle`'ını
+  SIFIRLAR (temanın harf aralığı ölçümü bozup Nâs'ı çerçeveden taşırmıştı)
+  ve yazı büyütmesini kapatır; sayfadaki sûre başlığı yazıyla küçülür ve
+  altyazısızdır, yoksa üç sûreli 604. sayfa sığmaz. Testte gerçek yazı
+  tipi yüklenir (test yazı tipi her harfi kare çizer). Sayfanın cüzü SON
+  âyetine göredir (4., 7., 11. ve 26. cüz sayfa ortasında başlar).
+  Kitap `quranBookProvider`'dan gelir ve `compute` ile açılır; testin sahte
+  saati bunu bitirmez, testler `test/quran_fixture.dart` ile diskten
+  yükleyip sağlayıcıyı değiştirir. Yükleniyor yer tutucusu bilerek
+  dönmeyen bir simgedir (dönen çark `pumpAndSettle`'ı bitirmez).
+- **Kuran dosyalarının tek harfine dokunulmaz.** Tanzil Uthmani 1.1 metni,
+  `quran-data.xml` üst verisi ve mealler (CC BY) `tool/import_quran.py`
+  ile girer: denetlenir (114 sûre, 6236 âyet, 604 sayfa, 30 cüz, 240
+  çeyrek; üst veri metinle tutmalı), OLDUĞU GİBİ gzip'lenir, özetleri
+  `assets/quran/SOURCE.txt`'dedir; test paketteki her `.gz` dosyasını
+  özetiyle karşılaştırır, tek hareke değişse düşer. `about.quran` ve her
+  meal için `quran.source.<kimlik>` Hakkında'da üç dilde yazar (lisans
+  şartı). Besmele'yi Tanzil 1. âyetin başına yazar; `basmalaOf` /
+  `ayahBody` gösterirken ilk dört kelimeyi ayırır. Testte Arapça
+  beklenenleri kod noktasıyla yaz: elle yazılan Arapçada hareke sırası
+  farklı çıkıyor. **Meal yalnızca telifi açık olan dilde:**
+  `quranTranslations` şu an yalnızca `en.pickthall` (1930). Tanzil'in
+  Elmalılı dosyası (`tr.yazir`) bugünkü Türkçeyle ve açıklamalı; 1935
+  aslı mı sadeleştirilmiş (ayrıca telifli) baskı mı netleşmeden pakete
+  GİRMEZ. Türkçe sûre adları `surah_names.dart`'tadır (Tanzil vermiyor).
+  tanzil.net bu ortamdan erişilemiyor; dosyaları kullanıcı gönderir.
 - `main.dart` özel bir `LocalizationsDelegate` kaydetmez; `AppLocalizations`
   doğrudan `Localizations.localeOf(context)` okur. Bu tasarımı bozma.
 - `SharedPreferences` doğrudan widget'larda kullanılmaz; `LocalStorage` üzerinden

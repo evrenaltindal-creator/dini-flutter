@@ -1,9 +1,14 @@
-Namaz Yolu — Apple Watch, takvim yaprağı ve düzeltmeler.
+Namaz Yolu — Kur'an-ı Kerim, Apple Watch, takvim yaprağı ve düzeltmeler.
 Lansman döneminde tam sürüm: her şey açık, satın alma yok.
 
 Yeni:
-- Kuran sekmesine basınca kapalı bir Mushaf görünür ve kapağı normal bir kitap gibi
-  açılır (dokununca hemen geçer). Kuran metni ve meal sonraki sürümde.
+- Kur'an-ı Kerim: Kuran sekmesinde kapak açılır, sûreler ve cüzler listelenir.
+  Bir sûreye dokunun: Medine Mushaf'ının o sayfası açılır (604 sayfa, basılı
+  Mushaf'la aynı). Sayfayı parmakla sola çekerek ya da kenarına dokunarak
+  kitap gibi çevirin. Kaldığınız sayfa saklanır, "Kaldığın yerden devam et"
+  ile döner. Metin: Tanzil Projesi (Uthmani). İngilizce dilde meal
+  (Pickthall) üstteki düğmeyle açılır; Türkçe meal sonraki sürümde.
+  Lütfen bakın: yazı okunaklı mı, sayfalar kitapla aynı mı?
 - Takvim sekmesi artık önce günün yaprağıyla açılır; üstteki "Aylık takvim"
   düğmesiyle ay görünümüne geçilir.
 - Ezan sesi: uygulama açılırken tekbirin yerine ezanın ilk 5 saniyesi

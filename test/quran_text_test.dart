@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:dini_flutter/core/localization/app_localizations.dart';
+import 'package:dini_flutter/features/quran/data/quran_book.dart';
+import 'package:dini_flutter/features/quran/data/quran_meta.dart';
 import 'package:dini_flutter/features/quran/data/quran_text.dart';
 import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
@@ -22,6 +24,35 @@ void main() {
       expect(quran.ayahsIn(36), 83); // Yâsîn
       expect(quran.ayahsIn(112), 4); // İhlâs
       expect(quran.ayahsIn(114), 6); // Nâs
+    });
+
+    test('pakete giren her Kuran dosyası kaynak notundaki özetle aynı', () {
+      // Metin, üst veri ve mealler: hiçbirine elle dokunulmaz.
+      final note = File('assets/quran/SOURCE.txt').readAsStringSync();
+      final entries = RegExp(
+        r'Dosya: (\S+) \(gzip[^\n]*\nSHA-256 \(sıkıştırılmamış\): ([0-9a-f]{64})',
+      ).allMatches(note).toList();
+      final listed = {for (final e in entries) e.group(1)!};
+      expect(listed, {
+        QuranText.asset,
+        QuranMeta.asset,
+        for (final id in quranTranslations.values) translationAsset(id),
+      });
+      for (final entry in entries) {
+        final data = gzip.decode(File(entry.group(1)!).readAsBytesSync());
+        expect(
+          sha256.convert(data).toString(),
+          entry.group(2),
+          reason: entry.group(1),
+        );
+      }
+      // Pakette notta yazmayan dosya yok.
+      final packaged = Directory('assets/quran')
+          .listSync()
+          .map((f) => f.path.replaceAll(r'\', '/'))
+          .where((path) => path.endsWith('.gz'))
+          .toSet();
+      expect(packaged, listed);
     });
 
     test('Tanzil dosyası harfi harfine: özet kaynak notuyla aynı', () {
@@ -136,17 +167,29 @@ void main() {
 
   group('tool/import_quran.py', () {
     late Directory root;
-    late File input;
+    late File input, meta, translation;
+    final rawMeta = utf8.decode(
+      gzip.decode(File(QuranMeta.asset).readAsBytesSync()),
+    );
+    final rawEnglish = utf8.decode(
+      gzip.decode(File(translationAsset('en.pickthall')).readAsBytesSync()),
+    );
 
     setUp(() {
       root = Directory.systemTemp.createTempSync('quran');
       input = File('${root.path}/quran-uthmani.txt');
+      meta = File('${root.path}/quran-data.xml')..writeAsStringSync(rawMeta);
+      translation = File('${root.path}/en.pickthall.txt')
+        ..writeAsStringSync(rawEnglish);
     });
     tearDown(() => root.deleteSync(recursive: true));
 
     Future<ProcessResult> run() => Process.run('python3', [
       'tool/import_quran.py',
       input.path,
+      meta.path,
+      '--translation',
+      translation.path,
       '--root',
       root.path,
     ]);
@@ -174,6 +217,28 @@ void main() {
 
       input.writeAsStringSync(
         lines.where((line) => !line.startsWith('#')).join('\n'),
+      );
+      expect((await run()).exitCode, isNot(0));
+      expect(File('${root.path}/${QuranText.asset}').existsSync(), isFalse);
+    }, skip: _python ? false : 'python3 yok');
+
+    test('metinle tutmayan üst veriyi ve eksik meali reddeder', () async {
+      input.writeAsStringSync(raw);
+      // Bakara 286 değil 285 âyet diyen üst veri.
+      meta.writeAsStringSync(rawMeta.replaceFirst('ayas="286"', 'ayas="285"'));
+      expect((await run()).exitCode, isNot(0));
+      // Bir sayfası eksik üst veri.
+      meta.writeAsStringSync(
+        rawMeta.replaceFirst('<page index="300"', '<!-- page index="300"'),
+      );
+      expect((await run()).exitCode, isNot(0));
+
+      meta.writeAsStringSync(rawMeta);
+      translation.writeAsStringSync(
+        rawEnglish
+            .split('\n')
+            .where((line) => !line.startsWith('112|2|'))
+            .join('\n'),
       );
       expect((await run()).exitCode, isNot(0));
       expect(File('${root.path}/${QuranText.asset}').existsSync(), isFalse);

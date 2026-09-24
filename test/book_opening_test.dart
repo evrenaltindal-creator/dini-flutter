@@ -7,7 +7,7 @@ import 'package:dini_flutter/features/prayer_times/data/city_repository.dart';
 import 'package:dini_flutter/features/prayer_times/domain/timezone_service.dart';
 import 'package:dini_flutter/features/prayer_times/presentation/providers.dart';
 import 'package:dini_flutter/features/quran/presentation/book_opening.dart';
-import 'package:dini_flutter/features/quran/presentation/quran_coming_soon_page.dart';
+import 'package:dini_flutter/features/quran/presentation/quran_home_page.dart';
 import 'package:dini_flutter/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -72,7 +72,7 @@ void main() {
     await tester.pump(BookOpening.duration);
     await tester.pumpAndSettle();
     expect(cover, findsNothing);
-    expect(find.byType(QuranComingSoonPage), findsOneWidget);
+    expect(find.byType(QuranHomePage), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -89,7 +89,7 @@ void main() {
     await open(tester, '/quran', reduceMotion: true);
     await tester.pump();
     expect(cover, findsNothing);
-    expect(find.byType(QuranComingSoonPage), findsOneWidget);
+    expect(find.byType(QuranHomePage), findsOneWidget);
   });
 
   testWidgets('sekmeye her dönüşte kitap yeniden açılır', (tester) async {

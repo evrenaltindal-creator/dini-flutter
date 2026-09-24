@@ -1,13 +1,21 @@
 import 'package:dini_flutter/core/localization/app_localizations.dart';
 import 'package:dini_flutter/features/premium/domain/premium.dart';
 import 'package:dini_flutter/features/premium/presentation/premium_page.dart';
-import 'package:dini_flutter/features/quran/presentation/quran_coming_soon_page.dart';
+import 'package:dini_flutter/features/quran/data/quran_book.dart';
+import 'package:dini_flutter/features/quran/presentation/quran_home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-Widget _app(Widget home, {String languageCode = 'tr'}) => ProviderScope(
+import 'quran_fixture.dart';
+
+Widget _app(
+  Widget home, {
+  String languageCode = 'tr',
+  List<Override> overrides = const [],
+}) => ProviderScope(
+  overrides: overrides,
   child: MaterialApp(
     locale: Locale(languageCode),
     supportedLocales: AppLocalizations.supportedLocales,
@@ -63,13 +71,23 @@ void main() {
     expect(find.byType(TextButton), findsNothing);
   });
 
-  group('Quran coming soon screen', () {
-    testWidgets('explains that the section is not ready yet', (tester) async {
-      await tester.pumpWidget(_app(const QuranComingSoonPage()));
+  group('Quran home screen', () {
+    late QuranBook book;
+    setUpAll(() async => book = await loadQuranBookFromDisk());
+
+    Widget quran({String languageCode = 'tr'}) => _app(
+      const QuranHomePage(),
+      languageCode: languageCode,
+      overrides: [quranBookProvider.overrideWith((ref) => book)],
+    );
+
+    testWidgets('lists the surahs by their Turkish names', (tester) async {
+      await tester.pumpWidget(quran());
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      expect(find.text('Kuran ekranı yakında'), findsOneWidget);
+      expect(find.text('Fâtiha'), findsOneWidget);
+      expect(find.text('Bakara'), findsOneWidget);
     });
 
     for (final language in ['tr', 'en', 'ar']) {
@@ -77,9 +95,7 @@ void main() {
         await tester.binding.setSurfaceSize(const Size(320, 900));
         addTearDown(() => tester.binding.setSurfaceSize(null));
 
-        await tester.pumpWidget(
-          _app(const QuranComingSoonPage(), languageCode: language),
-        );
+        await tester.pumpWidget(quran(languageCode: language));
         await tester.pumpAndSettle();
 
         expect(tester.takeException(), isNull);
@@ -87,15 +103,14 @@ void main() {
     }
 
     testWidgets('keeps right-to-left in Arabic', (tester) async {
-      await tester.pumpWidget(
-        _app(const QuranComingSoonPage(), languageCode: 'ar'),
-      );
+      await tester.pumpWidget(quran(languageCode: 'ar'));
       await tester.pumpAndSettle();
 
       expect(
-        Directionality.of(tester.element(find.byType(QuranComingSoonPage))),
+        Directionality.of(tester.element(find.byType(QuranHomePage))),
         TextDirection.rtl,
       );
+      expect(find.text('الفاتحة'), findsWidgets);
     });
   });
 }

@@ -31,6 +31,8 @@ late final String _citiesJson;
 const routes = [
   '/',
   '/quran',
+  '/quran/page/42',
+  '/quran/surah/2',
   '/worship',
   '/calendar',
   '/calendar/month',

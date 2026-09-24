@@ -107,6 +107,10 @@ class StarMedallion extends StatelessWidget {
   final Color fill;
   final Color text;
 
+  /// Arap-Hint rakamları için [quranTitleFamily] verilir: her yazı tipinde
+  /// bu rakamlar yoktur.
+  final String? fontFamily;
+
   const StarMedallion({
     super.key,
     required this.label,
@@ -114,6 +118,7 @@ class StarMedallion extends StatelessWidget {
     this.stroke = QuranPalette.gold,
     this.fill = QuranPalette.cream,
     this.text = QuranPalette.green,
+    this.fontFamily,
   });
 
   @override
@@ -126,6 +131,7 @@ class StarMedallion extends StatelessWidget {
           label,
           style: TextStyle(
             color: text,
+            fontFamily: fontFamily,
             fontSize: size * (label.length > 2 ? .26 : .32),
             fontWeight: FontWeight.w700,
           ),
@@ -237,67 +243,79 @@ class SurahHeader extends StatelessWidget {
   /// "سورة الفاتحة"
   final String arabicName;
 
-  /// "Fâtiha Sûresi · Mekkî · 7 âyet"
-  final String caption;
+  /// "Fâtiha Sûresi · Mekkî · 7 âyet"; Mushaf sayfasında yoktur (basılı
+  /// Mushaf'ta olduğu gibi yalnızca kartuş), sûre listesinde ve mealde var.
+  final String? caption;
+
+  /// Kartuşun yüksekliği; ad ve yıldızlar onunla ölçeklenir. Mushaf
+  /// sayfasında yazı boyuna göre küçülür ki üç sûrelik son sayfa sığsın.
+  final double height;
 
   const SurahHeader({
     super.key,
     required this.arabicName,
-    required this.caption,
+    this.caption,
+    this.height = cartoucheHeight,
   });
+
+  static const cartoucheHeight = 64.0;
+  static const captionGap = 6.0;
+  static const captionStyle = TextStyle(
+    color: QuranPalette.mutedInk,
+    fontSize: 13,
+    letterSpacing: .4,
+  );
 
   @override
   Widget build(BuildContext context) => Column(
     children: [
       SizedBox(
-        height: 64,
+        height: height,
         child: CustomPaint(
           painter: const _CartouchePainter(),
           child: Row(
             children: [
-              const SizedBox(width: 14),
-              const _SideStar(),
+              SizedBox(width: height * .22),
+              _SideStar(size: height * .47),
               Expanded(
                 child: Text(
                   arabicName,
                   textAlign: TextAlign.center,
                   textDirection: TextDirection.rtl,
-                  style: const TextStyle(
+                  maxLines: 1,
+                  style: TextStyle(
                     fontFamily: quranTitleFamily,
                     fontWeight: FontWeight.w700,
-                    fontSize: 26,
+                    fontSize: height * .4,
                     height: 1.2,
+                    letterSpacing: 0,
                     color: QuranPalette.goldLight,
                   ),
                 ),
               ),
-              const _SideStar(),
-              const SizedBox(width: 14),
+              _SideStar(size: height * .47),
+              SizedBox(width: height * .22),
             ],
           ),
         ),
       ),
-      const SizedBox(height: 6),
-      Text(
-        caption,
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          color: QuranPalette.mutedInk,
-          fontSize: 13,
-          letterSpacing: .4,
-        ),
-      ),
+      if (caption case final caption?) ...[
+        const SizedBox(height: captionGap),
+        Text(caption, textAlign: TextAlign.center, style: captionStyle),
+      ],
     ],
   );
 }
 
 class _SideStar extends StatelessWidget {
-  const _SideStar();
+  final double size;
+
+  const _SideStar({required this.size});
 
   @override
-  Widget build(BuildContext context) => const SizedBox.square(
-    dimension: 30,
-    child: CustomPaint(
+  Widget build(BuildContext context) => SizedBox.square(
+    dimension: size,
+    child: const CustomPaint(
       painter: RubElHizbPainter(
         stroke: QuranPalette.goldLight,
         fill: QuranPalette.greenDeep,
@@ -322,7 +340,8 @@ class _CartouchePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
-    final outer = _shape(rect.deflate(1), 22);
+    final tip = size.height * .34;
+    final outer = _shape(rect.deflate(1), tip);
     canvas.drawPath(
       outer,
       Paint()
@@ -338,7 +357,7 @@ class _CartouchePainter extends CustomPainter {
       ..strokeWidth = 2;
     canvas.drawPath(outer, gold);
     canvas.drawPath(
-      _shape(rect.deflate(6), 18),
+      _shape(rect.deflate(size.height * .09), tip * .82),
       gold
         ..strokeWidth = .8
         ..color = QuranPalette.goldLight,
@@ -352,22 +371,28 @@ class _CartouchePainter extends CustomPainter {
 /// Sûre başındaki Besmele.
 class BasmalaLine extends StatelessWidget {
   final String text;
+  final double fontSize;
 
-  const BasmalaLine({super.key, required this.text});
+  const BasmalaLine({super.key, required this.text, this.fontSize = 28});
+
+  static const verticalPadding = 10.0;
+
+  static TextStyle styleFor(double fontSize) => TextStyle(
+    fontFamily: quranTextFamily,
+    fontSize: fontSize,
+    height: 1.9,
+    letterSpacing: 0,
+    color: QuranPalette.ink,
+  );
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 10),
+    padding: const EdgeInsets.symmetric(vertical: verticalPadding),
     child: Text(
       text,
       textAlign: TextAlign.center,
       textDirection: TextDirection.rtl,
-      style: const TextStyle(
-        fontFamily: quranTextFamily,
-        fontSize: 28,
-        height: 1.9,
-        color: QuranPalette.ink,
-      ),
+      style: styleFor(fontSize),
     ),
   );
 }
@@ -380,27 +405,33 @@ class MushafText extends StatelessWidget {
 
   const MushafText({super.key, required this.ayahs, this.fontSize = 27});
 
+  /// Sayfaya sığdırmak için ölçülen metin; ekrana çizilenle aynıdır.
+  static TextSpan spanFor(List<(int, String)> ayahs, double fontSize) =>
+      TextSpan(
+        style: TextStyle(
+          fontFamily: quranTextFamily,
+          fontSize: fontSize,
+          height: 2.05,
+          // Temanın harf aralığı Arapça harfleri birbirinden ayırır.
+          letterSpacing: 0,
+          color: QuranPalette.ink,
+        ),
+        children: [
+          for (final (number, text) in ayahs) ...[
+            TextSpan(text: '$text '),
+            TextSpan(
+              text: '${ayahEnd(number)} ',
+              style: const TextStyle(color: QuranPalette.gold),
+            ),
+          ],
+        ],
+      );
+
   @override
   Widget build(BuildContext context) => Text.rich(
-    TextSpan(
-      children: [
-        for (final (number, text) in ayahs) ...[
-          TextSpan(text: '$text '),
-          TextSpan(
-            text: '${ayahEnd(number)} ',
-            style: const TextStyle(color: QuranPalette.gold),
-          ),
-        ],
-      ],
-    ),
+    spanFor(ayahs, fontSize),
     textAlign: TextAlign.justify,
     textDirection: TextDirection.rtl,
-    style: TextStyle(
-      fontFamily: quranTextFamily,
-      fontSize: fontSize,
-      height: 2.05,
-      color: QuranPalette.ink,
-    ),
   );
 }
 
@@ -408,7 +439,9 @@ class MushafText extends StatelessWidget {
 class AyahWithTranslation extends StatelessWidget {
   final int number;
   final String arabic;
-  final String translation;
+
+  /// Meal yoksa (Arapça okuyan) yalnızca âyet gösterilir.
+  final String? translation;
   final String numberLabel;
 
   const AyahWithTranslation({
@@ -433,27 +466,30 @@ class AyahWithTranslation extends StatelessWidget {
             fontFamily: quranTextFamily,
             fontSize: 26,
             height: 2,
+            letterSpacing: 0,
             color: QuranPalette.ink,
           ),
         ),
-        const SizedBox(height: 6),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            StarMedallion(label: numberLabel, size: 30),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                translation,
-                style: const TextStyle(
-                  color: QuranPalette.ink,
-                  fontSize: 16,
-                  height: 1.55,
+        if (translation case final translation?) ...[
+          const SizedBox(height: 6),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              StarMedallion(label: numberLabel, size: 30),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  translation,
+                  style: const TextStyle(
+                    color: QuranPalette.ink,
+                    fontSize: 16,
+                    height: 1.55,
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
         const SizedBox(height: 12),
         const _Divider(),
       ],
