@@ -208,10 +208,17 @@ jobs:
             ls -1 "$out/$locale"
           done
 
+      - name: Store languages and review contact (before deliver)
+        run: python3 tool/app_store_connect_setup.py before-deliver
+
       - name: Upload listing to App Store Connect
         shell: bash
         run: |
           set -euo pipefail
+          # deliver çalıştığı klasörde Deliverfile ya da metadata/ bulamazsa
+          # "kurulum yapılsın mı?" diye sorar ve etkileşimsiz ortamda durur.
+          # Bütün ayarlar komut satırında; dosya yalnızca bu soruyu susturur.
+          echo "# Ayarlar .github/workflows/app-store-listing.yml içinde." > Deliverfile
           fastlane deliver \
             --api_key_path "$RUNNER_TEMP/asc_api_key.json" \
             --app_identifier "$DINI_MAIN_BUNDLE_ID" \

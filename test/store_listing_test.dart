@@ -31,6 +31,14 @@ void main() {
 
       test('karakter sınırları', () {
         expect(read('subtitle').length, inInclusiveRange(1, 30));
+        // Türkçe sayfanın adı App Store Connect'teki uygulama adıdır; yeni
+        // dillerin adı (tekil olmalı) name.txt'den gelir.
+        final name = File('store/metadata/$locale/name.txt');
+        if (name.existsSync()) {
+          expect(name.readAsStringSync().length, inInclusiveRange(2, 30));
+        } else {
+          expect(locale, 'tr', reason: 'yeni mağaza dili name.txt ister');
+        }
         expect(read('keywords').length, inInclusiveRange(1, 100));
         expect(read('promotional_text').length, inInclusiveRange(1, 170));
         expect(read('description').length, inInclusiveRange(1, 4000));

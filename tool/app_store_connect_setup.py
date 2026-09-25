@@ -28,11 +28,13 @@ from __future__ import annotations
 import os
 import sys
 import time
+from pathlib import Path
 
 import jwt
 import requests
 
 API = "https://api.appstoreconnect.apple.com"
+METADATA = Path(__file__).resolve().parent.parent / "store" / "metadata"
 
 REVIEW_CONTACT = {
     "contactFirstName": "Evren",
@@ -126,6 +128,49 @@ def find_app(api: Client, bundle_id: str) -> str:
     return apps[0]["id"]
 
 
+def editable_app_info(api: Client, app: str) -> dict:
+    infos = api.get_all(f"/v1/apps/{app}/appInfos")
+    editable = [i for i in infos if i["attributes"].get("state") != "READY_FOR_DISTRIBUTION"]
+    return (editable or infos)[0]
+
+
+def ensure_info_localizations(api: Client, app: str) -> None:
+    """Mağaza dillerinin uygulama bilgisi (ad) sayfalarını açar.
+
+    Yeni bir dilde sürüm sayfası açılırken Apple o dilin adını uygulamanın
+    adından kopyalar; "Namaz Yolu" İngilizce sayfada başka bir uygulamada
+    kullanıldığı için deliver en-US'i açamadı. Ad önce burada, dilin
+    kendi name.txt'sindeki adla verilir.
+    """
+    info = editable_app_info(api, app)
+    present = {
+        loc["attributes"]["locale"]
+        for loc in api.get_all(f"/v1/appInfos/{info['id']}/appInfoLocalizations")
+    }
+    for folder in sorted(METADATA.iterdir()):
+        if not folder.is_dir() or folder.name in present:
+            continue
+        name_file = folder / "name.txt"
+        if not name_file.exists():
+            sys.exit(f"{folder.name}: yeni mağaza dili için name.txt gerekli.")
+        attributes = {"locale": folder.name, "name": name_file.read_text().strip()}
+        for key, file in (("subtitle", "subtitle.txt"), ("privacyPolicyUrl", "privacy_url.txt")):
+            if (folder / file).exists():
+                attributes[key] = (folder / file).read_text().strip()
+        api.request(
+            "POST",
+            "/v1/appInfoLocalizations",
+            json={
+                "data": {
+                    "type": "appInfoLocalizations",
+                    "attributes": attributes,
+                    "relationships": {"appInfo": {"data": {"type": "appInfos", "id": info["id"]}}},
+                }
+            },
+        )
+        print(f"{folder.name}: mağaza adı '{attributes['name']}' ile açıldı.")
+
+
 def set_content_rights(api: Client, app: str) -> None:
     api.request(
         "PATCH",
@@ -212,9 +257,7 @@ def set_availability(api: Client, app: str) -> None:
 
 
 def set_age_rating(api: Client, app: str) -> None:
-    infos = api.get_all(f"/v1/apps/{app}/appInfos")
-    editable = [i for i in infos if i["attributes"].get("state") != "READY_FOR_DISTRIBUTION"]
-    info = (editable or infos)[0]
+    info = editable_app_info(api, app)
     declaration = api.request("GET", f"/v1/appInfos/{info['id']}/ageRatingDeclaration")
     if not declaration:
         sys.exit("Yaş sınırı anketi bulunamadı.")
@@ -240,13 +283,16 @@ def set_age_rating(api: Client, app: str) -> None:
     print(f"Yaş sınırı: {len(answers)} soru 'yok'. Dokunulmayan alanlar: {unknown}")
 
 
-def set_review_details(api: Client, app: str) -> None:
+def set_review_details(api: Client, app: str, required: bool = True) -> None:
     versions = api.get_all(
         f"/v1/apps/{app}/appStoreVersions?filter[platform]=IOS"
         "&filter[appStoreState]=PREPARE_FOR_SUBMISSION,DEVELOPER_REJECTED,REJECTED,METADATA_REJECTED"
     )
     if not versions:
-        sys.exit("Düzenlenebilir App Store sürümü yok (önce deliver çalışmalı).")
+        if required:
+            sys.exit("Düzenlenebilir App Store sürümü yok (önce deliver çalışmalı).")
+        print("Düzenlenebilir sürüm henüz yok; inceleme bilgisi sonra yazılacak.")
+        return
     version = versions[0]["id"]
     attributes = dict(REVIEW_CONTACT, notes=REVIEW_NOTES, demoAccountRequired=False)
     phone = os.environ.get("APP_REVIEW_PHONE", "").strip()
@@ -288,6 +334,13 @@ def main() -> None:
     api = Client()
     app = find_app(api, os.environ.get("DINI_MAIN_BUNDLE_ID", "com.dini.diniFlutter"))
     print(f"Uygulama: {app}")
+    if sys.argv[1:] == ["before-deliver"]:
+        # deliver'dan önce: yeni mağaza dillerinin adı ve inceleme bilgisi
+        # kaydı. deliver ilk sürümde kayıt yoksa "No data" deyip duruyor
+        # (fastlane#20538).
+        ensure_info_localizations(api, app)
+        set_review_details(api, app, required=False)
+        return
     set_content_rights(api, app)
     set_free_price(api, app)
     set_availability(api, app)

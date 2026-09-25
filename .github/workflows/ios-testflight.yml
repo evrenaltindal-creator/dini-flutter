@@ -2,6 +2,11 @@ name: iOS TestFlight Internal
 
 on:
   workflow_dispatch:
+    inputs:
+      app_store_release:
+        description: "App Store'a gönderilebilir derleme (dahili-yalnız işareti olmadan)"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -124,13 +129,22 @@ jobs:
             --create
 
       - name: Configure keychain and Xcode signing
+        env:
+          APP_STORE_RELEASE: ${{ inputs.app_store_release }}
         run: |
+          # Varsayılan: yalnızca dahili TestFlight. Böyle bir derleme App
+          # Store'a gönderilemez ("The specified pre-release build could not
+          # be added"); mağaza sürümü için işaret kaldırılır.
+          export_options='{"testFlightInternalTestingOnly": true}'
+          if [[ "$APP_STORE_RELEASE" == "true" ]]; then
+            export_options='{}'
+          fi
           keychain initialize
           keychain add-certificates
           xcode-project use-profiles \
             --project ios/Runner.xcodeproj \
             --archive-method app-store \
-            --custom-export-options='{"testFlightInternalTestingOnly": true}'
+            --custom-export-options="$export_options"
 
       - name: Determine next build number
         shell: bash
