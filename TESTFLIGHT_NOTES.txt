@@ -2,6 +2,11 @@ Namaz Yolu — Kur'an-ı Kerim, Apple Watch, takvim yaprağı ve düzeltmeler.
 Lansman döneminde tam sürüm: her şey açık, satın alma yok.
 
 Yeni:
+- Apple Watch'ta tesbih: saatte vakitler sayfasından aşağı kaydırın. Ekrana
+  dokunun ya da Digital Crown'u çevirin; her sayışta bilek hafifçe titrer,
+  hedefe (33, 99 ya da sınırsız) varınca belirgin titrer ve yeni tur başlar.
+  Sayı saatte saklanır. Lütfen deneyin: Crown sayıyor mu, sayfa mı
+  değiştiriyor?
 - Ana ekran widget'ı (orta boy): sıradaki namaz, kalan süre (canlı geri
   sayım), günün vakitleri üstte üç altta iki. Konum yerine Tesbih, Kıble ve
   Takip düğmeleri: dokununca uygulama doğrudan o bölümde açılır. Widget

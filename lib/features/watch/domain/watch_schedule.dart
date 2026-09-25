@@ -12,7 +12,15 @@ import '../../../shared/models/domain.dart';
 const watchScheduleDays = 14;
 
 /// Saatin telefondan aldığı arayüz metinlerinin anahtarları.
-const watchTextKeys = ['watch.next', 'watch.today', 'watch.stale'];
+const watchTextKeys = [
+  'watch.next',
+  'watch.today',
+  'watch.stale',
+  // Saatteki tesbih.
+  'home.tasbih',
+  'tasbih.target',
+  'tasbih.reset',
+];
 
 /// Saatte gösterilen vakitler; güneş doğuşu namaz vakti değildir, ama
 /// imsakın bittiğini gösterdiği için listede kalır.

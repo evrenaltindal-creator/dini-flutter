@@ -241,6 +241,27 @@ void main() {
       }
     });
 
+    test(
+      'saatte tesbih var: dokunma ve Digital Crown sayar, hedefte titrer',
+      () {
+        // Kullanıcı: "saatte tesbih önemli."
+        final view = File('ios/DiniWatch/ContentView.swift').readAsStringSync();
+        expect(view, contains('TasbihView(text: text)'));
+        expect(view, contains('.tabViewStyle(.verticalPage)'));
+        expect(view, contains('digitalCrownRotation'));
+        expect(view, contains('play(completed ? .success : .click)'));
+        // Sayı saatte saklanır, uygulama kapanınca kaybolmaz.
+        expect(view, contains('@AppStorage("tasbih.count")'));
+        // Sıfırlamak onay ister: bilekte kazayla dokunmak kolay.
+        expect(view, contains('confirmationDialog'));
+        // Metinler telefondan (ya da yedekten) gelir, düz yazı yok.
+        for (final key in ['home.tasbih', 'tasbih.target', 'tasbih.reset']) {
+          expect(watchTextKeys, contains(key));
+          expect(view, contains('text("$key")'));
+        }
+      },
+    );
+
     test('geri sayım ters aralık kurmaz', () {
       // Kilit ekranı sayacında "Date()...vakit" aralığı vakit geçince
       // ters dönüyordu; saat aynı hatayı tekrarlamamalı.

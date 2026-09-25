@@ -101,18 +101,27 @@ enum WatchFallbackText {
       "watch.today": "Bugün",
       "watch.stale": "Vakitler güncel değil. Telefonda Namaz Yolu'nu açın.",
       "watch.empty": "Vakitler için telefonda Namaz Yolu'nu bir kez açın.",
+      "home.tasbih": "Tesbih",
+      "tasbih.target": "Hedef",
+      "tasbih.reset": "Sıfırla",
     ],
     "en": [
       "watch.next": "Next",
       "watch.today": "Today",
       "watch.stale": "Times are out of date. Open Prayer Path on your phone.",
       "watch.empty": "Open Prayer Path on your phone once to get prayer times.",
+      "home.tasbih": "Tasbih",
+      "tasbih.target": "Target",
+      "tasbih.reset": "Reset",
     ],
     "ar": [
       "watch.next": "التالية",
       "watch.today": "اليوم",
       "watch.stale": "المواقيت غير محدّثة. افتح طريق الصلاة على هاتفك.",
       "watch.empty": "افتح طريق الصلاة على هاتفك مرة واحدة للحصول على المواقيت.",
+      "home.tasbih": "التسبيح",
+      "tasbih.target": "الهدف",
+      "tasbih.reset": "إعادة الضبط",
     ],
   ]
 
