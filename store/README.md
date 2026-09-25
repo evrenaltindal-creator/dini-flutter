@@ -15,9 +15,11 @@ pip install Pillow
 python3 tool/generate_store_screenshots.py
 ```
 
-Gizlilik politikası ve destek sayfası `docs/privacy/` ve `docs/support/`
-altındadır; GitHub Pages ile yayınlanır
-(`https://evrenaltindal-creator.github.io/dini-flutter/privacy/`).
+Gizlilik politikası ve destek sayfasının kaynağı `docs/privacy/` ve
+`docs/support/`'tur. Yayında oldukları yer, GitHub Pages'i zaten açık olan
+`vardiox-legal` deposunun `namaz-yolu/` klasörüdür
+(`https://evrenaltindal-creator.github.io/vardiox-legal/namaz-yolu/privacy/`).
+Sayfa değişirse iki yerde de güncellenir.
 
 ## Yükleme
 

@@ -304,6 +304,29 @@ void main() {
     expect(workflow, contains('Widget extension links app frameworks'));
   });
 
+  test('ilk App Store sürümü yalnızca iPhone', () {
+    // Kullanıcı kararı: uygulama iPad'de hiç denenmedi. iPad desteği
+    // bildirilirse App Store iPad görselleri ister ve inceleme ekibi iPad'de
+    // dener. iPad'de yine telefon görünümünde açılır; destek sonradan
+    // eklenebilir (tersi mümkün değil).
+    expect(project, isNot(contains('TARGETED_DEVICE_FAMILY = "1,2";')));
+    expect(
+      'TARGETED_DEVICE_FAMILY = 1;'.allMatches(project).length,
+      greaterThanOrEqualTo(6),
+    );
+  });
+
+  test('saat uygulaması mağaza görseli için tesbih sayfasında açılabilir', () {
+    // Simülatörde ekrana dokunulamıyor; app-store-listing.yml uygulamayı
+    // bu argümanla açıp tesbih sayfasını çekiyor.
+    final view = File('ios/DiniWatch/ContentView.swift').readAsStringSync();
+    expect(view, contains('forKey: "dini.watch.page") == "tasbih"'));
+    final workflow = File('.github/workflows/app-store-listing.yml')
+        .readAsStringSync();
+    expect(workflow, contains('-dini.watch.page "\$page"'));
+    expect(workflow, contains('-dini.watch.schedule'));
+  });
+
   test('canlı etkinlik uzantı hedefinde', () {
     // Widget paketine eklenen PrayerLiveActivity uzantı hedefinde
     // derlenmezse widget paketi derlenmez.

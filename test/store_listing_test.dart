@@ -39,7 +39,10 @@ void main() {
       });
 
       test('destek ve gizlilik adresi depodaki sayfaları gösterir', () {
-        const base = 'https://evrenaltindal-creator.github.io/dini-flutter/';
+        // Sayfalar vardiox-legal deposunun GitHub Pages'inde yayında; kaynağı
+        // bu depodaki docs/ klasörüdür.
+        const base =
+            'https://evrenaltindal-creator.github.io/vardiox-legal/namaz-yolu/';
         for (final (file, page) in [
           ('support_url', 'support'),
           ('privacy_url', 'privacy'),

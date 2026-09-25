@@ -5,3 +5,5 @@
 tags:
   promo:
     skip: "Tanıtım görselleri; tool/capture_promo_shots.sh ile elle üretilir"
+  store:
+    skip: "Apple Watch mağaza görseli çizelgesi; app-store-listing.yml çalıştırır"

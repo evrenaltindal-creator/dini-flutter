@@ -28,8 +28,98 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  watch-screenshots:
+    # Apple Watch görselleri: saat uygulaması simülatörde gerçekten çalışır
+    # ve ekranı çekilir. Simülatörde eşleşmiş telefon olmadığından çizelge
+    # açılış argümanıyla verilir; çizelgeyi uygulamanın kendi motoru o an
+    # için hesaplar (test/watch_store_payload_test.dart).
+    name: Apple Watch screenshots
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Select Xcode 26.6
+        run: sudo xcode-select --switch /Applications/Xcode_26.6.app
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.1
+          cache: true
+
+      - name: Prepare Xcode project
+        run: |
+          flutter pub get
+          flutter build ios --config-only --release --no-codesign
+
+      - name: Build the watch app for the simulator
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project ios/Runner.xcodeproj \
+            -target DiniWatch \
+            -configuration Release \
+            -sdk watchsimulator \
+            -arch arm64 \
+            SYMROOT="$PWD/build/watch" \
+            CODE_SIGNING_ALLOWED=NO \
+            build | tail -n 40
+          ls build/watch/Release-watchsimulator/DiniWatch.app
+
+      - name: Compute real schedules
+        run: flutter test --run-skipped --tags store test/watch_store_payload_test.dart
+
+      - name: Capture screenshots
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Saatin durum çubuğundaki saat, vakitlerle aynı dilimde olsun.
+          sudo systemsetup -settimezone Europe/Istanbul >/dev/null
+          runtime="$(xcrun simctl list runtimes -j | python3 -c "import json,sys; r=[x for x in json.load(sys.stdin)['runtimes'] if x['platform']=='watchOS' and x['isAvailable']]; print(r[-1]['identifier'])")"
+          # App Store'un kabul ettiği boyutlardan birinde bir saat.
+          device=""
+          for name in "Apple Watch Series 11 (46mm)" "Apple Watch Series 10 (46mm)" "Apple Watch Ultra 3 (49mm)" "Apple Watch Ultra 2 (49mm)"; do
+            if xcrun simctl list devicetypes | grep -qF "$name"; then device="$name"; break; fi
+          done
+          echo "runtime=$runtime device=$device"
+          udid="$(xcrun simctl create shot-watch "$device" "$runtime")"
+          xcrun simctl boot "$udid"
+          xcrun simctl bootstatus "$udid" -b
+          xcrun simctl install "$udid" build/watch/Release-watchsimulator/DiniWatch.app
+          mkdir -p store/screenshots/watch
+          shoot() {
+            local lang="$1" locale="$2" page="$3" out="$4"
+            xcrun simctl terminate "$udid" com.dini.diniFlutter.watchkitapp >/dev/null 2>&1 || true
+            xcrun simctl launch "$udid" com.dini.diniFlutter.watchkitapp \
+              -dini.watch.schedule "$(cat "build/watch_store_payload/$lang.txt")" \
+              -dini.watch.page "$page" \
+              -tasbih.count 21 \
+              -AppleLanguages "($lang)" \
+              -AppleLocale "$locale"
+            sleep 12
+            xcrun simctl io "$udid" screenshot "$out"
+          }
+          shoot tr tr_TR times store/screenshots/watch/watch-01-times.png
+          shoot tr tr_TR tasbih store/screenshots/watch/watch-02-tasbih.png
+          python3 -c "
+          import struct, glob
+          for f in sorted(glob.glob('store/screenshots/watch/*.png')):
+              w, h = struct.unpack('>II', open(f, 'rb').read()[16:24])
+              print(f, w, h)
+          "
+
+      - name: Keep the screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: watch-screenshots
+          path: store/screenshots/watch/
+
   listing:
     name: Upload listing and submit
+    needs: watch-screenshots
     runs-on: ubuntu-latest
     timeout-minutes: 45
     environment: testflight
@@ -43,6 +133,12 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v6
+
+      - name: Get Apple Watch screenshots
+        uses: actions/download-artifact@v4
+        with:
+          name: watch-screenshots
+          path: store/screenshots/watch
 
       - name: Validate inputs
         shell: bash

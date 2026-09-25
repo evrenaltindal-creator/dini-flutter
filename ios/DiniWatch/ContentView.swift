@@ -8,14 +8,22 @@ private let gold = Color(red: 0.95, green: 0.75, blue: 0.35)
 struct ContentView: View {
   @EnvironmentObject private var store: ScheduleStore
 
+  /// Açılış sayfası: vakitler. Mağaza görseli simülatörde çekilirken
+  /// uygulama `-dini.watch.page tasbih` argümanıyla tesbihte açılır
+  /// (simülatörde ekrana dokunulamıyor).
+  @State private var page =
+    UserDefaults.standard.string(forKey: "dini.watch.page") == "tasbih" ? 1 : 0
+
   var body: some View {
-    TabView {
+    TabView(selection: $page) {
       // Sıradaki vakit geçince ekran kendiliğinden bir sonrakine geçsin
       // diye görünüm yarım dakikada bir yeniden hesaplanır.
       TimelineView(.periodic(from: .now, by: 30)) { context in
         content(now: context.date)
       }
+      .tag(0)
       TasbihView(text: text)
+        .tag(1)
     }
     .tabViewStyle(.verticalPage)
   }

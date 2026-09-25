@@ -64,8 +64,8 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 59 dosyada 743 test var; hepsi geçmelidir.
-  (`test/promo_shots_test.dart` sayıma girmez: `promo` etiketi
+- Depoda şu an 60 dosyada 745 test var; hepsi geçmelidir.
+  (`test/promo_shots_test.dart` ve `test/watch_store_payload_test.dart` sayıma girmez: `promo` etiketi
   `dart_test.yaml` ile atlanır, çünkü görüntüyü diske yazdıktan sonra
   koşucu kapanmıyor ve `flutter test` asılı kalırdı. Görselleri üretmek
   için `tool/capture_promo_shots.sh`.)
@@ -165,6 +165,14 @@ flutter test --reporter expanded
   yaş sınırı, fiyat ve inceleme iletişim bilgisi API ile yapılamaz; sitede
   elle doldurulur. Telefon numarası depo herkese açık olduğu için depoya
   YAZILMAZ. `store_listing_test.dart` sınırları bekçiler.
+  Gizlilik/destek sayfaları `vardiox-legal` deposunun GitHub Pages'inde
+  (`namaz-yolu/`) yayındadır; kaynağı `docs/`, değişirse ikisi de
+  güncellenir. **Uygulama yalnızca iPhone** (`TARGETED_DEVICE_FAMILY = 1`,
+  kullanıcı kararı; iPad'de denenmedi). **Apple Watch görselleri**
+  simülatörde çekilir (kullanıcının saati yok): iş akışı saat uygulamasını
+  `-dini.watch.schedule <veri>` (motorun o an hesapladığı gerçek çizelge,
+  `watch_store_payload_test.dart`, `store` etiketi CI'da atlanır) ve
+  `-dini.watch.page tasbih` argümanlarıyla açar.
 - **İlk App Store sürümünde Premium YOK** (kullanıcı kararı): `/premium`
   rotası ve Ayarlar'daki satır kaldırıldı, her şey ücretsiz. Satın alma
   ürünleri App Store Connect'te hazır olmadan sayfa açık kalsaydı App
