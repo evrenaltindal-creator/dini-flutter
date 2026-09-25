@@ -515,6 +515,9 @@ class AppLocalizations {
       'quran.nextSurah': 'Sonraki sûre',
       'quran.previousSurah': 'Önceki sûre',
       'quran.source.en.pickthall': 'İngilizce meal: Marmaduke Pickthall, “The Meaning of the Glorious Koran” (1930); Tanzil Projesi (tanzil.net) aracılığıyla.',
+      'quran.source.tr.elmalili': 'Türkçe meal: Elmalılı Muhammed Hamdi Yazır, Hak Dini Kur\'an Dili (1935), sadeleştirilmemiş aslı; eser kamu malıdır. Dijital metin: namazzamani.net.',
+      'quran.jointTranslation':
+          '(Bu âyetin meali bir önceki âyetle birlikte verilmiştir.)',
       'premium.restore': 'Satın alımları geri yükle',
       'premium.restoreSent': 'Geri yükleme isteği mağazaya gönderildi.',
       'premium.active': 'Premium etkin',
@@ -1056,6 +1059,9 @@ class AppLocalizations {
       'quran.nextSurah': 'Next surah',
       'quran.previousSurah': 'Previous surah',
       'quran.source.en.pickthall': 'English translation: Marmaduke Pickthall, “The Meaning of the Glorious Koran” (1930), via the Tanzil Project (tanzil.net).',
+      'quran.source.tr.elmalili': 'Turkish translation: Elmalılı Muhammed Hamdi Yazır, Hak Dini Kur\'an Dili (1935), the original unsimplified text; the work is in the public domain. Digital text: namazzamani.net.',
+      'quran.jointTranslation':
+          '(This verse is translated together with the previous one.)',
       'premium.restore': 'Restore purchases',
       'premium.restoreSent': 'The restore request was sent to the store.',
       'premium.active': 'Premium active',
@@ -1608,6 +1614,8 @@ class AppLocalizations {
       'quran.nextSurah': 'السورة التالية',
       'quran.previousSurah': 'السورة السابقة',
       'quran.source.en.pickthall': 'الترجمة الإنجليزية: محمد مارمادوك بكتال، «The Meaning of the Glorious Koran» (1930)، عبر مشروع تنزيل (tanzil.net).',
+      'quran.source.tr.elmalili': 'الترجمة التركية: محمد حمدي يازر الألمالي، «Hak Dini Kur\'an Dili» (1935)، النص الأصلي دون تبسيط؛ والعمل في الملك العام. النص الرقمي: namazzamani.net.',
+      'quran.jointTranslation': '(تُرجمت هذه الآية مع الآية السابقة.)',
       'premium.restore': 'استعادة المشتريات',
       'premium.restoreSent': 'تم إرسال طلب الاستعادة إلى المتجر.',
       'premium.active': 'الاشتراك المميز نشط',

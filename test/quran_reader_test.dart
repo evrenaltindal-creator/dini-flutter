@@ -105,10 +105,16 @@ void main() {
           in quranTranslations.entries) {
         final translation = book.translationFor(language)!;
         expect(translation.surahs, hasLength(114), reason: id);
+        // Kaynak notundaki kaynak Hakkında sayfasında da yazmalı.
+        final domain = {
+          'en.pickthall': 'tanzil.net',
+          'tr.elmalili': 'namazzamani.net',
+        }[id];
+        expect(domain, isNotNull, reason: '$id için kaynak tanımlı değil');
         for (final code in ['tr', 'en', 'ar']) {
           expect(
             AppLocalizations(Locale(code)).text('quran.source.$id'),
-            contains('tanzil.net'),
+            contains(domain),
             reason: '$id, $code',
           );
         }
@@ -116,6 +122,40 @@ void main() {
       expect(
         book.translationFor('en')!.ayah(1, 2),
         'Praise be to Allah, Lord of the Worlds,',
+      );
+    });
+
+    test('Türkçe meal Elmalılı\'nın 1935 aslıdır, sadeleştirilmiş değil', () {
+      // Tanzil'in tr.yazir dosyası sonradan sadeleştirilmiş, ayrıca telifli
+      // bir baskıdır: Âyetü'l-Kürsî orada "Allah'tan başka hiçbir ilâh
+      // yoktur. O daima diridir (hayydır)…" diye başlar. Aslı:
+      final turkish = book.translationFor('tr')!;
+      expect(
+        turkish.ayah(2, 255),
+        startsWith('Allah, başka tanrı yok ancak o, daima yaşıyan'),
+      );
+      expect(turkish.ayah(2, 255), isNot(contains('(hayydır)')));
+      expect(turkish.ayah(1, 5), startsWith('Sade sana ederiz kulluğu'));
+      expect(turkish.ayah(112, 1), 'De, o: Allah tek bir (ehad)dir');
+    });
+
+    test('birlikte çevrilen âyet çiftleri tanınır', () {
+      final turkish = book.translationFor('tr')!;
+      // "(168-169) …" iki âyette de aynı metin.
+      expect(translatedWithPrevious(turkish, 4, 169), isTrue);
+      expect(translatedWithPrevious(turkish, 4, 168), isFalse);
+      expect(translatedWithPrevious(turkish, 81, 9), isTrue);
+      expect(translatedWithPrevious(turkish, 1, 2), isFalse);
+      var pairs = 0;
+      for (var surah = 1; surah <= 114; surah++) {
+        for (var ayah = 1; ayah <= turkish.ayahsIn(surah); ayah++) {
+          if (translatedWithPrevious(turkish, surah, ayah)) pairs++;
+        }
+      }
+      expect(pairs, 19);
+      expect(
+        translatedWithPrevious(book.translationFor('en')!, 4, 169),
+        isFalse,
       );
     });
 
@@ -273,11 +313,43 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('mealsiz dilde meal düğmesi görünmez', (tester) async {
-      await open(tester, QuranReaderPage.routeFor(1));
-      expect(find.byTooltip('Meal ile oku'), findsNothing);
+    testWidgets('Arapça okuyana meal düğmesi görünmez', (tester) async {
       await open(tester, QuranReaderPage.routeFor(1), language: 'ar');
       expect(find.byTooltip('اقرأ مع الترجمة'), findsNothing);
+    });
+
+    testWidgets('Türkçe: sûre Elmalılı meali ile okunur, kaynak yazılır', (
+      tester,
+    ) async {
+      await open(tester, QuranReaderPage.routeFor(604));
+      await tester.tap(find.byTooltip('Meal ile oku'));
+      await tester.pumpAndSettle();
+      expect(find.byType(QuranMealPage), findsOneWidget);
+      expect(find.text('De, o: Allah tek bir (ehad)dir'), findsOneWidget);
+      await tester.dragUntilVisible(
+        find.textContaining('namazzamani.net'),
+        find.byType(ListView),
+        const Offset(0, -300),
+      );
+      expect(find.textContaining('Elmalılı'), findsWidgets);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('birlikte çevrilen âyette meal yinelenmez, söylenir', (
+      tester,
+    ) async {
+      await open(tester, QuranMealPage.routeFor(81));
+      final note = find.text(
+        '(Bu âyetin meali bir önceki âyetle birlikte verilmiştir.)',
+      );
+      await tester.dragUntilVisible(
+        note,
+        find.byType(ListView),
+        const Offset(0, -300),
+      );
+      expect(note, findsOneWidget);
+      // Ortak cümle yalnızca bir kez, 8. âyetin altında.
+      expect(find.textContaining('(8-9)'), findsOneWidget);
     });
 
     testWidgets('Arapça: Mushaf ve sûre listesi sağdan sola', (tester) async {

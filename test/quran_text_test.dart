@@ -174,6 +174,9 @@ void main() {
     final rawEnglish = utf8.decode(
       gzip.decode(File(translationAsset('en.pickthall')).readAsBytesSync()),
     );
+    final rawTurkish = utf8.decode(
+      gzip.decode(File(translationAsset('tr.elmalili')).readAsBytesSync()),
+    );
 
     setUp(() {
       root = Directory.systemTemp.createTempSync('quran');
@@ -181,6 +184,7 @@ void main() {
       meta = File('${root.path}/quran-data.xml')..writeAsStringSync(rawMeta);
       translation = File('${root.path}/en.pickthall.txt')
         ..writeAsStringSync(rawEnglish);
+      File('${root.path}/tr.elmalili.txt').writeAsStringSync(rawTurkish);
     });
     tearDown(() => root.deleteSync(recursive: true));
 
@@ -190,6 +194,8 @@ void main() {
       meta.path,
       '--translation',
       translation.path,
+      '--translation',
+      '${root.path}/tr.elmalili.txt',
       '--root',
       root.path,
     ]);

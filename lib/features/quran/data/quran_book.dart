@@ -10,13 +10,31 @@ import 'quran_meta.dart';
 import 'quran_text.dart';
 import 'surah_names.dart';
 
-/// Hangi dilde hangi meal gösterilir (Tanzil kimliği).
+/// Hangi dilde hangi meal gösterilir (dosya kimliği).
 ///
-/// Yalnızca telifi açık mealler buradadır. Türkçe meal, elimizdeki
-/// Elmalılı dosyasının 1935 aslı mı yoksa sonradan sadeleştirilmiş
-/// (ayrıca telifli) bir baskı mı olduğu netleşince eklenir. Arapça okuyana
-/// meal gösterilmez.
-const quranTranslations = {'en': 'en.pickthall'};
+/// Yalnızca telifi açık mealler buradadır. Türkçe: Elmalılı Hamdi Yazır'ın
+/// 1935 ASLI (kamu malı). Tanzil'in `tr.yazir` dosyası sonradan
+/// sadeleştirilmiş, ayrıca telifli bir baskıdır ve kullanılmaz; aslı
+/// `tool/convert_elmalili_orijinal.py` ile girer. Arapça okuyana meal
+/// gösterilmez.
+const quranTranslations = {'en': 'en.pickthall', 'tr': 'tr.elmalili'};
+
+final _jointRange = RegExp(r'^\((\d+)-(\d+)\)');
+
+/// Meal bu âyeti bir önceki âyetle birlikte mi veriyor?
+///
+/// Elmalılı bazı âyet çiftlerini tek cümleyle çevirmiştir; metin
+/// "(168-169) …" diye başlar ve iki âyette de aynıdır. İkincisinde aynı
+/// cümleyi yinelemek yerine bunun söylenmesi için.
+bool translatedWithPrevious(QuranText translation, int surah, int ayah) {
+  if (ayah < 2) return false;
+  final text = translation.ayah(surah, ayah);
+  final range = _jointRange.firstMatch(text);
+  return range != null &&
+      int.parse(range.group(1)!) < ayah &&
+      ayah <= int.parse(range.group(2)!) &&
+      translation.ayah(surah, ayah - 1) == text;
+}
 
 String translationAsset(String id) => 'assets/quran/$id.txt.gz';
 

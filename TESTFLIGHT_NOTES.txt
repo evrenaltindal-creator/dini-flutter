@@ -6,8 +6,9 @@ Yeni:
   Bir sûreye dokunun: Medine Mushaf'ının o sayfası açılır (604 sayfa, basılı
   Mushaf'la aynı). Sayfayı parmakla sola çekerek ya da kenarına dokunarak
   kitap gibi çevirin. Kaldığınız sayfa saklanır, "Kaldığın yerden devam et"
-  ile döner. Metin: Tanzil Projesi (Uthmani). İngilizce dilde meal
-  (Pickthall) üstteki düğmeyle açılır; Türkçe meal sonraki sürümde.
+  ile döner. Metin: Tanzil Projesi (Uthmani). Üstteki düğmeyle sûre meal
+  ile açılır: Türkçede Elmalılı Hamdi Yazır'ın 1935 aslı (sadeleştirilmemiş),
+  İngilizcede Pickthall.
   Lütfen bakın: yazı okunaklı mı, sayfalar kitapla aynı mı?
 - Takvim sekmesi artık önce günün yaprağıyla açılır; üstteki "Aylık takvim"
   düğmesiyle ay görünümüne geçilir.

@@ -14,6 +14,11 @@ Dosya: assets/quran/quran-data.xml.gz (gzip, içerik değiştirilmedi)
 SHA-256 (sıkıştırılmamış): 8867c1d88191472adec9db694b3cd9f135b1a2ef580574d32cf888dcb22c5c7a
 
 Meal: Pickthall (en.pickthall)
-Kaynak: Tanzil Projesi — https://tanzil.net/trans/
+Kaynak: Tanzil.net
 Dosya: assets/quran/en.pickthall.txt.gz (gzip, içerik değiştirilmedi)
 SHA-256 (sıkıştırılmamış): 4aabbfa9d96796f5a6b0217d2c39dce1a3084f772bf6f2650e37082a774e3cc7
+
+Meal: Elmalılı Hamdi Yazır (1935 aslı, sadeleştirilmemiş) (tr.elmalili)
+Kaynak: namazzamani.net, "Elmalılı Hamdi Yazır (Orijinal)"
+Dosya: assets/quran/tr.elmalili.txt.gz (gzip, içerik değiştirilmedi)
+SHA-256 (sıkıştırılmamış): 1bcc9a368e5c0c6e58c95dd0a6bc42d0a8a3cec0b7cd94c4620e3a243f7538a8

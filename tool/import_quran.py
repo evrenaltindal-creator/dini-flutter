@@ -17,8 +17,8 @@ dokunmaz, yalnızca denetler ve sıkıştırır:
   Medine Mushaf'ının 604 sayfası) denetler — sûre uzunlukları metinle
   tutmalı, sayfalar ve cüzler sırayla ilerlemeli — ve aynı şekilde olduğu
   gibi sıkıştırır;
-* her meal için (`--translation`) 6236 âyetin sırayla geldiğini ve Tanzil
-  başlığının yerinde olduğunu denetler; dosya kimliğiyle
+* her meal için (`--translation`) 6236 âyetin sırayla geldiğini ve künye
+  başlığının (ID, Name, Source) yerinde olduğunu denetler; dosya kimliğiyle
   (`en.pickthall.txt.gz`) yazar. Meal eklemeden önce çevirinin telifine
   bakın: telifli bir meal uygulamaya alınmaz;
 * kaynağı, sürümü ve her dosyanın SHA-256 özetini `assets/quran/SOURCE.txt`
@@ -50,6 +50,7 @@ HEADER = re.compile(r"#\s+Tanzil Quran Text \((Uthmani), (Version [\d.]+)\)")
 LINE = re.compile(r"^(\d+)\|(\d+)\|(.+)$")
 TRANSLATION_ID = re.compile(r"#\s+ID: ([a-z]{2}\.[a-z]+)\s*$", re.MULTILINE)
 TRANSLATION_NAME = re.compile(r"#\s+Name: (.+?)\s*$", re.MULTILINE)
+TRANSLATION_SOURCE = re.compile(r"#\s+Source: (.+?)\s*$", re.MULTILINE)
 ATTRIBUTES = re.compile(r'(\w+)="([^"]*)"')
 
 
@@ -150,13 +151,18 @@ def check_meta(raw, lengths):
 
 
 def check_translation(raw):
-    """Meali denetler; (kimlik, ad) döndürür. Hata varsa çıkar."""
+    """Meali denetler; (kimlik, ad, kaynak) döndürür. Hata varsa çıkar.
+
+    Künye başlığında kimlik, ad ve kaynak bulunmalı: kaynağı yazılmayan
+    meal uygulamaya alınmaz.
+    """
     identifier = TRANSLATION_ID.search(raw)
     name = TRANSLATION_NAME.search(raw)
-    if not identifier or not name or "Tanzil" not in raw:
-        raise SystemExit("Tanzil meal başlığı (ID, Name) bulunamadı")
+    source = TRANSLATION_SOURCE.search(raw)
+    if not identifier or not name or not source:
+        raise SystemExit("meal künyesi (ID, Name, Source) bulunamadı")
     check_lines(raw)
-    return identifier.group(1), name.group(1)
+    return identifier.group(1), name.group(1), source.group(1)
 
 
 def main():
@@ -184,8 +190,8 @@ def main():
     translations = []
     for path in args.translation:
         data = read(path)
-        identifier, name = check_translation(data.decode("utf-8"))
-        translations.append((identifier, name, data))
+        identifier, name, source = check_translation(data.decode("utf-8"))
+        translations.append((identifier, name, source, data))
 
     def write(asset, data):
         target = os.path.join(args.root, asset)
@@ -211,12 +217,12 @@ def main():
         f"Dosya: {META_ASSET} (gzip, içerik değiştirilmedi)",
         f"SHA-256 (sıkıştırılmamış): {write(META_ASSET, meta)}",
     ]
-    for identifier, name, data in translations:
+    for identifier, name, source, data in translations:
         asset = f"assets/quran/{identifier}.txt.gz"
         lines += [
             "",
             f"Meal: {name} ({identifier})",
-            "Kaynak: Tanzil Projesi — https://tanzil.net/trans/",
+            f"Kaynak: {source}",
             f"Dosya: {asset} (gzip, içerik değiştirilmedi)",
             f"SHA-256 (sıkıştırılmamış): {write(asset, data)}",
         ]

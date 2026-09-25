@@ -72,7 +72,11 @@ class QuranMealPage extends StatelessWidget {
                       number: index,
                       numberLabel: '$index',
                       arabic: book.text.ayahBody(surah, index),
-                      translation: translation?.ayah(surah, index),
+                      translation: translation == null
+                          ? null
+                          : translatedWithPrevious(translation, surah, index)
+                          ? l10n.text('quran.jointTranslation')
+                          : translation.ayah(surah, index),
                     );
                   },
                 ),
