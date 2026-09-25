@@ -70,6 +70,13 @@ void main() {
       expect(_widget, contains('style: .timer'));
     });
 
+    test('sayaç boyutunu kendisi belirlemeye zorlanmaz', () {
+      // Sayaç `.fixedSize()` içindeyken widget hiç çizilmedi, ana ekranda
+      // boş beyaz kutu kaldı (TestFlight 26-27). Sayaç yazısının sabit bir
+      // doğal genişliği yoktur.
+      expect(_widget, isNot(contains('.fixedSize()')));
+    });
+
     test('vakitler üstte üç, altta iki', () {
       expect(_widget, contains('entry.prayers.prefix(3)'));
       expect(_widget, contains('entry.prayers.suffix(from: 3)'));

@@ -64,7 +64,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 58 dosyada 735 test var; hepsi geçmelidir.
+- Depoda şu an 58 dosyada 736 test var; hepsi geçmelidir.
   (`test/promo_shots_test.dart` sayıma girmez: `promo` etiketi
   `dart_test.yaml` ile atlanır, çünkü görüntüyü diske yazdıktan sonra
   koşucu kapanmıyor ve `flutter test` asılı kalırdı. Görselleri üretmek
@@ -282,6 +282,9 @@ flutter test --reporter expanded
   TestFlight 1.0.0 (26)'da widget ana ekranda boş beyaz kutu olarak kaldı
   (widget sürecinin bellek sınırı küçüktür). İş akışı IPA'da uzantının
   hiçbir `@rpath` çerçevesine bağlanmadığını denetler; testi var.
+  Bu düzeltme tek başına YETMEDİ (27 de beyaz): geri sayım da doğal
+  boyutuna sabitlenmişti (`fixedSize`); sayaç yazısının sabit genişliği
+  yoktur. Sayaç artık tek bir Text'tir, sabitlenmez; test bekçiler.
 - **Widget'ın yazı renkleri açıkça verilir.** Zemini her görünümde koyudur;
   `.secondary` ya da varsayılan renk sistemin görünümünü izlediği için
   telefon aydınlık kipteyken widget okunmuyordu.

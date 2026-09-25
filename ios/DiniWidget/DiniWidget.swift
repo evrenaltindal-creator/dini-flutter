@@ -168,13 +168,18 @@ struct DiniWidgetView: View {
     }
 
     /// "2:10:05 kaldı": sistem saniye saniye kendisi günceller.
+    ///
+    /// Tek bir Text'tir ve doğal boyutuna sabitlenmez (fixedSize). Sayaç
+    /// yazısının sabit bir doğal genişliği yoktur; önceki sürümde sayaç
+    /// sabitlenmişti ve widget ana ekranda boş beyaz kutu olarak kaldı
+    /// (TestFlight 26-27).
     @ViewBuilder private var countdown: some View {
         if let next = entry.nextDate, next > entry.date {
-            HStack(spacing: 4) {
-                Text(next, style: .timer).font(.caption.monospacedDigit()).foregroundStyle(Self.cream)
-                Text(entry.remaining).font(.caption).foregroundStyle(Self.cream.opacity(0.78))
-            }
-            .fixedSize()
+            (Text(next, style: .timer).monospacedDigit()
+                + Text(verbatim: " " + entry.remaining).foregroundStyle(Self.cream.opacity(0.78)))
+                .font(.caption)
+                .foregroundStyle(Self.cream)
+                .lineLimit(1)
         }
     }
 
