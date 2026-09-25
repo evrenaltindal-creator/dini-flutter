@@ -191,6 +191,14 @@ jobs:
             exit 1
           fi
           otool -l "$extension/DiniWidgetExtension" | grep -q '__swift5_entry'
+          # Uzantı Flutter'ı ya da eklenti çerçevelerini YÜKLEMEMELİ: widget
+          # sürecinin ~30 MB bellek sınırı var ve aşılınca ana ekranda boş
+          # beyaz bir kutu kalır (TestFlight 1.0.0 (26)).
+          if otool -L "$extension/DiniWidgetExtension" | grep -Eq '@rpath/[^ ]+\.framework'; then
+            otool -L "$extension/DiniWidgetExtension" >&2
+            echo 'Widget extension links app frameworks (Flutter / plugins).' >&2
+            exit 1
+          fi
           # Apple Watch uygulaması iPhone uygulamasının içinde gelir ve sürümü
           # iPhone uygulamasınınkiyle aynı olmalıdır; ayrıysa App Store
           # yüklemeyi reddeder.

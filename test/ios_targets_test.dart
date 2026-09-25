@@ -281,6 +281,29 @@ void main() {
     });
   });
 
+  test('widget uzantısı Flutter\'ı ve eklentileri bağlamaz', () {
+    // Debug/Release.xcconfig, Flutter derlemede CocoaPods ayarlarını ekler;
+    // onları devralan uzantı Flutter.framework ile eklenti çerçevelerini
+    // (flutter_compass, flutter_local_notifications) yüklüyordu. Widget
+    // sürecinin bellek sınırı küçüktür: TestFlight 1.0.0 (26)'da widget
+    // ana ekranda boş beyaz bir kutu olarak kaldı. Saat hedefleri gibi
+    // widget de yalnızca sürüm değişkenlerini taşıyan Generated.xcconfig'i
+    // temel alır.
+    final configs = RegExp(
+      r'\tDINI_(DEBUG|RELEASE|PROFILE) /\* \w+ \*/ = \{[^\n]*',
+    ).allMatches(project).map((match) => match.group(0)!);
+    expect(configs, hasLength(3));
+    for (final config in configs) {
+      expect(config, contains('com.dini.diniFlutter.widget;'));
+      expect(config, contains('Generated.xcconfig'));
+      expect(config, isNot(contains('Release.xcconfig')));
+      expect(config, isNot(contains('Debug.xcconfig')));
+    }
+    final workflow = File('.github/workflows/ios-testflight.yml')
+        .readAsStringSync();
+    expect(workflow, contains('Widget extension links app frameworks'));
+  });
+
   test('canlı etkinlik uzantı hedefinde', () {
     // Widget paketine eklenen PrayerLiveActivity uzantı hedefinde
     // derlenmezse widget paketi derlenmez.

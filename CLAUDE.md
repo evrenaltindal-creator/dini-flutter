@@ -64,7 +64,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 58 dosyada 734 test var; hepsi geçmelidir.
+- Depoda şu an 58 dosyada 735 test var; hepsi geçmelidir.
   (`test/promo_shots_test.dart` sayıma girmez: `promo` etiketi
   `dart_test.yaml` ile atlanır, çünkü görüntüyü diske yazdıktan sonra
   koşucu kapanmıyor ve `flutter test` asılı kalırdı. Görselleri üretmek
@@ -275,6 +275,13 @@ flutter test --reporter expanded
   rotadır (`/tasbih`, `/qibla`, `/tracker`). `widget_shortcuts_test.dart`
   platform mesajını taklit edip her düğmenin sayfasını açtığını bekçiler.
   Android widget'ı bu düzene geçmedi (Android derlemesi CI'da yok).
+- **Widget uzantısı Flutter'ı yüklemez.** Uzantının yapılandırması
+  `Generated.xcconfig`'i temel alır (saat hedefleri gibi). Debug/Release
+  xcconfig'i Flutter derlemede CocoaPods ayarlarını ekler; uzantı onları
+  devralınca Flutter.framework ve eklenti çerçevelerini yüklüyordu ve
+  TestFlight 1.0.0 (26)'da widget ana ekranda boş beyaz kutu olarak kaldı
+  (widget sürecinin bellek sınırı küçüktür). İş akışı IPA'da uzantının
+  hiçbir `@rpath` çerçevesine bağlanmadığını denetler; testi var.
 - **Widget'ın yazı renkleri açıkça verilir.** Zemini her görünümde koyudur;
   `.secondary` ya da varsayılan renk sistemin görünümünü izlediği için
   telefon aydınlık kipteyken widget okunmuyordu.

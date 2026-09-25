@@ -2,6 +2,8 @@ Namaz Yolu — Kur'an-ı Kerim, Apple Watch, takvim yaprağı ve düzeltmeler.
 Lansman döneminde tam sürüm: her şey açık, satın alma yok.
 
 Yeni:
+- Düzeltme: ana ekran widget'ı boş beyaz kutu olarak kalıyordu. Widget'ı
+  bir kez kaldırıp yeniden ekleyin.
 - Apple Watch kadran göstergesi: saat kadranına uzun basın → Düzenle →
   bir komplikasyon yerine "Namaz Yolu"yu seçin. Sıradaki vakit ve saati
   görünür; büyük yuvada kalan süre de sayar, yuvarlak yuvada halka vakte
