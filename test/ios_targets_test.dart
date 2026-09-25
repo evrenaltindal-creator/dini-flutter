@@ -25,7 +25,12 @@ void main() {
   bool isCompiled(String project, String fileName) =>
       '$fileName in Sources'.allMatches(project).length >= 2;
 
-  for (final folder in ['ios/Runner', 'ios/DiniWidget', 'ios/DiniWatch']) {
+  for (final folder in [
+    'ios/Runner',
+    'ios/DiniWidget',
+    'ios/DiniWatch',
+    'ios/DiniWatchComplications',
+  ]) {
     test('$folder altındaki Swift dosyaları bir hedefte derleniyor', () {
       final files = Directory(folder)
           .listSync()
@@ -70,6 +75,7 @@ void main() {
       ...Directory('ios/Runner').listSync(),
       ...Directory('ios/DiniWidget').listSync(),
       ...Directory('ios/DiniWatch').listSync(),
+      ...Directory('ios/DiniWatchComplications').listSync(),
     ].whereType<File>().where((file) => file.path.endsWith('.swift'));
     for (final file in files) {
       final source = file.readAsStringSync();
@@ -157,6 +163,121 @@ void main() {
       final privacy = File('ios/DiniWatch/PrivacyInfo.xcprivacy')
           .readAsStringSync();
       expect(privacy, contains('NSPrivacyAccessedAPICategoryUserDefaults'));
+    });
+  });
+
+  group('kadran göstergesi', () {
+    const group = 'group.com.dini.diniFlutter';
+
+    test('saat uygulamasının içine gömülü', () {
+      // Saat widget uzantısı iPhone uygulamasına değil, saat uygulamasının
+      // PlugIns klasörüne girer; bağımlılık yoksa hiç derlenmez.
+      expect(
+        project,
+        contains('DiniWatchComplications.appex in Embed Foundation Extensions'),
+      );
+      final watchTarget = RegExp(r'DINI_W_TARGET /\* DiniWatch \*/ = \{[^\n]*')
+          .firstMatch(project)!
+          .group(0)!;
+      expect(watchTarget, contains('DINI_C_PHASE_EMBED'));
+      expect(watchTarget, contains('DINI_C_DEP'));
+    });
+
+    test('kimliği saat uygulamasının altında, sürümü Flutter\'dan', () {
+      final configs = RegExp(
+        r'DINI_C_(DEBUG|RELEASE|PROFILE) /\* \w+ \*/ = \{[^\n]*',
+      ).allMatches(project).map((match) => match.group(0)!);
+      expect(configs, hasLength(3));
+      for (final config in configs) {
+        expect(
+          config,
+          contains(
+            'PRODUCT_BUNDLE_IDENTIFIER = '
+            'com.dini.diniFlutter.watchkitapp.complications;',
+          ),
+        );
+        expect(config, contains('SDKROOT = watchos;'));
+        expect(config, contains('Generated.xcconfig'));
+        expect(
+          config,
+          contains(r'CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)"'),
+        );
+        expect(
+          config,
+          contains(
+            'CODE_SIGN_ENTITLEMENTS = '
+            'DiniWatchComplications/DiniWatchComplications.entitlements;',
+          ),
+        );
+      }
+      final plist = File('ios/DiniWatchComplications/Info.plist')
+          .readAsStringSync();
+      expect(plist, contains('com.apple.widgetkit-extension'));
+    });
+
+    test('saat ile gösterge aynı App Group\'u kullanır', () {
+      // Gösterge ayrı bir süreçtir; saat uygulamasının UserDefaults'unu
+      // göremez. İkisi de grupta değilse gösterge hep boş kalır.
+      for (final path in [
+        'ios/DiniWatch/DiniWatch.entitlements',
+        'ios/DiniWatchComplications/DiniWatchComplications.entitlements',
+      ]) {
+        expect(File(path).readAsStringSync(), contains(group), reason: path);
+      }
+      expect(
+        'CODE_SIGN_ENTITLEMENTS = DiniWatch/DiniWatch.entitlements;'
+            .allMatches(project)
+            .length,
+        3,
+      );
+      final model = File('ios/DiniWatch/WatchSchedule.swift')
+          .readAsStringSync();
+      expect(model, contains('static let appGroup = "$group"'));
+      // Çizelge iki hedefte de derlenir: tanım + iki liste girdisi.
+      expect(
+        'WatchSchedule.swift in Sources'.allMatches(project).length,
+        greaterThanOrEqualTo(4),
+      );
+      final store = File('ios/DiniWatch/ScheduleStore.swift')
+          .readAsStringSync();
+      expect(store, contains('SharedSchedule.save('));
+      expect(store, contains('reloadAllTimelines()'));
+      final widget = File(
+        'ios/DiniWatchComplications/DiniWatchComplications.swift',
+      ).readAsStringSync();
+      expect(widget, contains('SharedSchedule.load()'));
+      // App Group'tan okunan UserDefaults gerekçesi bildirilmeli.
+      for (final path in [
+        'ios/DiniWatch/PrivacyInfo.xcprivacy',
+        'ios/DiniWatchComplications/PrivacyInfo.xcprivacy',
+      ]) {
+        expect(File(path).readAsStringSync(), contains('1C8F.1'), reason: path);
+      }
+    });
+
+    test('ters zaman aralığı kurmaz, vakti şehrin diliminde yazar', () {
+      final widget = File(
+        'ios/DiniWatchComplications/DiniWatchComplications.swift',
+      ).readAsStringSync();
+      expect(widget, contains('min(entry.date, time)...time'));
+      expect(widget, isNot(contains('style: .time')));
+      expect(widget, contains('schedule.clock(next.time)'));
+      // watchOS 10 kapsayıcı zemin ister; yoksa gösterge hata yazar.
+      expect(widget, contains('.containerBackground(for: .widget)'));
+    });
+
+    test('TestFlight iş akışı göstergeyi imzalar ve denetler', () {
+      final workflow = File('.github/workflows/ios-testflight.yml')
+          .readAsStringSync();
+      expect(
+        workflow,
+        contains(
+          'DINI_COMPLICATIONS_BUNDLE_ID: '
+          'com.dini.diniFlutter.watchkitapp.complications',
+        ),
+      );
+      expect(workflow, contains(r'"$DINI_COMPLICATIONS_BUNDLE_ID" \'));
+      expect(workflow, contains('PlugIns/DiniWatchComplications.appex'));
     });
   });
 

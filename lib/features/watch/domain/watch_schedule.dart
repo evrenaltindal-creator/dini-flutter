@@ -16,6 +16,8 @@ const watchTextKeys = [
   'watch.next',
   'watch.today',
   'watch.stale',
+  // Kadran göstergesinin galerideki açıklaması.
+  'watch.complication',
   // Saatteki tesbih.
   'home.tasbih',
   'tasbih.target',

@@ -22,7 +22,7 @@ Flutter + Riverpod + go_router. **Tamamen cihaz içi (offline-first) çalışır
 3. **Üç dil zorunlu.** Kullanıcıya görünen her metin
    `lib/core/localization/app_localizations.dart` içindeki `_strings` haritasına
    **`tr`, `en` ve `ar` için birlikte** eklenir. Şu an üç dilde de tam olarak
-   520 anahtar var; `localization_test.dart` bu pariteyi zorunlu kılar.
+   522 anahtar var; `localization_test.dart` bu pariteyi zorunlu kılar.
    Widget'ta düz string yazma; `context.l10n.text('key')` kullan.
 4. **RTL bozulmaz.** Arapça yön desteği `MaterialApp.supportedLocales` içindeki
    `Locale('ar')` + `GlobalWidgetsLocalizations.delegate` üzerinden otomatik gelir.
@@ -64,7 +64,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 58 dosyada 727 test var; hepsi geçmelidir.
+- Depoda şu an 58 dosyada 734 test var; hepsi geçmelidir.
   (`test/promo_shots_test.dart` sayıma girmez: `promo` etiketi
   `dart_test.yaml` ile atlanır, çünkü görüntüyü diske yazdıktan sonra
   koşucu kapanmıyor ve `flutter test` asılı kalırdı. Görselleri üretmek
@@ -246,10 +246,18 @@ flutter test --reporter expanded
   hedefte (33/99/∞) belirgin titreşim; sayı `@AppStorage`'da, telefonun
   tesbihinden ayrıdır; sıfırlama onay ister. Metinleri `watchTextKeys`
   ile telefondan gelir, yedekleri `WatchFallbackText`'tedir. Gerçek saatte
-  DENENMEDİ (Crown ile sayfa geçişi çakışabilir). Komplikasyonlar YOK:
-  saat uygulamasına ve yeni bir saat widget uzantısına
-  (`com.dini.diniFlutter.watchkitapp.complications`) Apple portalında App
-  Groups → `group.com.dini.diniFlutter` atanmalı; kullanıcı yapacak.
+  DENENMEDİ (Crown ile sayfa geçişi çakışabilir). **Kadran göstergesi**
+  (`ios/DiniWatchComplications/`, `com.dini.diniFlutter.watchkitapp.complications`):
+  saat uygulamasının PlugIns'ine gömülü WidgetKit uzantısı; dairesel
+  (önceki vakitten sıradakine dolan halka), dikdörtgen (vakit + canlı geri
+  sayım), satır ve köşe. Kendi hesabı yoktur: saat uygulaması çizelgeyi
+  App Group `group.com.dini.diniFlutter`'a yazar (`SharedSchedule`,
+  `WatchSchedule.swift` iki hedefte de derlenir) ve
+  `reloadAllTimelines()` çağırır; iki hedefin entitlements'ı grubu taşır
+  (portalda atandı). Galerideki ad/açıklama yalnız `WatchFallbackText`'ten
+  gelir; tablo çevirilerle birebir aynı olmalı (testi var). İş akışı yeni
+  kimliği imzalar, IPA'da uzantıyı, sürümünü ve grup yetkisini denetler.
+  Gerçek saatte DENENMEDİ.
 - **UserDefaults'a asla NSNull yazma.** Dart'ın JSON'undaki `null`
   Swift'te `NSNull` olur; `UserDefaults.set(NSNull)` Objective-C istisnası
   fırlatır ve uygulamayı kapatır. Konum adı ayarı varsayılan kapalı olduğu

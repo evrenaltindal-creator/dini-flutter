@@ -1,11 +1,13 @@
 import 'dart:io';
 
+import 'package:dini_flutter/core/localization/app_localizations.dart';
 import 'package:dini_flutter/features/prayer_times/domain/prayer_engine.dart';
 import 'package:dini_flutter/features/prayer_times/domain/prayer_settings.dart';
 import 'package:dini_flutter/features/prayer_times/domain/timezone_service.dart';
 import 'package:dini_flutter/features/watch/data/watch_schedule_builder.dart';
 import 'package:dini_flutter/features/watch/domain/watch_schedule.dart';
 import 'package:dini_flutter/shared/models/domain.dart';
+import 'package:flutter/material.dart' show Locale;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -238,6 +240,30 @@ void main() {
       }
       for (final key in watchTextKeys) {
         expect(reader, contains('"$key"'), reason: 'yedek metin eksik: $key');
+      }
+    });
+
+    test('saatin yedek metinleri uygulamanın çevirileriyle aynı', () {
+      // Kadran göstergesinin galerideki adı ve açıklaması yalnızca yedek
+      // tablodan gelir (galeri telefondan metin almaz); çeviriden
+      // ayrılırsa üç dilden biri farklı konuşur.
+      final reader = File('ios/DiniWatch/WatchSchedule.swift')
+          .readAsStringSync();
+      for (final code in ['tr', 'en', 'ar']) {
+        final table = RegExp(
+          '"$code": \\[(.*?)\\n    \\]',
+          dotAll: true,
+        ).firstMatch(reader)!.group(1)!;
+        final pairs = RegExp(r'"([\w.]+)": "((?:[^"\\]|\\.)*)"')
+            .allMatches(table);
+        final l10n = AppLocalizations(Locale(code));
+        final keys = <String>[];
+        for (final pair in pairs) {
+          final key = pair.group(1)!;
+          keys.add(key);
+          expect(pair.group(2), l10n.text(key), reason: '$code $key');
+        }
+        expect(keys, containsAll(['appTitle', 'watch.complication']));
       }
     });
 

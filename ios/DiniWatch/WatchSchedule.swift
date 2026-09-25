@@ -89,6 +89,41 @@ struct WatchSchedule: Equatable {
   }
 }
 
+/// Saat uygulaması ile kadran göstergesinin ortak deposu.
+///
+/// Kadran göstergesi ayrı bir süreçtir (widget uzantısı): saat
+/// uygulamasının kendi `UserDefaults`'ını göremez. Çizelge bu yüzden App
+/// Group'ta da saklanır; grup Apple portalında hem saat uygulamasına hem
+/// uzantıya atanmıştır. Saklanan şey sözlüğün JSON'udur (Data), sözlük
+/// değil: içindeki bir değer UserDefaults'u kıramaz.
+enum SharedSchedule {
+  static let appGroup = "group.com.dini.diniFlutter"
+  static let storageKey = "dini.watch.schedule"
+
+  private static var groupDefaults: UserDefaults? { UserDefaults(suiteName: appGroup) }
+
+  static func save(_ payload: [String: Any]) {
+    guard
+      JSONSerialization.isValidJSONObject(payload),
+      let data = try? JSONSerialization.data(withJSONObject: payload)
+    else { return }
+    groupDefaults?.set(data, forKey: storageKey)
+    // Eski sürümler yalnızca burada saklıyordu; ilk açılışta da okunsun.
+    UserDefaults.standard.set(data, forKey: storageKey)
+  }
+
+  static func load() -> WatchSchedule? {
+    let data =
+      groupDefaults?.data(forKey: storageKey)
+      ?? UserDefaults.standard.data(forKey: storageKey)
+    guard
+      let data,
+      let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+    else { return nil }
+    return WatchSchedule(payload: object)
+  }
+}
+
 /// Telefonla hiç eşleşmemiş saatin metinleri.
 ///
 /// Bütün diğer metinler telefondan hazır gelir (uygulamanın üç dilli çeviri
@@ -101,6 +136,8 @@ enum WatchFallbackText {
       "watch.today": "Bugün",
       "watch.stale": "Vakitler güncel değil. Telefonda Namaz Yolu'nu açın.",
       "watch.empty": "Vakitler için telefonda Namaz Yolu'nu bir kez açın.",
+      "watch.complication": "Sıradaki vakit ve kalan süre",
+      "appTitle": "Namaz Yolu",
       "home.tasbih": "Tesbih",
       "tasbih.target": "Hedef",
       "tasbih.reset": "Sıfırla",
@@ -110,6 +147,8 @@ enum WatchFallbackText {
       "watch.today": "Today",
       "watch.stale": "Times are out of date. Open Prayer Path on your phone.",
       "watch.empty": "Open Prayer Path on your phone once to get prayer times.",
+      "watch.complication": "Next prayer and time remaining",
+      "appTitle": "Prayer Path",
       "home.tasbih": "Tasbih",
       "tasbih.target": "Target",
       "tasbih.reset": "Reset",
@@ -119,6 +158,8 @@ enum WatchFallbackText {
       "watch.today": "اليوم",
       "watch.stale": "المواقيت غير محدّثة. افتح طريق الصلاة على هاتفك.",
       "watch.empty": "افتح طريق الصلاة على هاتفك مرة واحدة للحصول على المواقيت.",
+      "watch.complication": "الصلاة التالية والوقت المتبقي",
+      "appTitle": "طريق الصلاة",
       "home.tasbih": "التسبيح",
       "tasbih.target": "الهدف",
       "tasbih.reset": "إعادة الضبط",

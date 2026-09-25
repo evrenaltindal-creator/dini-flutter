@@ -2,6 +2,12 @@ Namaz Yolu — Kur'an-ı Kerim, Apple Watch, takvim yaprağı ve düzeltmeler.
 Lansman döneminde tam sürüm: her şey açık, satın alma yok.
 
 Yeni:
+- Apple Watch kadran göstergesi: saat kadranına uzun basın → Düzenle →
+  bir komplikasyon yerine "Namaz Yolu"yu seçin. Sıradaki vakit ve saati
+  görünür; büyük yuvada kalan süre de sayar, yuvarlak yuvada halka vakte
+  doğru dolar. Önce telefonda uygulamayı bir kez açın ki saat vakitleri
+  alsın. Lütfen deneyin: vakit geçince gösterge kendiliğinden sıradakine
+  geçiyor mu?
 - Apple Watch'ta tesbih: saatte vakitler sayfasından aşağı kaydırın. Ekrana
   dokunun ya da Digital Crown'u çevirin; her sayışta bilek hafifçe titrer,
   hedefe (33, 99 ya da sınırsız) varınca belirgin titrer ve yeni tur başlar.

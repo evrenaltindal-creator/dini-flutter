@@ -20,6 +20,7 @@ jobs:
       DINI_MAIN_BUNDLE_ID: com.dini.diniFlutter
       DINI_WIDGET_BUNDLE_ID: com.dini.diniFlutter.widget
       DINI_WATCH_BUNDLE_ID: com.dini.diniFlutter.watchkitapp
+      DINI_COMPLICATIONS_BUNDLE_ID: com.dini.diniFlutter.watchkitapp.complications
       APP_STORE_APPLE_ID: ${{ vars.APP_STORE_APPLE_ID }}
       TESTFLIGHT_INTERNAL_GROUP: ${{ vars.TESTFLIGHT_INTERNAL_GROUP }}
       DINI_IOS_MONTHLY_PRODUCT_ID: ${{ vars.DINI_IOS_MONTHLY_PRODUCT_ID }}
@@ -113,6 +114,14 @@ jobs:
             --type IOS_APP_STORE \
             --strict-match-identifier \
             --create
+          # Kadran göstergesi (saat uygulamasının içindeki widget uzantısı).
+          # Kimlik ve App Group portalda elle oluşturuldu; saat uygulaması ile
+          # gösterge çizelgeyi group.com.dini.diniFlutter üzerinden paylaşır.
+          app-store-connect fetch-signing-files \
+            "$DINI_COMPLICATIONS_BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --strict-match-identifier \
+            --create
 
       - name: Configure keychain and Xcode signing
         run: |
@@ -155,7 +164,7 @@ jobs:
           --dart-define=DINI_IOS_YEARLY_PRODUCT_ID="$DINI_IOS_YEARLY_PRODUCT_ID"
           --dart-define=DINI_IOS_LIFETIME_PRODUCT_ID="$DINI_IOS_LIFETIME_PRODUCT_ID"
 
-      - name: Verify IPA, WidgetKit extension and Apple Watch app
+      - name: Verify IPA, WidgetKit extension, Apple Watch app and complications
         shell: bash
         run: |
           set -euo pipefail
@@ -197,6 +206,26 @@ jobs:
           fi
           test "$(/usr/libexec/PlistBuddy -c 'Print :WKCompanionAppBundleIdentifier' \
             "$watch/Info.plist")" = "$DINI_MAIN_BUNDLE_ID"
+          # Kadran göstergesi saat uygulamasının PlugIns klasöründe gelir;
+          # sürümü ve App Group yetkisi saat uygulamasınınkiyle aynı olmalı.
+          complications="$watch/PlugIns/DiniWatchComplications.appex"
+          test -d "$complications"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' \
+            "$complications/Info.plist")" = "$DINI_COMPLICATIONS_BUNDLE_ID"
+          complications_version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' \
+            "$complications/Info.plist")"
+          if [[ "$app_version" != "$complications_version" ]]; then
+            echo "Complications CFBundleVersion $complications_version != app $app_version" >&2
+            exit 1
+          fi
+          otool -l "$complications/DiniWatchComplications" | grep -q '__swift5_entry'
+          for bundle in "$watch" "$complications"; do
+            codesign -d --entitlements - --xml "$bundle" 2>/dev/null \
+              | grep -q 'group.com.dini.diniFlutter' || {
+                echo "$bundle is not signed with the App Group." >&2
+                exit 1
+              }
+          done
 
       - name: Upload internal-only TestFlight build
         run: |
