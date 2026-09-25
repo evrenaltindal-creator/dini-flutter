@@ -64,7 +64,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 58 dosyada 734 test var; hepsi geçmelidir.
+- Depoda şu an 59 dosyada 743 test var; hepsi geçmelidir.
   (`test/promo_shots_test.dart` sayıma girmez: `promo` etiketi
   `dart_test.yaml` ile atlanır, çünkü görüntüyü diske yazdıktan sonra
   koşucu kapanmıyor ve `flutter test` asılı kalırdı. Görselleri üretmek
@@ -91,6 +91,8 @@ flutter test --reporter expanded
 | Test | `test/` |
 | Uygulama simgesi | Kaynak tasarım `assets/branding/app_icon_source.png`; PNG'ler `tool/generate_app_icon.py` ile üretilir (elle düzenleme) |
 | Bildirim tonu | `tool/generate_notification_tone.py` |
+| App Store sayfası (metin, görsel) | `store/` (bkz. `store/README.md`); görseller `tool/generate_store_screenshots.py` |
+| Gizlilik / destek sayfası | `docs/privacy/`, `docs/support/` (GitHub Pages) |
 
 ## Bilinmesi gereken tuzaklar
 
@@ -153,6 +155,16 @@ flutter test --reporter expanded
   gidilir. Test ortamında `MemoryStorage` devreye girer.
 - Native widget köprüsü (`MethodChannel('dini/widget_snapshot')`) testte
   `MissingPluginException` fırlatır ve sessizce yutulur — bu bilinçlidir.
+- **App Store mağaza sayfası `store/` altındadır.** Görseller kullanıcının
+  kendi iPhone'undan çektiği gerçek ekran görüntülerinden
+  (`store/screenshots/raw/`) üretilir: 1320×2868, zemin + başlık + telefon
+  çerçevesi; widget görüntüsünde Dock (başka markaların simgeleri) örtülür.
+  Açıklamadaki her özellik uygulamada gerçekten olmalı. Yükleme
+  `app-store-listing.yml` iş akışıyla (fastlane deliver, derleme yüklemez,
+  otomatik yayınlamaz: "Yayınla"ya kullanıcı basar). Uygulama Gizliliği,
+  yaş sınırı, fiyat ve inceleme iletişim bilgisi API ile yapılamaz; sitede
+  elle doldurulur. Telefon numarası depo herkese açık olduğu için depoya
+  YAZILMAZ. `store_listing_test.dart` sınırları bekçiler.
 - **İlk App Store sürümünde Premium YOK** (kullanıcı kararı): `/premium`
   rotası ve Ayarlar'daki satır kaldırıldı, her şey ücretsiz. Satın alma
   ürünleri App Store Connect'te hazır olmadan sayfa açık kalsaydı App

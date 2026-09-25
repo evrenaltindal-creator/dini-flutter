@@ -1,0 +1,34 @@
+Namaz Yolu; namaz vakitlerini, kıbleyi, Kur'ân-ı Kerîm'i ve namazın nasıl kılındığını tek bir sade uygulamada toplar. Reklam yok, üyelik yok, internet gerekmez. Vakitler telefonunuzda hesaplanır; konumunuz cihazınızdan hiçbir yere gönderilmez.
+
+NAMAZ VAKİTLERİ
+• İmsak, güneş, öğle, ikindi, akşam ve yatsı vakitleri; sıradaki namaza kalan süre
+• Konum cihazdan otomatik alınır ya da listeden şehir seçilir
+• Diyanet dahil altı hesaplama yöntemi; ikindi için Hanefî veya standart
+• Vakit bildirimleri; bildirim sesi olarak telefonun sesi ya da kısa bir ezan
+• Ramazan'da imsakiye, sahur ve iftar hatırlatıcıları, teravih ve oruç sayfaları
+
+KUR'ÂN-I KERÎM
+• 604 sayfalık Mushaf, sayfa sayfa kitap gibi çevrilir
+• 114 sûre ve 30 cüz listesi; kaldığınız yerden devam edin
+• Âyet âyet meal: Elmalılı Muhammed Hamdi Yazır'ın 1935 tarihli aslından
+• Arapça metin Tanzil projesinin Osmanî hattıdır
+
+NAMAZ VE ABDEST REHBERİ
+• Her vaktin namazı resimli olarak, kılınış sırasıyla
+• Namaz hocası: namazı adım adım, rekât rekât kıldırır; dualar ekranda yazar ve istenirse telefonun sesiyle okunur
+• Abdest rehberi
+
+TAKİP VE TAKVİM
+• Günlük namaz takibi ve kaza takibi; kayıtlar yalnızca cihazınızda
+• Aylık takvim ve günün takvim yaprağı: Hicrî ve Rumî tarih, Hızır ve Kasım günleri, günün vakitleri
+• Kıble pusulası (gerçek kuzeye göre)
+• Tesbih: hedef sayısı, titreşim
+
+WIDGET VE APPLE WATCH
+• Ana ekran ve kilit ekranı widget'ı: sıradaki vakit, canlı geri sayım, günün vakitleri; Tesbih, Kıble ve Takip kısayolları
+• Apple Watch: sıradaki vakit, geri sayım, günün vakitleri, saatte tesbih ve kadran göstergesi
+
+GİZLİLİK
+Namaz Yolu hiçbir veri toplamaz. Hesap açmanız gerekmez, reklam ve izleme yoktur. Konumunuz yalnızca vakitleri ve kıbleyi hesaplamak için telefonunuzda kullanılır.
+
+Uygulama Türkçe, İngilizce ve Arapça kullanılabilir.
