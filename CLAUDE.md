@@ -22,7 +22,7 @@ Flutter + Riverpod + go_router. **Tamamen cihaz içi (offline-first) çalışır
 3. **Üç dil zorunlu.** Kullanıcıya görünen her metin
    `lib/core/localization/app_localizations.dart` içindeki `_strings` haritasına
    **`tr`, `en` ve `ar` için birlikte** eklenir. Şu an üç dilde de tam olarak
-   519 anahtar var; `localization_test.dart` bu pariteyi zorunlu kılar.
+   520 anahtar var; `localization_test.dart` bu pariteyi zorunlu kılar.
    Widget'ta düz string yazma; `context.l10n.text('key')` kullan.
 4. **RTL bozulmaz.** Arapça yön desteği `MaterialApp.supportedLocales` içindeki
    `Locale('ar')` + `GlobalWidgetsLocalizations.delegate` üzerinden otomatik gelir.
@@ -64,7 +64,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 57 dosyada 715 test var; hepsi geçmelidir.
+- Depoda şu an 58 dosyada 726 test var; hepsi geçmelidir.
   (`test/promo_shots_test.dart` sayıma girmez: `promo` etiketi
   `dart_test.yaml` ile atlanır, çünkü görüntüyü diske yazdıktan sonra
   koşucu kapanmıyor ve `flutter test` asılı kalırdı. Görselleri üretmek
@@ -248,6 +248,17 @@ flutter test --reporter expanded
   için TestFlight 1.0.0 (10) HER AÇILIŞTA çöktü. Köprü null'u anahtarı
   silerek karşılar; iki testi var. Native kanal yanıtları (`result`) ana
   iş parçacığından verilir.
+- **iOS widget'ı sıradaki vakti KENDİSİ seçer** (uygulama açılmasa da):
+  bugünün vakitleri, yatsıdan sonra `tomorrowFajr` (ertesi günün kendi
+  hesabı). Orta boy: sıradaki vakit + canlı geri sayım (`style: .timer`,
+  "kaldı" `widget.remaining`), vakitler üstte üç altta iki ortalı, konum
+  YOK (kullanıcı kararı; konum ayarı saat ve canlı etkinlik için duruyor),
+  altta Tesbih/Kıble/Takip kısayolları. Kısayol `namazyolu://open/<rota>`
+  açar: şema Runner Info.plist'te (`CFBundleURLTypes`,
+  `FlutterDeepLinkingEnabled`), Flutter tam adresi go_router'a verir, yol
+  rotadır (`/tasbih`, `/qibla`, `/tracker`). `widget_shortcuts_test.dart`
+  platform mesajını taklit edip her düğmenin sayfasını açtığını bekçiler.
+  Android widget'ı bu düzene geçmedi (Android derlemesi CI'da yok).
 - **Widget'ın yazı renkleri açıkça verilir.** Zemini her görünümde koyudur;
   `.secondary` ya da varsayılan renk sistemin görünümünü izlediği için
   telefon aydınlık kipteyken widget okunmuyordu.

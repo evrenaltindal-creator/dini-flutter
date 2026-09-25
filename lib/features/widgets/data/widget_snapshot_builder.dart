@@ -34,6 +34,17 @@ WidgetSnapshot buildWidgetSnapshot({
   final next = nextPrayerState(localNow, times);
   final l10n = AppLocalizations(Locale(languageCode));
   final scene = const MosqueSceneStateResolver().resolve(localNow, times);
+  // Yatsıdan sonra sıradaki vakit yarının sabahıdır: gerçek vakti o günün
+  // hesabından alınır (bugünün sabah saatini ertesi güne kaydırmak birkaç
+  // dakika şaşar).
+  final tomorrow = calculator.calculate(
+    localNow.add(const Duration(days: 1)),
+    Coordinates(location.latitude ?? 41.0082, location.longitude ?? 28.9784),
+    method: settings.method,
+    asrMethod: settings.asrMethod,
+    adjustments: settings.adjustments,
+    timezoneId: timezoneId,
+  );
 
   return WidgetSnapshot(
     effectiveDate: times.date,
@@ -44,6 +55,13 @@ WidgetSnapshot buildWidgetSnapshot({
     scenePeriod: scene.period,
     labels: {
       for (final prayer in Prayer.values) prayer: l10n.prayer(prayer.name),
+    },
+    tomorrowFajr: tomorrow.times[Prayer.fajr],
+    extraLabels: {
+      'remaining': l10n.text('widget.remaining'),
+      'tasbih': l10n.text('home.tasbih'),
+      'qibla': l10n.text('home.qibla'),
+      'tracker': l10n.text('worship.tracker'),
     },
   );
 }

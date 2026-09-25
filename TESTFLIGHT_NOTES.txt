@@ -2,6 +2,13 @@ Namaz Yolu — Kur'an-ı Kerim, Apple Watch, takvim yaprağı ve düzeltmeler.
 Lansman döneminde tam sürüm: her şey açık, satın alma yok.
 
 Yeni:
+- Ana ekran widget'ı (orta boy): sıradaki namaz, kalan süre (canlı geri
+  sayım), günün vakitleri üstte üç altta iki. Konum yerine Tesbih, Kıble ve
+  Takip düğmeleri: dokununca uygulama doğrudan o bölümde açılır. Widget
+  yatsıdan sonra uygulama açılmasa da yarının sabahına geçer. Widget'ı bir
+  kez kaldırıp yeniden eklemeniz gerekebilir.
+- İbadet → Takip, Namaz, Abdest ve Kuran listesinin sonu artık alttaki
+  çubuğun altında kalmıyor.
 - Kur'an-ı Kerim: Kuran sekmesinde kapak açılır, sûreler ve cüzler listelenir.
   Bir sûreye dokunun: Medine Mushaf'ının o sayfası açılır (604 sayfa, basılı
   Mushaf'la aynı). Sayfayı parmakla sola çekerek ya da kenarına dokunarak

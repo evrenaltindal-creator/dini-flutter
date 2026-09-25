@@ -19,6 +19,15 @@ class WidgetSnapshot {
   /// olarak gönderilmezse widget'ta enum adları ("maghrib") görünür.
   final Map<Prayer, String> labels;
 
+  /// Ertesi günün sabah vakti. Uzantı sıradaki vakti her an kendisi seçer;
+  /// yatsıdan sonra sıradaki vakit yarının sabahıdır ve uygulama o sırada
+  /// açılmamış olabilir.
+  final DateTime? tomorrowFajr;
+
+  /// Widget'taki diğer yazılar kullanıcının dilinde: "kaldı" ve kısayol
+  /// düğmeleri (Tesbih, Kıble, Takip). Anahtarlar `label_` önekiyle gider.
+  final Map<String, String> extraLabels;
+
   const WidgetSnapshot({
     required this.effectiveDate,
     required this.locationName,
@@ -27,6 +36,8 @@ class WidgetSnapshot {
     required this.nextPrayerTime,
     required this.scenePeriod,
     this.labels = const {},
+    this.tomorrowFajr,
+    this.extraLabels = const {},
   });
   Map<String, dynamic> toJson({required bool showLocationName}) => {
     'effectiveDate': effectiveDate.toIso8601String(),
@@ -41,7 +52,9 @@ class WidgetSnapshot {
     'nextPrayerLabel': nextPrayer == null ? null : labels[nextPrayer],
     'nextPrayerTime': nextPrayerTime?.toIso8601String(),
     'scenePeriod': scenePeriod.name,
+    'tomorrowFajr': tomorrowFajr?.toIso8601String(),
     for (final entry in labels.entries) 'label_${entry.key.name}': entry.value,
+    for (final entry in extraLabels.entries) 'label_${entry.key}': entry.value,
   };
 }
 
