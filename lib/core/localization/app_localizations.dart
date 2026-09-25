@@ -518,6 +518,12 @@ class AppLocalizations {
       'quran.source.tr.elmalili': 'Türkçe meal: Elmalılı Muhammed Hamdi Yazır, Hak Dini Kur\'an Dili (1935), sadeleştirilmemiş aslı; eser kamu malıdır. Dijital metin: namazzamani.net.',
       'quran.jointTranslation':
           '(Bu âyetin meali bir önceki âyetle birlikte verilmiştir.)',
+      'quran.translator.tr.elmalili': 'Meal: Elmalılı Muhammed Hamdi Yazır',
+      'quran.translator.en.pickthall': 'Meal: Marmaduke Pickthall',
+      'quran.translatorAbout.tr.elmalili.title':
+          'Elmalılı Muhammed Hamdi Yazır (1878-1942)',
+      'quran.translatorAbout.tr.elmalili.body': 'Elmalılı Muhammed Hamdi Yazır 1878\'de Antalya\'nın Elmalı ilçesinde doğdu. Hâfızlığını memleketinde tamamladı, İstanbul\'da medrese tahsili gördü ve Mekteb-i Nüvvâb\'ı dereceyle bitirdi. Tefsir, fıkıh, kelâm ve felsefede derin bir âlim, aynı zamanda usta bir hattattı. Son dönem Osmanlı\'da Meclis-i Mebûsan\'da Antalya mebusu, Evkaf Nazırı ve Âyan üyesi oldu.\n\nCumhuriyet\'in ilk yıllarında Türkiye Büyük Millet Meclisi, 21 Şubat 1925\'te Diyanet İşleri Reisliği bütçesine Kur\'an-ı Kerim\'in Türkçe meal ve tefsiri için ödenek koydu. Diyanet tefsiri Elmalılı\'ya, meali Mehmet Âkif\'e verdi; Âkif işi bırakınca meali de Elmalılı yazdı. Yaklaşık on iki yıllık çalışmanın ürünü olan Hak Dini Kur\'an Dili, Diyanet tarafından 1935-1938 yıllarında basıldı.\n\nBu çalışmanın arkasında, Kur\'an\'ın herkes tarafından kendi dilinde okunup anlaşılmasını isteyen Atatürk\'ün desteği vardı. Osman Ergin\'in aktardığına göre Atatürk şöyle demiştir: “Türk, Kur\'an\'ın arkasından koşuyor; fakat onun ne dediğini anlamıyor… Benim maksadım, arkasından koştuğu kitapta neler olduğunu Türk anlasın.”\n\nElmalılı 27 Mayıs 1942\'de İstanbul\'da vefat etti; Sahrâ-yı Cedîd Mezarlığı\'nda yatmaktadır. Bu uygulamadaki meal, 1935 baskısının sadeleştirilmemiş aslıdır; dili o yılların Türkçesidir.',
+      'quran.translatorAbout.tr.elmalili.sources': 'Kaynaklar: TDV İslâm Ansiklopedisi, “Elmalılı Muhammed Hamdi” maddesi; TBMM, 21 Şubat 1925 tarihli bütçe görüşmeleri; Osman Ergin, Türk Maarif Tarihi.',
       'premium.restore': 'Satın alımları geri yükle',
       'premium.restoreSent': 'Geri yükleme isteği mağazaya gönderildi.',
       'premium.active': 'Premium etkin',
@@ -1062,6 +1068,13 @@ class AppLocalizations {
       'quran.source.tr.elmalili': 'Turkish translation: Elmalılı Muhammed Hamdi Yazır, Hak Dini Kur\'an Dili (1935), the original unsimplified text; the work is in the public domain. Digital text: namazzamani.net.',
       'quran.jointTranslation':
           '(This verse is translated together with the previous one.)',
+      'quran.translator.tr.elmalili':
+          'Translation: Elmalılı Muhammed Hamdi Yazır',
+      'quran.translator.en.pickthall': 'Translation: Marmaduke Pickthall',
+      'quran.translatorAbout.tr.elmalili.title':
+          'Elmalılı Muhammed Hamdi Yazır (1878-1942)',
+      'quran.translatorAbout.tr.elmalili.body': 'Elmalılı Muhammed Hamdi Yazır was born in 1878 in Elmalı, Antalya. He memorised the Quran in his hometown, studied at the madrasas of Istanbul and graduated with distinction from the Mekteb-i Nüvvâb. He was a profound scholar of exegesis, jurisprudence, theology and philosophy, and a master calligrapher. In the late Ottoman period he served as deputy for Antalya in the Chamber of Deputies, Minister of Pious Foundations and member of the Senate.\n\nIn the early years of the Republic, on 21 February 1925, the Grand National Assembly of Turkey allocated funds in the budget of the Presidency of Religious Affairs for a Turkish translation and commentary of the Holy Quran. The commentary was entrusted to Elmalılı and the translation to Mehmet Âkif; when Âkif withdrew, Elmalılı wrote the translation as well. The fruit of about twelve years of work, Hak Dini Kur\'an Dili, was published by the Presidency of Religious Affairs in 1935-1938.\n\nBehind this work was the support of Atatürk, who wanted everyone to be able to read and understand the Quran in their own language. As Osman Ergin reports, Atatürk said: “The Turk runs after the Quran but does not understand what it says… My aim is that the Turk understands what is in the book he runs after.”\n\nElmalılı died in Istanbul on 27 May 1942 and rests in the Sahrâ-yı Cedîd Cemetery. The translation in this app is the original, unsimplified 1935 text, in the Turkish of its time.',
+      'quran.translatorAbout.tr.elmalili.sources': 'Sources: TDV Encyclopedia of Islam, “Elmalılı Muhammed Hamdi”; Grand National Assembly of Turkey, budget debates of 21 February 1925; Osman Ergin, Türk Maarif Tarihi.',
       'premium.restore': 'Restore purchases',
       'premium.restoreSent': 'The restore request was sent to the store.',
       'premium.active': 'Premium active',
@@ -1616,6 +1629,12 @@ class AppLocalizations {
       'quran.source.en.pickthall': 'الترجمة الإنجليزية: محمد مارمادوك بكتال، «The Meaning of the Glorious Koran» (1930)، عبر مشروع تنزيل (tanzil.net).',
       'quran.source.tr.elmalili': 'الترجمة التركية: محمد حمدي يازر الألمالي، «Hak Dini Kur\'an Dili» (1935)، النص الأصلي دون تبسيط؛ والعمل في الملك العام. النص الرقمي: namazzamani.net.',
       'quran.jointTranslation': '(تُرجمت هذه الآية مع الآية السابقة.)',
+      'quran.translator.tr.elmalili': 'الترجمة: محمد حمدي يازر الألمالي',
+      'quran.translator.en.pickthall': 'الترجمة: مارمادوك بكتال',
+      'quran.translatorAbout.tr.elmalili.title':
+          'محمد حمدي يازر الألمالي (1878-1942)',
+      'quran.translatorAbout.tr.elmalili.body': 'وُلد محمد حمدي يازر الألمالي عام 1878 في إلمالي بولاية أنطاليا. حفظ القرآن في بلدته، ودرس في مدارس إسطنبول، وتخرّج بتفوّق في «مكتب النوّاب». كان عالمًا متبحّرًا في التفسير والفقه والكلام والفلسفة، وخطّاطًا بارعًا. وفي أواخر العهد العثماني كان نائبًا عن أنطاليا في مجلس المبعوثان، ثم ناظرًا للأوقاف وعضوًا في مجلس الأعيان.\n\nفي السنوات الأولى للجمهورية، وفي 21 فبراير 1925، خصّصت الجمعية الوطنية التركية الكبرى في ميزانية رئاسة الشؤون الدينية مبلغًا لترجمة القرآن الكريم وتفسيره باللغة التركية. فعُهد بالتفسير إلى الألمالي وبالترجمة إلى محمد عاكف، ولمّا انسحب عاكف كتب الألمالي الترجمة أيضًا. وقد نُشر ثمرة نحو اثني عشر عامًا من العمل، «Hak Dini Kur\'an Dili»، عن رئاسة الشؤون الدينية بين عامَي 1935 و1938.\n\nوكان وراء هذا العمل دعمُ أتاتورك الذي أراد أن يقرأ كلُّ أحد القرآن ويفهمه بلغته. وبحسب ما نقله عثمان أرگين قال أتاتورك: «التركي يسعى وراء القرآن لكنه لا يفهم ما يقول… غايتي أن يفهم التركي ما في الكتاب الذي يسعى وراءه.»\n\nتوفي الألمالي في إسطنبول في 27 مايو 1942، ودُفن في مقبرة صحراي جديد. والترجمة في هذا التطبيق هي النص الأصلي لطبعة 1935 دون تبسيط، بلغة ذلك العصر التركية.',
+      'quran.translatorAbout.tr.elmalili.sources': 'المصادر: موسوعة الوقف الديني التركي الإسلامية، مادة «Elmalılı Muhammed Hamdi»؛ مداولات الميزانية في الجمعية الوطنية التركية الكبرى بتاريخ 21 فبراير 1925؛ عثمان أرگين، «Türk Maarif Tarihi».',
       'premium.restore': 'استعادة المشتريات',
       'premium.restoreSent': 'تم إرسال طلب الاستعادة إلى المتجر.',
       'premium.active': 'الاشتراك المميز نشط',

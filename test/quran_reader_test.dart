@@ -13,6 +13,7 @@ import 'package:dini_flutter/features/quran/data/surah_names.dart';
 import 'package:dini_flutter/features/quran/presentation/mushaf_page.dart';
 import 'package:dini_flutter/features/quran/presentation/quran_meal_page.dart';
 import 'package:dini_flutter/features/quran/presentation/quran_reader_page.dart';
+import 'package:dini_flutter/features/quran/presentation/translator_about.dart';
 import 'package:dini_flutter/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -137,6 +138,31 @@ void main() {
       expect(turkish.ayah(2, 255), isNot(contains('(hayydır)')));
       expect(turkish.ayah(1, 5), startsWith('Sade sana ederiz kulluğu'));
       expect(turkish.ayah(112, 1), 'De, o: Allah tek bir (ehad)dir');
+    });
+
+    test('Elmalılı hakkındaki yazı kaynağa dayanır', () {
+      for (final code in ['tr', 'en', 'ar']) {
+        final l10n = AppLocalizations(Locale(code));
+        final body = l10n.text('quran.translatorAbout.tr.elmalili.body');
+        // Ödenek TBMM'nin 21 Şubat 1925 kararıyla Diyanet bütçesinden
+        // verildi; "Atatürk kendi cebinden ödedi" yaygın ama yanlıştır.
+        expect(body, contains('1925'), reason: code);
+        expect(body, contains('1942'), reason: code);
+        expect(body, isNot(contains('cebinden')), reason: code);
+        expect(body, isNot(contains('own pocket')), reason: code);
+        expect(
+          l10n.text('quran.translatorAbout.tr.elmalili.sources'),
+          contains('Türk Maarif Tarihi'),
+          reason: code,
+        );
+      }
+      // Hakkında yazısı olan her mütercimin üç parçası da var.
+      for (final id in translatorsWithAbout) {
+        for (final part in ['title', 'body', 'sources']) {
+          final key = 'quran.translatorAbout.$id.$part';
+          expect(AppLocalizations(const Locale('tr')).text(key), isNot(key));
+        }
+      }
     });
 
     test('birlikte çevrilen âyet çiftleri tanınır', () {
@@ -333,6 +359,41 @@ void main() {
       );
       expect(find.textContaining('Elmalılı'), findsWidgets);
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('mealin Elmalılı\'ya ait olduğu yazar, adına dokununca '
+        'hakkında yazısı açılır', (tester) async {
+      await open(tester, QuranMealPage.routeFor(1));
+      final name = find.text('Meal: Elmalılı Muhammed Hamdi Yazır');
+      expect(name, findsOneWidget);
+
+      await tester.tap(name);
+      await tester.pumpAndSettle();
+      expect(find.byType(TranslatorAboutSheet), findsOneWidget);
+      expect(
+        find.text('Elmalılı Muhammed Hamdi Yazır (1878-1942)'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('Hak Dini Kur\'an Dili'), findsWidgets);
+      final ataturk = find.textContaining('Osman Ergin\'in aktardığına göre');
+      await tester.dragUntilVisible(
+        ataturk,
+        find.descendant(
+          of: find.byType(TranslatorAboutSheet),
+          matching: find.byType(ListView),
+        ),
+        const Offset(0, -200),
+      );
+      expect(ataturk, findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('İngilizcede mütercim adı yazar, hakkında yazısı yok', (
+      tester,
+    ) async {
+      await open(tester, QuranMealPage.routeFor(1), language: 'en');
+      expect(find.text('Translation: Marmaduke Pickthall'), findsOneWidget);
+      expect(find.byIcon(Icons.info_outline), findsNothing);
     });
 
     testWidgets('birlikte çevrilen âyette meal yinelenmez, söylenir', (

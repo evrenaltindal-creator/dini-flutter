@@ -22,7 +22,7 @@ Flutter + Riverpod + go_router. **Tamamen cihaz içi (offline-first) çalışır
 3. **Üç dil zorunlu.** Kullanıcıya görünen her metin
    `lib/core/localization/app_localizations.dart` içindeki `_strings` haritasına
    **`tr`, `en` ve `ar` için birlikte** eklenir. Şu an üç dilde de tam olarak
-   514 anahtar var; `localization_test.dart` bu pariteyi zorunlu kılar.
+   519 anahtar var; `localization_test.dart` bu pariteyi zorunlu kılar.
    Widget'ta düz string yazma; `context.l10n.text('key')` kullan.
 4. **RTL bozulmaz.** Arapça yön desteği `MaterialApp.supportedLocales` içindeki
    `Locale('ar')` + `GlobalWidgetsLocalizations.delegate` üzerinden otomatik gelir.
@@ -64,7 +64,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 56 dosyada 703 test var; hepsi geçmelidir.
+- Depoda şu an 56 dosyada 706 test var; hepsi geçmelidir.
   (`test/promo_shots_test.dart` sayıma girmez: `promo` etiketi
   `dart_test.yaml` ile atlanır, çünkü görüntüyü diske yazdıktan sonra
   koşucu kapanmıyor ve `flutter test` asılı kalırdı. Görselleri üretmek
@@ -138,7 +138,13 @@ flutter test --reporter expanded
   test bunu bekçiler. Elmalılı 19 âyet çiftini tek cümleyle çevirmiştir
   ("(168-169) …", iki âyette aynı); `translatedWithPrevious` ikincisinde
   cümleyi yinelemez, `quran.jointTranslation` notunu gösterir. Metindeki
-  ´ kesme işareti sitenin yazımıdır, dokunulmaz. Türkçe sûre adları
+  ´ kesme işareti sitenin yazımıdır, dokunulmaz (kullanıcı kararı: aslı
+  kalsın). Meal sayfasının başında mütercimin adı yazar; adına dokununca
+  hakkında yazısı açılır (`translator_about.dart`, kök gezginde alt sayfa ki
+  sekme çubuğunun altında kalmasın). Yazı kaynaklıdır (TDV İslâm
+  Ansiklopedisi, TBMM 21.2.1925, Osman Ergin): masraf TBMM'nin Diyanet
+  bütçesine koyduğu ödenektir; "Atatürk kendi cebinden ödedi" yaygın ama
+  YANLIŞTIR, yazılmaz, test bekçiler. Türkçe sûre adları
   `surah_names.dart`'tadır (Tanzil vermiyor). tanzil.net bu ortamdan
   erişilemiyor; dosyaları kullanıcı gönderir.
 - `main.dart` özel bir `LocalizationsDelegate` kaydetmez; `AppLocalizations`

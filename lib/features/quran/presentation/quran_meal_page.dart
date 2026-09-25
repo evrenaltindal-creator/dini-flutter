@@ -8,6 +8,7 @@ import 'quran_book_loader.dart';
 import '../../home/presentation/mosque_backdrop.dart';
 import 'quran_reader_page.dart';
 import 'quran_style.dart';
+import 'translator_about.dart';
 
 /// Meal kipi: bir sûrenin âyetleri, her birinin altında kullanıcının
 /// dilinde meali. Mealin uzunluğu âyetten âyete değiştiği için sayfalara
@@ -55,6 +56,10 @@ class QuranMealPage extends StatelessWidget {
                             caption: surahCaption(context, book, surah),
                           ),
                           if (basmala != null) BasmalaLine(text: basmala),
+                          // Mealin kimin olduğu her sûrenin başında yazar.
+                          if (quranTranslations[language] case final id?
+                              when translation != null)
+                            TranslatorLine(id: id),
                         ],
                       );
                     }
