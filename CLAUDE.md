@@ -173,6 +173,10 @@ flutter test --reporter expanded
   `-dini.watch.schedule <veri>` (motorun o an hesapladığı gerçek çizelge,
   `watch_store_payload_test.dart`, `store` etiketi CI'da atlanır) ve
   `-dini.watch.page tasbih` argümanlarıyla açar.
+  **Mağazaya gidecek derleme `app_store_release: true` ile alınır**
+  (TestFlight iş akışı girdisi). Varsayılan derleme "yalnızca dahili
+  TestFlight" işaretlidir ve App Store'a gönderilemez ("The specified
+  pre-release build could not be added"; 30 böyle takıldı).
 - **İlk App Store sürümünde Premium YOK** (kullanıcı kararı): `/premium`
   rotası ve Ayarlar'daki satır kaldırıldı, her şey ücretsiz. Satın alma
   ürünleri App Store Connect'te hazır olmadan sayfa açık kalsaydı App
