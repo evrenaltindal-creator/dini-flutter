@@ -37,7 +37,6 @@ const routes = [
   '/calendar',
   '/calendar/month',
   '/settings',
-  '/premium',
   '/privacy',
   '/about',
   '/qibla',

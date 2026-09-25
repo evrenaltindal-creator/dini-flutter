@@ -64,7 +64,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 58 dosyada 736 test var; hepsi geçmelidir.
+- Depoda şu an 58 dosyada 734 test var; hepsi geçmelidir.
   (`test/promo_shots_test.dart` sayıma girmez: `promo` etiketi
   `dart_test.yaml` ile atlanır, çünkü görüntüyü diske yazdıktan sonra
   koşucu kapanmıyor ve `flutter test` asılı kalırdı. Görselleri üretmek
@@ -153,6 +153,12 @@ flutter test --reporter expanded
   gidilir. Test ortamında `MemoryStorage` devreye girer.
 - Native widget köprüsü (`MethodChannel('dini/widget_snapshot')`) testte
   `MissingPluginException` fırlatır ve sessizce yutulur — bu bilinçlidir.
+- **İlk App Store sürümünde Premium YOK** (kullanıcı kararı): `/premium`
+  rotası ve Ayarlar'daki satır kaldırıldı, her şey ücretsiz. Satın alma
+  ürünleri App Store Connect'te hazır olmadan sayfa açık kalsaydı App
+  Review satın almayı dener ve reddederdi. Kod (`features/premium/`)
+  duruyor; geri gelince rota ile satır birlikte eklenir
+  (`foundation_test.dart` şimdilik yokluğunu bekçiler).
 - Mağaza ürün kimlikleri `--dart-define` ile gelir; `.dev` ile biten placeholder
   değerler TestFlight workflow'unda reddedilir.
 - Yeni asset eklersen `pubspec.yaml` içindeki `assets:` listesini güncelle.

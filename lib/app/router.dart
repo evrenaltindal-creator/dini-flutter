@@ -34,7 +34,6 @@ import '../features/widgets/data/widget_preferences_repository.dart';
 import '../features/widgets/data/widget_snapshot_builder.dart';
 import '../features/watch/data/watch_schedule_builder.dart';
 import '../features/widgets/domain/widget_snapshot.dart';
-import '../features/premium/presentation/premium_page.dart';
 import '../features/info/diyanet_flow.dart';
 import '../features/audio/presentation/opening_takbir.dart';
 import '../features/calendar/presentation/daily_leaf_page.dart';
@@ -190,10 +189,10 @@ GoRouter createRouter({String initialLocation = '/'}) => GoRouter(
         ),
       ],
     ),
-    GoRoute(
-      path: '/premium',
-      builder: (_, _) => const MosqueBackdrop(child: PremiumStorePage()),
-    ),
+    // Premium (satın alma) ilk App Store sürümünde YOK (kullanıcı kararı):
+    // her şey ücretsiz. Satın alma ürünleri App Store Connect'te hazır
+    // olmadan sayfa açık kalsaydı inceleme satın almayı dener ve reddederdi.
+    // Geri gelince rota ve Ayarlar'daki satır birlikte eklenir.
     GoRoute(path: '/privacy', builder: (_, _) => const PrivacyPage()),
     GoRoute(path: '/about', builder: (_, _) => const AboutPage()),
     GoRoute(
@@ -860,10 +859,6 @@ class SettingsPage extends ConsumerWidget {
             onTap: () => context.push('/about'),
           ),
           _Tile(
-            l10n.text('settings.premium'),
-            onTap: () => context.push('/premium'),
-          ),
-          _Tile(
             l10n.text('settings.privacy'),
             onTap: () => context.push('/privacy'),
           ),
@@ -1031,10 +1026,6 @@ class SettingsPage extends ConsumerWidget {
           _Tile(
             l10n.text('settings.about'),
             onTap: () => context.push('/about'),
-          ),
-          _Tile(
-            l10n.text('settings.premium'),
-            onTap: () => context.push('/premium'),
           ),
           _Tile(
             l10n.text('settings.privacy'),
