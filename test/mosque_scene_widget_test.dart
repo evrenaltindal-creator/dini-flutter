@@ -36,13 +36,18 @@ void main() {
       );
 
       final sceneAsset = find.byKey(ValueKey(entry.value));
-      final image = find.descendant(
+      final images = find.descendant(
         of: sceneAsset,
         matching: find.byType(Image),
       );
       expect(sceneAsset, findsOneWidget);
-      expect(image, findsOneWidget);
-      expect(tester.getSize(image), tester.getSize(sceneAsset));
+      // Test ekranı (800×600) geniş: keskin görselin yanında bulanık yan
+      // dolgu da aynı görselden çizilir. İkisi de doğru sahne olmalı.
+      expect(images, findsWidgets);
+      for (final image in tester.widgetList<Image>(images)) {
+        expect((image.image as AssetImage).assetName, entry.value);
+      }
+      expect(tester.getSize(sceneAsset), const Size(800, 600));
       expect(tester.takeException(), isNull);
     });
   }

@@ -7,6 +7,7 @@ import '../../ramadan/domain/mahya.dart';
 import '../../ramadan/presentation/mahya_view.dart';
 import '../../prayer_times/domain/timezone_service.dart';
 import '../../prayer_times/presentation/providers.dart';
+import '../../../core/layout/readable_width.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../domain/mosque_scene_state.dart';
 import 'mosque_scene.dart';
@@ -196,7 +197,8 @@ class BackdropScaffold extends StatelessWidget {
               scrolledUnderElevation: 0,
               actions: actions,
             ),
-      body: body,
+      // Geniş ekranda içerik okunur genişlikte ortalanır; sahne tam kalır.
+      body: ReadableWidth(child: body),
     ),
   );
 }

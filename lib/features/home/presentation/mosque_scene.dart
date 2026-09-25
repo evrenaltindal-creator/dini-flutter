@@ -1,8 +1,10 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
 import '../domain/mosque_scene_state.dart';
+import '../domain/scene_layout.dart';
 
 /// Sahne görsellerinin piksel boyutu.
 ///
@@ -117,16 +119,7 @@ class _MosqueSceneState extends State<MosqueScene>
                             Positioned.fill(child: currentChild),
                         ],
                       ),
-                      child: SizedBox.expand(
-                        key: ValueKey(asset),
-                        child: Image.asset(
-                          asset,
-                          fit: BoxFit.cover,
-                          alignment: Alignment.topCenter,
-                          gaplessPlayback: true,
-                          excludeFromSemantics: true,
-                        ),
-                      ),
+                      child: SceneImage(key: ValueKey(asset), asset: asset),
                     ),
                     const DecoratedBox(
                       decoration: BoxDecoration(
@@ -170,6 +163,82 @@ class _MosqueSceneState extends State<MosqueScene>
     MosqueScenePeriod.day ||
     MosqueScenePeriod.dhuhr => 'assets/scenes/mosque_day.png',
   };
+}
+
+/// Sahne görseli, caminin her ekranda görüneceği yerde
+/// ([mosqueSceneRect]).
+///
+/// Görsel ekranın iki yanını doldurmuyorsa (iPad yatay, geniş pencere)
+/// yanlar aynı görselin bulanık ve koyulaştırılmış hâliyle dolar; keskin
+/// görselin kenarları bu dolguya yumuşakça karışır. Böylece yeni bir resim
+/// uydurmadan gerçek fotoğraf her orana uyar.
+class SceneImage extends StatelessWidget {
+  final String asset;
+
+  const SceneImage({required this.asset, super.key});
+
+  /// Testlerin yan dolguyu bulması için.
+  static const sideFillKey = ValueKey('mosque-scene-side-fill');
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final screen = constraints.biggest;
+      final rect = mosqueSceneRect(screen: screen, image: mosqueSceneImageSize);
+      final sideFill = mosqueSceneNeedsSideFill(
+        screen: screen,
+        image: mosqueSceneImageSize,
+      );
+      Widget image(BoxFit fit) => Image.asset(
+        asset,
+        fit: fit,
+        gaplessPlayback: true,
+        excludeFromSemantics: true,
+      );
+      final sharp = sideFill
+          ? ShaderMask(
+              // Kenarlarda keskin görsel bulanık dolguya karışır.
+              blendMode: BlendMode.dstIn,
+              shaderCallback: (bounds) => const LinearGradient(
+                colors: [
+                  Color(0x00000000),
+                  Color(0xFF000000),
+                  Color(0xFF000000),
+                  Color(0x00000000),
+                ],
+                stops: [0, .14, .86, 1],
+              ).createShader(bounds),
+              child: image(BoxFit.fill),
+            )
+          : image(BoxFit.fill);
+      return ClipRect(
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (sideFill)
+              KeyedSubtree(
+                key: sideFillKey,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    ImageFiltered(
+                      imageFilter: ui.ImageFilter.blur(
+                        sigmaX: 36,
+                        sigmaY: 36,
+                        tileMode: TileMode.clamp,
+                      ),
+                      child: image(BoxFit.cover),
+                    ),
+                    const ColoredBox(color: Color(0x8C020B0D)),
+                  ],
+                ),
+              ),
+            Positioned.fromRect(rect: rect, child: sharp),
+          ],
+        ),
+      );
+    },
+  );
 }
 
 class _CelestialPainter extends CustomPainter {

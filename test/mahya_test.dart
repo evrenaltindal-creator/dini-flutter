@@ -224,13 +224,16 @@ void main() {
       for (final language in ['tr', 'en', 'ar']) {
         await tester.pumpWidget(
           _app(
-            SizedBox(
-              width: 320,
-              height: 700,
-              child: MahyaView(
-                text: AppLocalizations(Locale(language)).text('mahya.welcome'),
-                semanticsLabel: 'mahya',
-                imageSize: mosqueSceneImageSize,
+            Center(
+              child: SizedBox(
+                width: 320,
+                height: 700,
+                child: MahyaView(
+                  text: AppLocalizations(Locale(language))
+                      .text('mahya.welcome'),
+                  semanticsLabel: 'mahya',
+                  imageSize: mosqueSceneImageSize,
+                ),
               ),
             ),
             languageCode: language,
@@ -245,13 +248,17 @@ void main() {
     testWidgets('dar pencerede hiç çizilmez', (tester) async {
       await tester.pumpWidget(
         _app(
-          const SizedBox(
-            width: 100,
-            height: 700,
-            child: MahyaView(
-              text: 'Hoş geldin',
-              semanticsLabel: 'mahya',
-              imageSize: mosqueSceneImageSize,
+          // Center: MaterialApp'ın içinde SizedBox ekranın tamamına
+          // genişliyordu; test 100 piksel yerine 800×600'ü deniyordu.
+          const Center(
+            child: SizedBox(
+              width: 100,
+              height: 700,
+              child: MahyaView(
+                text: 'Hoş geldin',
+                semanticsLabel: 'mahya',
+                imageSize: mosqueSceneImageSize,
+              ),
             ),
           ),
         ),

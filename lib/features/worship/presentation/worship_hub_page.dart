@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/layout/readable_width.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../notifications/presentation/notification_settings_page.dart';
@@ -65,13 +66,16 @@ class WorshipHubPage extends StatelessWidget {
             ],
           ),
         ),
-        body: const TabBarView(
-          children: [
-            PrayerTrackerView(),
-            PrayerGuideView(),
-            WuduGuideView(),
-            NotificationSettingsView(),
-          ],
+        // Geniş ekranda içerik okunur genişlikte ortalanır.
+        body: const ReadableWidth(
+          child: TabBarView(
+            children: [
+              PrayerTrackerView(),
+              PrayerGuideView(),
+              WuduGuideView(),
+              NotificationSettingsView(),
+            ],
+          ),
         ),
       ),
     );

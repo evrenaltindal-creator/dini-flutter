@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/layout/readable_width.dart';
+
 import '../../../core/localization/app_localizations.dart';
 import '../../../shared/models/domain.dart';
 import '../../content/domain/content_repository.dart';
@@ -127,14 +129,16 @@ class _DailyLeafPageState extends ConsumerState<DailyLeafPage> {
     );
     if (widget.embedded) {
       return SafeArea(
-        child: Column(
-          children: [
-            const Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(16, 12, 16, 0),
-              child: CalendarModeSwitch(showingLeaf: true),
-            ),
-            Expanded(child: pages),
-          ],
+        child: ReadableWidth(
+          child: Column(
+            children: [
+              const Padding(
+                padding: EdgeInsetsDirectional.fromSTEB(16, 12, 16, 0),
+                child: CalendarModeSwitch(showingLeaf: true),
+              ),
+              Expanded(child: pages),
+            ],
+          ),
         ),
       );
     }

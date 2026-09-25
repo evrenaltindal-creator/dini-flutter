@@ -304,14 +304,14 @@ void main() {
     expect(workflow, contains('Widget extension links app frameworks'));
   });
 
-  test('ilk App Store sürümü yalnızca iPhone', () {
-    // Kullanıcı kararı: uygulama iPad'de hiç denenmedi. iPad desteği
-    // bildirilirse App Store iPad görselleri ister ve inceleme ekibi iPad'de
-    // dener. iPad'de yine telefon görünümünde açılır; destek sonradan
-    // eklenebilir (tersi mümkün değil).
-    expect(project, isNot(contains('TARGETED_DEVICE_FAMILY = "1,2";')));
+  test('uygulama ve widget iPad\'i de destekler', () {
+    // 1.0.0 yalnızca iPhone olarak incelemeye gitti (iPad'de denenmemişti).
+    // Sonraki sürüm iPad için düzenlendi (kullanıcı isteği): cami sahnesi
+    // geniş ekranda da görünür, içerik okunur genişlikte ortalanır
+    // (ipad_layout_test.dart, scene_layout_test.dart).
+    expect(project, isNot(contains('TARGETED_DEVICE_FAMILY = 1;')));
     expect(
-      'TARGETED_DEVICE_FAMILY = 1;'.allMatches(project).length,
+      'TARGETED_DEVICE_FAMILY = "1,2";'.allMatches(project).length,
       greaterThanOrEqualTo(6),
     );
   });

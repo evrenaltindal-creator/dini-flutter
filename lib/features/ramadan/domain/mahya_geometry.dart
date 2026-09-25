@@ -1,5 +1,7 @@
 import 'dart:ui';
 
+import '../../home/domain/scene_layout.dart';
+
 /// Mahya kablosunun iki ucu ve yazının sığacağı alan.
 class MahyaAnchors {
   /// Sol ve sağ minarenin şerefe hizası.
@@ -36,28 +38,24 @@ const mahyaMinimumWidth = 180.0;
 /// Ekran kenarıyla kablo ucu arasında bırakılan en küçük boşluk.
 const mahyaEdgeMargin = 12.0;
 
-/// Arka plan görseli [BoxFit.cover] ile kırpıldığı için minarelerin ekrandaki
-/// yeri ekran oranına göre kayar. Bu fonksiyon o dönüşümü yapar.
+/// Minarelerin ekrandaki yeri, sahne görselinin ekrana yerleştirildiği
+/// dikdörtgene ([mosqueSceneRect]) göre çözülür: görsel telefonda ekranı
+/// doldurur, geniş ekranda caminin tamamı sığacak boya küçülür ve kayar.
+/// Mahya aynı hesabı kullanmazsa minarelerin arasına değil boşluğa asılır.
 ///
-/// Görsel `Alignment.topCenter` ile hizalanır: yatayda ortalanır, dikeyde
-/// üstten başlar. Ekran görselden geniş oranlıysa altı kırpılır; dar
-/// oranlıysa yanları kırpılır ve minareler ekran dışına çıkabilir. İkinci
-/// durumda uçlar kenara çekilir, kalan genişlik [mahyaMinimumWidth] altına
-/// düşerse mahya çizilmez (null döner).
+/// Dar pencerede görselin yanları kırpılıp minareler ekran dışına
+/// çıkabilir; uçlar kenara çekilir, kalan genişlik [mahyaMinimumWidth]
+/// altına düşerse mahya çizilmez (null döner).
 MahyaAnchors? mahyaAnchors({required Size screen, required Size image}) {
   if (screen.isEmpty || image.isEmpty) return null;
 
-  final scale = (screen.width / image.width) > (screen.height / image.height)
-      ? screen.width / image.width
-      : screen.height / image.height;
-  final painted = Size(image.width * scale, image.height * scale);
-  final dx = (screen.width - painted.width) / 2;
+  final painted = mosqueSceneRect(screen: screen, image: image);
 
-  double x(double fraction) => dx + fraction * painted.width;
-  double y(double fraction) => fraction * painted.height;
+  double x(double fraction) => painted.left + fraction * painted.width;
+  double y(double fraction) => painted.top + fraction * painted.height;
 
   final top = y(mahyaLeftAnchor.dy);
-  // Şerefe ekranın altında kalıyorsa (çok kısa pencere) mahya görünmez.
+  // Şerefe ekranın dışında kalıyorsa (çok kısa pencere) mahya görünmez.
   if (top < 0 || top > screen.height) return null;
 
   final leftX = x(mahyaLeftAnchor.dx).clamp(mahyaEdgeMargin, screen.width);

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/layout/readable_width.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../prayer_times/presentation/providers.dart';
@@ -40,181 +41,184 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
     final firstWeekday = DateTime(month.year, month.month, 1).weekday - 1;
     final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
     final cells = firstWeekday + daysInMonth;
+    // Geniş ekranda ızgara okunur genişlikte ortalanır.
     return SafeArea(
-      child: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          // Yaprak takvim sekmesinin ilk sayfasıdır; buradan geri dönülür.
-          const CalendarModeSwitch(showingLeaf: false),
-          const SizedBox(height: 16),
-          // Bu ekranın başlığı, ızgarası ve açıklaması kart içinde değil,
-          // doğrudan cami perdesinin üstünde duruyor; temanın koyu yazı
-          // renkleriyle aydınlık kipte okunmuyorlardı.
-          Text(
-            l10n.text('nav.calendar'),
-            style: Theme.of(context).textTheme.headlineMedium
-                ?.copyWith(color: BackdropPalette.text),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            l10n.text('calendar.disclaimer'),
-            style: TextStyle(color: BackdropPalette.mutedText),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              IconButton(
-                tooltip: l10n.text('calendar.previousMonth'),
-                onPressed: () => setState(
-                  () => month = DateTime(month.year, month.month - 1),
+      child: ReadableWidth(
+        child: ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            // Yaprak takvim sekmesinin ilk sayfasıdır; buradan geri dönülür.
+            const CalendarModeSwitch(showingLeaf: false),
+            const SizedBox(height: 16),
+            // Bu ekranın başlığı, ızgarası ve açıklaması kart içinde değil,
+            // doğrudan cami perdesinin üstünde duruyor; temanın koyu yazı
+            // renkleriyle aydınlık kipte okunmuyorlardı.
+            Text(
+              l10n.text('nav.calendar'),
+              style: Theme.of(context).textTheme.headlineMedium
+                  ?.copyWith(color: BackdropPalette.text),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.text('calendar.disclaimer'),
+              style: TextStyle(color: BackdropPalette.mutedText),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                IconButton(
+                  tooltip: l10n.text('calendar.previousMonth'),
+                  onPressed: () => setState(
+                    () => month = DateTime(month.year, month.month - 1),
+                  ),
+                  color: BackdropPalette.text,
+                  icon: const Icon(Icons.chevron_left),
                 ),
-                color: BackdropPalette.text,
-                icon: const Icon(Icons.chevron_left),
-              ),
-              Expanded(
-                child: Center(
-                  child: Text(
-                    '${l10n.month(month.month)} ${month.year}',
-                    style: Theme.of(context).textTheme.titleLarge
-                        ?.copyWith(color: BackdropPalette.text),
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      '${l10n.month(month.month)} ${month.year}',
+                      style: Theme.of(context).textTheme.titleLarge
+                          ?.copyWith(color: BackdropPalette.text),
+                    ),
                   ),
                 ),
-              ),
-              IconButton(
-                tooltip: l10n.text('calendar.nextMonth'),
-                onPressed: () => setState(
-                  () => month = DateTime(month.year, month.month + 1),
+                IconButton(
+                  tooltip: l10n.text('calendar.nextMonth'),
+                  onPressed: () => setState(
+                    () => month = DateTime(month.year, month.month + 1),
+                  ),
+                  color: BackdropPalette.text,
+                  icon: const Icon(Icons.chevron_right),
                 ),
-                color: BackdropPalette.text,
-                icon: const Icon(Icons.chevron_right),
-              ),
-              TextButton(
-                onPressed: _goToday,
-                style: TextButton.styleFrom(
-                  foregroundColor: BackdropPalette.text,
+                TextButton(
+                  onPressed: _goToday,
+                  style: TextButton.styleFrom(
+                    foregroundColor: BackdropPalette.text,
+                  ),
+                  child: Text(l10n.text('calendar.today')),
                 ),
-                child: Text(l10n.text('calendar.today')),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children:
-                List.generate(7, (index) => l10n.text('weekday.${index + 1}'))
-                    .map(
-                      (day) => Expanded(
-                        child: Center(
-                          child: Text(
-                            day,
-                            style: Theme.of(context).textTheme.labelSmall
-                                ?.copyWith(color: BackdropPalette.mutedText),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children:
+                  List.generate(7, (index) => l10n.text('weekday.${index + 1}'))
+                      .map(
+                        (day) => Expanded(
+                          child: Center(
+                            child: Text(
+                              day,
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(color: BackdropPalette.mutedText),
+                            ),
                           ),
                         ),
-                      ),
-                    )
-                    .toList(),
-          ),
-          const SizedBox(height: 8),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            // Hücre yüksekliği yazı ölçeğiyle birlikte artmalı. Sabit oranda
-            // büyük yazıda gün numarası, hicri gün ve yıldız hücreye sığmayıp
-            // dikeyde taşıyordu.
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 7,
-              childAspectRatio: .78 / _textScale(context).clamp(1.0, 2.0),
+                      )
+                      .toList(),
             ),
-            itemCount: ((cells + 6) ~/ 7) * 7,
-            itemBuilder: (context, index) {
-              final dayNumber = index - firstWeekday + 1;
-              if (dayNumber < 1 || dayNumber > daysInMonth) {
-                return const SizedBox.shrink();
-              }
-              final date = DateTime(month.year, month.month, dayNumber);
-              final hijri = calendar.hijri(date);
-              final marked = events.on(date).isNotEmpty;
-              final isSelected = date == selected;
-              return Semantics(
-                button: true,
-                label:
-                    '$dayNumber ${l10n.month(month.month)} ${hijri.label}${marked ? ', ${l10n.text('calendar.religiousDay')}' : ''}',
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(10),
-                  onTap: () => setState(() => selected = date),
-                  child: Container(
-                    // Seçili hücrenin yazısı bilerek koyudur (açık renk bir
-                    // kutunun içindedir); okunabilirlik testi onu bu
-                    // anahtarla ayırır.
-                    key: isSelected ? CalendarPage.selectedDayKey : null,
-                    margin: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? Theme.of(context).colorScheme.primaryContainer
-                          : null,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    // Hücre oranı yazı ölçeğiyle büyüse de uç ölçeklerde
-                    // içerik yine sığmayabiliyor; scaleDown taşmayı kesin
-                    // olarak engeller, kırpmaz.
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            '$dayNumber',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              // Seçili gün açık renk bir kutudadır; yazısı
-                              // o kutunun rengine göre koyulaşır.
-                              color: isSelected
-                                  ? Theme.of(context)
-                                        .colorScheme
-                                        .onPrimaryContainer
-                                  : BackdropPalette.text,
+            const SizedBox(height: 8),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              // Hücre yüksekliği yazı ölçeğiyle birlikte artmalı. Sabit oranda
+              // büyük yazıda gün numarası, hicri gün ve yıldız hücreye sığmayıp
+              // dikeyde taşıyordu.
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 7,
+                childAspectRatio: .78 / _textScale(context).clamp(1.0, 2.0),
+              ),
+              itemCount: ((cells + 6) ~/ 7) * 7,
+              itemBuilder: (context, index) {
+                final dayNumber = index - firstWeekday + 1;
+                if (dayNumber < 1 || dayNumber > daysInMonth) {
+                  return const SizedBox.shrink();
+                }
+                final date = DateTime(month.year, month.month, dayNumber);
+                final hijri = calendar.hijri(date);
+                final marked = events.on(date).isNotEmpty;
+                final isSelected = date == selected;
+                return Semantics(
+                  button: true,
+                  label:
+                      '$dayNumber ${l10n.month(month.month)} ${hijri.label}${marked ? ', ${l10n.text('calendar.religiousDay')}' : ''}',
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () => setState(() => selected = date),
+                    child: Container(
+                      // Seçili hücrenin yazısı bilerek koyudur (açık renk bir
+                      // kutunun içindedir); okunabilirlik testi onu bu
+                      // anahtarla ayırır.
+                      key: isSelected ? CalendarPage.selectedDayKey : null,
+                      margin: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? Theme.of(context).colorScheme.primaryContainer
+                            : null,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      // Hücre oranı yazı ölçeğiyle büyüse de uç ölçeklerde
+                      // içerik yine sığmayabiliyor; scaleDown taşmayı kesin
+                      // olarak engeller, kırpmaz.
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              '$dayNumber',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                // Seçili gün açık renk bir kutudadır; yazısı
+                                // o kutunun rengine göre koyulaşır.
+                                color: isSelected
+                                    ? Theme.of(context)
+                                          .colorScheme
+                                          .onPrimaryContainer
+                                    : BackdropPalette.text,
+                              ),
                             ),
-                          ),
-                          Text(
-                            '${hijri.day}',
-                            style: Theme.of(context).textTheme.labelSmall
-                                ?.copyWith(
-                                  color: isSelected
-                                      ? Theme.of(context)
-                                            .colorScheme
-                                            .onPrimaryContainer
-                                      : BackdropPalette.mutedText,
-                                ),
-                          ),
-                          if (marked)
-                            Icon(
-                              Icons.star,
-                              size: 12,
-                              color: isSelected
-                                  ? Theme.of(context)
-                                        .colorScheme
-                                        .onPrimaryContainer
-                                  : BackdropPalette.mutedText,
+                            Text(
+                              '${hijri.day}',
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: isSelected
+                                        ? Theme.of(context)
+                                              .colorScheme
+                                              .onPrimaryContainer
+                                        : BackdropPalette.mutedText,
+                                  ),
                             ),
-                        ],
+                            if (marked)
+                              Icon(
+                                Icons.star,
+                                size: 12,
+                                color: isSelected
+                                    ? Theme.of(context)
+                                          .colorScheme
+                                          .onPrimaryContainer
+                                    : BackdropPalette.mutedText,
+                              ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 16),
-          // Takvim bugüne kadar namaz vaktine hiç değinmiyordu; aylık
-          // çizelge buradan açılır.
-          FilledButton.tonalIcon(
-            onPressed: () => context.push('/imsakiye'),
-            icon: const Icon(Icons.schedule_outlined),
-            label: Text(l10n.text('imsakiye.open')),
-          ),
-          const SizedBox(height: 16),
-          _selectedPanel(context),
-        ],
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+            // Takvim bugüne kadar namaz vaktine hiç değinmiyordu; aylık
+            // çizelge buradan açılır.
+            FilledButton.tonalIcon(
+              onPressed: () => context.push('/imsakiye'),
+              icon: const Icon(Icons.schedule_outlined),
+              label: Text(l10n.text('imsakiye.open')),
+            ),
+            const SizedBox(height: 16),
+            _selectedPanel(context),
+          ],
+        ),
       ),
     );
   }

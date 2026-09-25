@@ -64,7 +64,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 60 dosyada 745 test var; hepsi geçmelidir.
+- Depoda şu an 61 dosyada 805 test var; hepsi geçmelidir.
   (`test/promo_shots_test.dart` ve `test/watch_store_payload_test.dart` sayıma girmez: `promo` etiketi
   `dart_test.yaml` ile atlanır, çünkü görüntüyü diske yazdıktan sonra
   koşucu kapanmıyor ve `flutter test` asılı kalırdı. Görselleri üretmek
@@ -167,8 +167,9 @@ flutter test --reporter expanded
   YAZILMAZ. `store_listing_test.dart` sınırları bekçiler.
   Gizlilik/destek sayfaları `vardiox-legal` deposunun GitHub Pages'inde
   (`namaz-yolu/`) yayındadır; kaynağı `docs/`, değişirse ikisi de
-  güncellenir. **Uygulama yalnızca iPhone** (`TARGETED_DEVICE_FAMILY = 1`,
-  kullanıcı kararı; iPad'de denenmedi). **Apple Watch görselleri**
+  güncellenir. **1.0.0 yalnızca iPhone olarak incelemeye gitti**; sonraki
+  sürüm iPad'i de destekler (`TARGETED_DEVICE_FAMILY = "1,2"`) ve App
+  Store iPad (13") görseli ister. **Apple Watch görselleri**
   simülatörde çekilir (kullanıcının saati yok): iş akışı saat uygulamasını
   `-dini.watch.schedule <veri>` (motorun o an hesapladığı gerçek çizelge,
   `watch_store_payload_test.dart`, `store` etiketi CI'da atlanır) ve
@@ -318,6 +319,22 @@ flutter test --reporter expanded
 - **Widget'ın yazı renkleri açıkça verilir.** Zemini her görünümde koyudur;
   `.secondary` ya da varsayılan renk sistemin görünümünü izlediği için
   telefon aydınlık kipteyken widget okunmuyordu.
+- **Sahne görselinin yeri `mosqueSceneRect`'tir** (`home/domain/scene_layout.dart`).
+  Görsel telefon oranındadır; ekranı doldurup üstten hizalamak iPad'de
+  (özellikle yatayda) yalnızca gökyüzünü gösteriyordu, cami görünmüyordu
+  (kullanıcı iPad'de gördü). Cami görselin %33–%76'sındadır: ekranı
+  doldururken sığıyorsa görsel yukarı kayar, sığmıyorsa küçülür ve yanları
+  aynı görselin bulanık hâliyle dolar (`SceneImage`). Telefonda görünüm
+  aynıdır. Mahya çapaları ve ana sayfadaki kartların başladığı yer
+  (kubbelerin altı, %64) aynı dikdörtgeni kullanır; ayrı hesap yazma.
+- **Geniş ekranda içerik en fazla 720 nokta** (`ReadableWidth`,
+  `core/layout/readable_width.dart`): `BackdropScaffold` gövdesi, İbadet
+  sekmesi, takvim yaprağı ve aylık takvim sarılıdır; ana sayfa ise kendi
+  degradesi tam ekran kalsın diye yan boşlukla (`readableSideInset`)
+  ortalanır. Arka plan her zaman tam ekrandır. `ipad_layout_test.dart`
+  her rotayı iPad dikey/yatayda açar: taşma yok, kart 720'yi aşmaz. Testte
+  ekran boyutu `tester.view.physicalSize` ile verilir; yalnız
+  `setSurfaceSize` MediaQuery'yi değiştirmez (sayfa 800×600 sanır).
 - **Mahya yalnızca Ramazan gecelerinde yanar.** Minare çapaları görselden
   ölçüldü ve `BoxFit.cover` kırpmasına göre çözülür; `assets/scenes/*.png`
   dosyalarını farklı oranda bir görselle değiştirirsen mahya boşluğa asılır

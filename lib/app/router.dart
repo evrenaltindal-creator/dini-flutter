@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -37,6 +39,9 @@ import '../features/widgets/domain/widget_snapshot.dart';
 import '../features/info/diyanet_flow.dart';
 import '../features/audio/presentation/opening_takbir.dart';
 import '../features/calendar/presentation/daily_leaf_page.dart';
+import '../core/layout/readable_width.dart';
+import '../features/home/domain/scene_layout.dart';
+import '../features/home/presentation/mosque_scene.dart';
 import '../features/quran/data/quran_book.dart';
 import '../features/quran/presentation/book_opening.dart';
 import '../features/quran/presentation/quran_home_page.dart';
@@ -311,9 +316,22 @@ class HomePage extends ConsumerWidget {
     String fmt(DateTime d) =>
         '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
     final viewport = MediaQuery.sizeOf(context);
-    final topBreathingRoom = (viewport.height * .52)
-        .clamp(380.0, 500.0)
-        .toDouble();
+    // Kartlar kubbelerin altından başlar (sahne görselinin %64'ü). Telefonda
+    // bu eski sabit payla aynı yere düşer (~430); iPad'de sahne başka
+    // ölçekte ve kaydırılmış çizildiği için sabit pay kartları kubbenin
+    // üstüne getiriyordu.
+    final sceneRect = mosqueSceneRect(
+      screen: viewport,
+      image: mosqueSceneImageSize,
+    );
+    final topBreathingRoom = math.max(
+      300.0,
+      sceneRect.top +
+          sceneRect.height * .64 -
+          MediaQuery.paddingOf(context).top -
+          76,
+    );
+    final side = readableSideInset(context);
     final remaining = l10n.text('home.remaining', {
       'hours': next.remaining.inHours,
       'minutes': next.remaining.inMinutes.remainder(60),
@@ -342,7 +360,7 @@ class HomePage extends ConsumerWidget {
         SafeArea(
           bottom: false,
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 18, 16, 116),
+            padding: EdgeInsets.fromLTRB(side, 18, side, 116),
             children: [
               Text(
                 l10n.text('home.greeting'),
