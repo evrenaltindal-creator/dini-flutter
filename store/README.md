@@ -28,13 +28,16 @@ ve "incelemeye gönder" seçilir. İş akışı metinleri ve görselleri yükler
 derlemeyi seçer; onaydan sonra otomatik yayınlamaz (kullanıcı kararı:
 "Yayınla"ya kendisi basar).
 
-## Anahtarla yapılamayanlar (App Store Connect sitesinden bir kez)
+## API ile yapılanlar ve elle yapılan tek şey
 
-1. **Uygulama Gizliliği** → "Veri toplamıyoruz". Apple bunu API'ye açmıyor.
-2. **Yaş Sınırı** anketi: hepsi "Yok" (şiddet, kumar, kullanıcı içeriği vb.).
-3. **Fiyatlandırma ve Kullanılabilirlik** → Ücretsiz.
-4. **App Review Bilgileri** → ad, soyad, telefon, e-posta. Telefon
-   numarası depo herkese açık olduğu için buraya YAZILMAZ.
+`tool/app_store_connect_setup.py` (iş akışı çalıştırır): fiyat ücretsiz,
+bütün ülkeler, yaş sınırı anketi (hepsi "yok"), içerik hakları, inceleme
+ekibinin iletişim bilgisi ve notu. Telefon numarası depo herkese açık olduğu
+için depoda değil, `APP_REVIEW_PHONE` sırrındadır (ya da App Store
+Connect'te elle girilir).
+
+Apple'ın API'ye açmadığı tek şey **Uygulama Gizliliği**: App Store Connect
+→ uygulama → Uygulama Gizliliği → "Veri toplamıyoruz" → Yayınla.
 
 ## Kurallar
 
