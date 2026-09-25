@@ -1,0 +1,34 @@
+Prayer Path brings prayer times, the Qibla, the Holy Quran and a step-by-step prayer guide together in one calm, simple app. No ads, no account, no internet needed. Prayer times are calculated on your phone, and your location is never sent anywhere.
+
+PRAYER TIMES
+• Fajr, sunrise, Dhuhr, Asr, Maghrib and Isha, with a countdown to the next prayer
+• Location from your device, or pick a city from the list
+• Six calculation methods including Diyanet; Hanafi or standard Asr
+• Prayer notifications with the phone's sound or a short adhan
+• In Ramadan: imsakiye timetable, suhoor and iftar reminders, Tarawih and fasting pages
+
+THE HOLY QURAN
+• The 604-page Mushaf, turned page by page like a book
+• 114 surahs and 30 juz; continue where you left off
+• Verse-by-verse English translation by Marmaduke Pickthall (1930)
+• Arabic text: the Uthmani script of the Tanzil project
+
+PRAYER AND WUDU GUIDE
+• Every prayer illustrated, in the order it is performed
+• Guided prayer: leads you through the prayer step by step, rakat by rakat; the recitations are shown on screen and can be read aloud with the phone's voice
+• Wudu guide
+
+TRACKING AND CALENDAR
+• Daily prayer tracker and missed-prayer (qada) tracker; records stay on your device
+• Monthly calendar and a daily calendar leaf with the Hijri and Rumi dates
+• Qibla compass (true north)
+• Tasbih counter with targets and haptics
+
+WIDGETS AND APPLE WATCH
+• Home Screen and Lock Screen widgets: next prayer, live countdown, today's times; shortcuts to Tasbih, Qibla and the tracker
+• Apple Watch: next prayer, countdown, today's times, tasbih on your wrist and a watch face complication
+
+PRIVACY
+Prayer Path collects no data. There is no account, no advertising and no tracking. Your location is used only on your phone to calculate prayer times and the Qibla.
+
+Available in English, Turkish and Arabic.

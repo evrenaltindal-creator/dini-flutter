@@ -64,7 +64,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 61 dosyada 805 test var; hepsi geçmelidir.
+- Depoda şu an 61 dosyada 816 test var; hepsi geçmelidir.
   (`test/promo_shots_test.dart` ve `test/watch_store_payload_test.dart` sayıma girmez: `promo` etiketi
   `dart_test.yaml` ile atlanır, çünkü görüntüyü diske yazdıktan sonra
   koşucu kapanmıyor ve `flutter test` asılı kalırdı. Görselleri üretmek
@@ -178,6 +178,16 @@ flutter test --reporter expanded
   (TestFlight iş akışı girdisi). Varsayılan derleme "yalnızca dahili
   TestFlight" işaretlidir ve App Store'a gönderilemez ("The specified
   pre-release build could not be added"; 30 böyle takıldı).
+  **Sürüm numarası `pubspec.yaml`'dan gelir** (`version: 1.0.1+1`): hem
+  TestFlight derlemesinin adı hem mağaza sürümü oradan okunur; yeni
+  mağaza sürümü için yalnız orası değişir. İncelemedeki ya da onay
+  bekleyen sürümün metinleri (anahtar kelime, pazarlama adresi, yeni dil)
+  değiştirilemez; bunlar bir sonraki sürümle gider. Mağaza dilleri: `tr`,
+  `en-US`, `ar-SA` (Arapça aramalar) ve `en-GB` (Türkiye mağazası Türkçe
+  ile birlikte İngiltere İngilizcesini arar; anahtar kelimeleri en-US'i
+  tekrarlamaz). Pazarlama adresi ewocom.com/namaz-yolu/; sayfanın kaynağı
+  `docs/ewocom/`, sitenin kendi kalıbıyla (kullanıcı: "sayfa yapısını
+  bozma"), site kaynağı bu depoda değil, kullanıcı yükler.
 - **İlk App Store sürümünde Premium YOK** (kullanıcı kararı): `/premium`
   rotası ve Ayarlar'daki satır kaldırıldı, her şey ücretsiz. Satın alma
   ürünleri App Store Connect'te hazır olmadan sayfa açık kalsaydı App

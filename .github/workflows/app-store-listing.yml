@@ -146,6 +146,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # Mağaza sürümü derlemeyle aynı yerden, pubspec.yaml'dan gelir.
+          version="$(sed -n 's/^version: *\([0-9][0-9.]*\).*/\1/p' pubspec.yaml)"
+          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "pubspec.yaml version could not be read: '$version'" >&2
+            exit 1
+          fi
+          echo "APP_VERSION=$version" >> "$GITHUB_ENV"
           if ! [[ "$BUILD_NUMBER" =~ ^[0-9]+$ ]]; then
             echo "build_number must be a number, got: $BUILD_NUMBER" >&2
             exit 1
@@ -223,7 +230,7 @@ jobs:
             --api_key_path "$RUNNER_TEMP/asc_api_key.json" \
             --app_identifier "$DINI_MAIN_BUNDLE_ID" \
             --platform ios \
-            --app_version 1.0.0 \
+            --app_version "$APP_VERSION" \
             --build_number "$BUILD_NUMBER" \
             --skip_binary_upload true \
             --metadata_path store/metadata \
@@ -248,7 +255,7 @@ jobs:
             --api_key_path "$RUNNER_TEMP/asc_api_key.json" \
             --app_identifier "$DINI_MAIN_BUNDLE_ID" \
             --platform ios \
-            --app_version 1.0.0 \
+            --app_version "$APP_VERSION" \
             --build_number "$BUILD_NUMBER" \
             --skip_binary_upload true \
             --skip_metadata true \

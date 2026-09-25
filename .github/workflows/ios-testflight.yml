@@ -166,12 +166,20 @@ jobs:
             next="$GITHUB_RUN_NUMBER"
           fi
           echo "DINI_BUILD_NUMBER=$next" >> "$GITHUB_ENV"
+          # Sürüm adı pubspec.yaml'dan (version: 1.0.1+1 → 1.0.1); yeni
+          # mağaza sürümü için yalnızca orası değişir.
+          name="$(sed -n 's/^version: *\([0-9][0-9.]*\).*/\1/p' pubspec.yaml)"
+          if ! [[ "$name" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "pubspec.yaml version could not be read: '$name'" >&2
+            exit 1
+          fi
+          echo "DINI_BUILD_NAME=$name" >> "$GITHUB_ENV"
 
       - name: Build signed IPA
         run: >-
           flutter build ipa
           --release
-          --build-name=1.0.0
+          --build-name="$DINI_BUILD_NAME"
           --build-number="$DINI_BUILD_NUMBER"
           --export-options-plist="$HOME/export_options.plist"
           --dart-define=DINI_IOS_MONTHLY_PRODUCT_ID="$DINI_IOS_MONTHLY_PRODUCT_ID"

@@ -21,7 +21,9 @@ void main() {
       .toList();
 
   test('mağaza dilleri var', () {
-    expect(locales, containsAll(['tr', 'en-US']));
+    // ar-SA Arapça aramalar içindir; en-GB'yi Türkiye mağazası Türkçe ile
+    // birlikte arar (İngilizce aramalar).
+    expect(locales, containsAll(['tr', 'en-US', 'ar-SA', 'en-GB']));
   });
 
   for (final locale in locales) {
@@ -58,6 +60,12 @@ void main() {
           expect(read(file), '$base$page/');
           expect(File('docs/$page/index.html').existsSync(), isTrue);
         }
+      });
+
+      test('pazarlama adresi ewocom.com tanıtım sayfasıdır', () {
+        // Sayfanın kaynağı docs/ewocom/ (sitenin kendi kalıbıyla).
+        expect(read('marketing_url'), 'https://ewocom.com/namaz-yolu/');
+        expect(File('docs/ewocom/namaz-yolu/index.html').existsSync(), isTrue);
       });
 
       test('bu sürümde olmayan özellik vaat edilmez', () {
@@ -97,4 +105,36 @@ void main() {
     // Konum cihazdan çıkmaz (CLAUDE.md, değişmez kural 2).
     expect(page, contains('hiçbir sunucuya gönderilmez'));
   });
+
+  test(
+    'ewocom tanıtım sayfası sitenin kalıbını korur, doğru uygulamayı açar',
+    () {
+      final page = File('docs/ewocom/namaz-yolu/index.html').readAsStringSync();
+      // Kullanıcı: "sayfa yapısını bozma sakın." Sitenin başlığı, alt bilgisi,
+      // stil dosyası ve betiği aynen durur.
+      for (final part in [
+        '<header class="global-header">',
+        '<footer class="global-footer">',
+        'href="/assets/styles.css"',
+        'src="/assets/site.js"',
+        'class="product-detail-hero prayer-detail-hero"',
+      ]) {
+        expect(page, contains(part));
+      }
+      expect(page, contains('https://apps.apple.com/tr/app/id6805668631'));
+      // Sayfadaki her yerel görsel pakette ya da sitede zaten var.
+      final siteAssets = {
+        '/assets/ewocom-logo.png',
+        '/assets/namaz-yolu-icon.png',
+        '/assets/namaz-yolu-hero.png',
+      };
+      for (final match in RegExp(r'src="(/assets/[^"]+)"').allMatches(page)) {
+        final path = match.group(1)!;
+        if (siteAssets.contains(path) || path.endsWith('.js')) continue;
+        expect(File('docs/ewocom$path').existsSync(), isTrue, reason: path);
+      }
+      // Premium yok; olmayan özellik vaat edilmez.
+      expect(page.toLowerCase(), isNot(contains('premium')));
+    },
+  );
 }

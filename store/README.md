@@ -4,6 +4,7 @@
 | --- | --- |
 | `metadata/<dil>/` | Açıklama, alt başlık, anahtar kelimeler, tanıtım metni, destek ve gizlilik adresi (fastlane `deliver` biçimi) |
 | `metadata/*.txt` | Telif satırı ve kategoriler |
+| `metadata/<dil>/marketing_url.txt` | Pazarlama adresi: ewocom.com'daki tanıtım sayfası (kaynağı `docs/ewocom/`) |
 | `screenshots/raw/<dil>/` | Kullanıcının kendi iPhone'undan çektiği gerçek ekran görüntüleri (girdi) |
 | `screenshots/<dil>/` | App Store görselleri, 1320×2868 — `tool/generate_store_screenshots.py` üretir, elle düzenlenmez |
 | `screenshots/watch/` | Apple Watch ekran görüntüleri, saatin kendi çözünürlüğünde, çerçevesiz |
