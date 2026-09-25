@@ -94,7 +94,15 @@ class _PrayerTrackerViewState extends ConsumerState<PrayerTrackerView> {
       return const Center(child: CircularProgressIndicator());
     }
     final content = ListView(
-      padding: const EdgeInsetsDirectional.fromSTEB(16, 18, 16, 28),
+      // Sekme kabuğunda sayfa alttaki çubuğun arkasına uzanır: "Kaza
+      // takibi" ve alttaki not çubuğun altında kalıyordu. Çubuğun payı
+      // eklenir (tek başına açılan /tracker'da SafeArea bunu sıfırlar).
+      padding: EdgeInsetsDirectional.fromSTEB(
+        16,
+        18,
+        16,
+        28 + MediaQuery.paddingOf(context).bottom,
+      ),
       children: [
         Card(
           child: Padding(

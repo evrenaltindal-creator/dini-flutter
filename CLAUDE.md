@@ -64,7 +64,7 @@ flutter test --reporter expanded
   İndirme ~1.5 GB ve birkaç dakika sürer. Kuramadıysan **testleri
   çalıştıramadığını raporunda açıkça yaz**, "geçti" deme. Kod yazarken mevcut
   test dosyalarındaki stili örnek al.
-- Depoda şu an 56 dosyada 706 test var; hepsi geçmelidir.
+- Depoda şu an 57 dosyada 715 test var; hepsi geçmelidir.
   (`test/promo_shots_test.dart` sayıma girmez: `promo` etiketi
   `dart_test.yaml` ile atlanır, çünkü görüntüyü diske yazdıktan sonra
   koşucu kapanmıyor ve `flutter test` asılı kalırdı. Görselleri üretmek
@@ -200,6 +200,13 @@ flutter test --reporter expanded
   görüntüleri `tool/capture_promo_shots.sh` ile üretilir. Kaynak
   tasarımdaki "Huzur Rehberi" ve "Namazlar" yazıları betikte silinir;
   PNG'leri elle düzenleme.
+- **Sekme sayfalarının listesi alttaki çubuğa pay bırakmalı.** Kabuk
+  `extendBody: true` ile çizilir (sahne çubuğun ardında da görünsün diye);
+  `ListView`'a elle `padding` verilince Flutter çubuğun payını eklemez ve
+  listenin sonu çubuğun altında kalır ("Kaza takibi" böyle kayboldu). Alt
+  boşluğa `MediaQuery.paddingOf(context).bottom` eklenir;
+  `bottom_bar_clearance_test.dart` her sekmeyi sonuna kadar kaydırıp
+  bekçiler.
 - **Her sayfanın arkasında cami durur.** Rotayı `MosqueBackdrop` ile
   sarmalamak YETMEZ: temanın zemin rengi opaktır ve sayfanın kendi düz
   `Scaffold`'u sahneyi tamamen örter. Yeni sayfa `BackdropScaffold`

@@ -15,7 +15,14 @@ class PrayerGuideView extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return ListView(
-      padding: const EdgeInsetsDirectional.fromSTEB(16, 18, 16, 28),
+      // Sekme kabuğunda sayfa alttaki çubuğun arkasına uzanır: listenin
+      // sonu çubuğun üstüne çıkabilsin diye onun payı eklenir.
+      padding: EdgeInsetsDirectional.fromSTEB(
+        16,
+        18,
+        16,
+        28 + MediaQuery.paddingOf(context).bottom,
+      ),
       children: [
         _IntroCard(
           icon: Icons.auto_stories_outlined,
@@ -95,7 +102,12 @@ class PrayerGuideDetailPage extends StatelessWidget {
     return BackdropScaffold(
       title: l10n.prayer(guide.prayer.name),
       body: ListView(
-        padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 32),
+        padding: EdgeInsetsDirectional.fromSTEB(
+          16,
+          8,
+          16,
+          32 + MediaQuery.paddingOf(context).bottom,
+        ),
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(24),

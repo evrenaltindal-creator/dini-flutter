@@ -33,7 +33,14 @@ class _QuranHomePageState extends ConsumerState<QuranHomePage> {
           final lastPage = ref.watch(lastReadPageProvider).valueOrNull;
           final count = showJuz ? 30 : 114;
           return ListView.builder(
-            padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 16, 24),
+            // Liste sekme çubuğunun arkasına uzanır; son sûre çubuğun
+            // üstüne çıkabilsin diye onun payı eklenir.
+            padding: EdgeInsetsDirectional.fromSTEB(
+              16,
+              4,
+              16,
+              24 + MediaQuery.paddingOf(context).bottom,
+            ),
             itemCount: count + 1,
             itemBuilder: (context, index) {
               if (index == 0) {
