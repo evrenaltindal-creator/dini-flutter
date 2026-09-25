@@ -189,6 +189,18 @@ void main() {
       );
       await tester.pump(const Duration(milliseconds: 400));
       await scrollToFlow(tester);
+      // Başlığın altındaki ilk bölüm de oluşturulana kadar kaydır; üstte
+      // "Hocayla kıl" düğmesi var ve tembel liste onu henüz kurmamış olabilir.
+      for (
+        var i = 0;
+        i < 20 && find.byType(ExpansionTile).evaluate().isEmpty;
+        i++
+      ) {
+        await tester.drag(find.byType(Scrollable).first, const Offset(0, -150));
+        await tester.pump();
+      }
+      await tester.ensureVisible(find.byType(ExpansionTile).first);
+      await tester.pumpAndSettle();
 
       final before = tester.widgetList(find.byType(ExpansionTile)).length;
       await tester.tap(find.byType(ExpansionTile).first);

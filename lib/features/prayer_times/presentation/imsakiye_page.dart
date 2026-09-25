@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../home/presentation/mosque_backdrop.dart';
 import '../../../shared/models/domain.dart';
 import 'providers.dart';
 
@@ -12,6 +14,10 @@ import 'providers.dart';
 /// tamamını tek tabloda verir.
 class ImsakiyePage extends ConsumerStatefulWidget {
   const ImsakiyePage({super.key});
+
+  /// Bugünün satırı; açık renk şeridin üstünde yazı koyudur, okunabilirlik
+  /// testi bu satırı ayırır.
+  static const todayRowKey = ValueKey('imsakiye-today-row');
 
   @override
   ConsumerState<ImsakiyePage> createState() => _ImsakiyePageState();
@@ -88,8 +94,10 @@ class _ImsakiyePageState extends ConsumerState<ImsakiyePage> {
     final extent = rowHeight(context);
     _revealToday(timetable.days.indexWhere((day) => day.date == today), extent);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.text('imsakiye.title'))),
+    // BackdropScaffold: düz Scaffold temanın OPAK zeminini çizer ve
+    // arkadaki camiyi tamamen örter.
+    return BackdropScaffold(
+      title: l10n.text('imsakiye.title'),
       body: SafeArea(
         child: Column(
           children: [
@@ -100,19 +108,22 @@ class _ImsakiyePageState extends ConsumerState<ImsakiyePage> {
                   IconButton(
                     tooltip: l10n.text('calendar.previousMonth'),
                     onPressed: () => _shift(-1),
+                    color: BackdropPalette.text,
                     icon: const Icon(Icons.chevron_left),
                   ),
                   Expanded(
                     child: Center(
                       child: Text(
                         '${l10n.month(month.month)} ${month.year}',
-                        style: Theme.of(context).textTheme.titleMedium,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(color: BackdropPalette.text),
                       ),
                     ),
                   ),
                   IconButton(
                     tooltip: l10n.text('calendar.nextMonth'),
                     onPressed: () => _shift(1),
+                    color: BackdropPalette.text,
                     icon: const Icon(Icons.chevron_right),
                   ),
                 ],
@@ -135,7 +146,8 @@ class _ImsakiyePageState extends ConsumerState<ImsakiyePage> {
               padding: const EdgeInsets.all(12),
               child: Text(
                 l10n.text('imsakiye.source'),
-                style: Theme.of(context).textTheme.bodySmall,
+                style: Theme.of(context).textTheme.bodySmall
+                    ?.copyWith(color: BackdropPalette.mutedText),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -150,9 +162,12 @@ class _HeaderRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final style = Theme.of(context).textTheme.labelSmall;
+    final style = Theme.of(context).textTheme.labelSmall?.copyWith(
+      color: BackdropPalette.mutedText,
+      fontWeight: FontWeight.w600,
+    );
     return Container(
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      color: const Color(0x24F4EFE4),
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
       child: Row(
         children: [
@@ -183,15 +198,21 @@ class _DayRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // Bugünün satırı açık renk bir şerittir; onun yazısı koyu, diğer
+    // satırlarınki perdenin üstünde durduğu için açık olmalı.
     final style = theme.textTheme.bodySmall?.copyWith(
+      color: isToday
+          ? theme.colorScheme.onPrimaryContainer
+          : BackdropPalette.text,
       fontWeight: isToday ? FontWeight.w700 : null,
       fontFeatures: const [FontFeature.tabularFigures()],
     );
     return Container(
+      key: isToday ? ImsakiyePage.todayRowKey : null,
       decoration: BoxDecoration(
         color: isToday ? theme.colorScheme.primaryContainer : null,
-        border: Border(
-          bottom: BorderSide(color: theme.dividerColor.withValues(alpha: .4)),
+        border: const Border(
+          bottom: BorderSide(color: BackdropPalette.divider),
         ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 4),

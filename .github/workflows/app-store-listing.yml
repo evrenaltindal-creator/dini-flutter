@@ -1,0 +1,254 @@
+name: App Store listing
+
+# Mağaza sayfasını (metinler, tanıtım görselleri, adresler, kategori)
+# App Store Connect'e yükler ve istenirse sürümü incelemeye gönderir.
+# Derleme yüklemez: derlemeyi "iOS TestFlight Internal" iş akışı yükler,
+# burada yalnızca numarasıyla seçilir.
+#
+# Fiyat, ülkeler, yaş sınırı, içerik hakları ve inceleme iletişim bilgisi
+# tool/app_store_connect_setup.py ile API'den yapılır. Anahtarla
+# yapılamayan tek şey Uygulama Gizliliği'dir (bkz. store/README.md).
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_number:
+        description: "İncelemeye gidecek TestFlight derlemesinin numarası (ör. 29)"
+        required: true
+      submit_for_review:
+        description: "Yükledikten sonra incelemeye gönder"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dini-app-store-listing
+  cancel-in-progress: false
+
+jobs:
+  watch-screenshots:
+    # Apple Watch görselleri: saat uygulaması simülatörde gerçekten çalışır
+    # ve ekranı çekilir. Simülatörde eşleşmiş telefon olmadığından çizelge
+    # açılış argümanıyla verilir; çizelgeyi uygulamanın kendi motoru o an
+    # için hesaplar (test/watch_store_payload_test.dart).
+    name: Apple Watch screenshots
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Select Xcode 26.6
+        run: sudo xcode-select --switch /Applications/Xcode_26.6.app
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.1
+          cache: true
+
+      - name: Prepare Xcode project
+        run: |
+          flutter pub get
+          flutter build ios --config-only --release --no-codesign
+
+      - name: Build the watch app for the simulator
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project ios/Runner.xcodeproj \
+            -target DiniWatch \
+            -configuration Release \
+            -sdk watchsimulator \
+            -arch arm64 \
+            SYMROOT="$PWD/build/watch" \
+            CODE_SIGNING_ALLOWED=NO \
+            build | tail -n 40
+          ls build/watch/Release-watchsimulator/DiniWatch.app
+
+      - name: Compute real schedules
+        run: flutter test --run-skipped --tags store test/watch_store_payload_test.dart
+
+      - name: Capture screenshots
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Saatin durum çubuğundaki saat, vakitlerle aynı dilimde olsun.
+          sudo systemsetup -settimezone Europe/Istanbul >/dev/null
+          runtime="$(xcrun simctl list runtimes -j | python3 -c "import json,sys; r=[x for x in json.load(sys.stdin)['runtimes'] if x['platform']=='watchOS' and x['isAvailable']]; print(r[-1]['identifier'])")"
+          # App Store'un kabul ettiği boyutlardan birinde bir saat.
+          device=""
+          for name in "Apple Watch Series 11 (46mm)" "Apple Watch Series 10 (46mm)" "Apple Watch Ultra 3 (49mm)" "Apple Watch Ultra 2 (49mm)"; do
+            if xcrun simctl list devicetypes | grep -qF "$name"; then device="$name"; break; fi
+          done
+          echo "runtime=$runtime device=$device"
+          udid="$(xcrun simctl create shot-watch "$device" "$runtime")"
+          xcrun simctl boot "$udid"
+          xcrun simctl bootstatus "$udid" -b
+          xcrun simctl install "$udid" build/watch/Release-watchsimulator/DiniWatch.app
+          mkdir -p store/screenshots/watch
+          shoot() {
+            local lang="$1" locale="$2" page="$3" out="$4"
+            xcrun simctl terminate "$udid" com.dini.diniFlutter.watchkitapp >/dev/null 2>&1 || true
+            xcrun simctl launch "$udid" com.dini.diniFlutter.watchkitapp \
+              -dini.watch.schedule "$(cat "build/watch_store_payload/$lang.txt")" \
+              -dini.watch.page "$page" \
+              -tasbih.count 21 \
+              -AppleLanguages "($lang)" \
+              -AppleLocale "$locale"
+            sleep 12
+            xcrun simctl io "$udid" screenshot "$out"
+          }
+          shoot tr tr_TR times store/screenshots/watch/watch-01-times.png
+          shoot tr tr_TR tasbih store/screenshots/watch/watch-02-tasbih.png
+          python3 -c "
+          import struct, glob
+          for f in sorted(glob.glob('store/screenshots/watch/*.png')):
+              w, h = struct.unpack('>II', open(f, 'rb').read()[16:24])
+              print(f, w, h)
+          "
+
+      - name: Keep the screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: watch-screenshots
+          path: store/screenshots/watch/
+
+  listing:
+    name: Upload listing and submit
+    needs: watch-screenshots
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: testflight
+    env:
+      DINI_MAIN_BUNDLE_ID: com.dini.diniFlutter
+      APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_KEY_IDENTIFIER }}
+      APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+      # İnceleme ekibinin arayacağı telefon; depo herkese açık olduğu için
+      # dosyada değil, sırda durur. Yoksa App Store Connect'teki korunur.
+      APP_REVIEW_PHONE: ${{ secrets.APP_REVIEW_PHONE }}
+      BUILD_NUMBER: ${{ inputs.build_number }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Get Apple Watch screenshots
+        uses: actions/download-artifact@v4
+        with:
+          name: watch-screenshots
+          path: store/screenshots/watch
+
+      - name: Validate inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! [[ "$BUILD_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "build_number must be a number, got: $BUILD_NUMBER" >&2
+            exit 1
+          fi
+          for name in APP_STORE_CONNECT_ISSUER_ID APP_STORE_CONNECT_KEY_IDENTIFIER APP_STORE_CONNECT_PRIVATE_KEY; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "Missing required GitHub environment value: ${name}" >&2
+              exit 1
+            fi
+          done
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+
+      - name: Install fastlane
+        run: gem install fastlane --no-document
+
+      - name: Install App Store Connect API client
+        run: python3 -m pip install pyjwt cryptography requests
+
+      - name: Write App Store Connect API key
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'EOF'
+          import json, os
+          key = {
+              "key_id": os.environ["APP_STORE_CONNECT_KEY_IDENTIFIER"],
+              "issuer_id": os.environ["APP_STORE_CONNECT_ISSUER_ID"],
+              "key": os.environ["APP_STORE_CONNECT_PRIVATE_KEY"],
+              "in_house": False,
+          }
+          path = os.path.join(os.environ["RUNNER_TEMP"], "asc_api_key.json")
+          with open(path, "w") as f:
+              json.dump(key, f)
+          os.chmod(path, 0o600)
+          EOF
+
+      - name: Arrange screenshots per store language
+        shell: bash
+        run: |
+          set -euo pipefail
+          # store/screenshots/<dil>/ altındaki hazır görseller; raw/ girdi
+          # klasörüdür, yüklenmez. Görseli olmayan mağaza dili Türkçe
+          # görselleri kullanır.
+          out="$RUNNER_TEMP/screenshots"
+          mkdir -p "$out"
+          for locale_dir in store/metadata/*/; do
+            locale="$(basename "$locale_dir")"
+            [[ "$locale" == review_information ]] && continue
+            source="store/screenshots/$locale"
+            [[ -d "$source" ]] || source="store/screenshots/tr"
+            mkdir -p "$out/$locale"
+            cp "$source"/*.png "$out/$locale/"
+            if [[ -d store/screenshots/watch ]]; then
+              cp store/screenshots/watch/*.png "$out/$locale/"
+            fi
+            ls -1 "$out/$locale"
+          done
+
+      - name: Upload listing to App Store Connect
+        shell: bash
+        run: |
+          set -euo pipefail
+          fastlane deliver \
+            --api_key_path "$RUNNER_TEMP/asc_api_key.json" \
+            --app_identifier "$DINI_MAIN_BUNDLE_ID" \
+            --platform ios \
+            --app_version 1.0.0 \
+            --build_number "$BUILD_NUMBER" \
+            --skip_binary_upload true \
+            --metadata_path store/metadata \
+            --screenshots_path "$RUNNER_TEMP/screenshots" \
+            --overwrite_screenshots true \
+            --automatic_release false \
+            --submit_for_review false \
+            --run_precheck_before_submit false \
+            --precheck_include_in_app_purchases false \
+            --force true
+
+      - name: Price, availability, age rating, review contact
+        run: python3 tool/app_store_connect_setup.py
+
+      - name: Submit for review
+        if: ${{ inputs.submit_for_review }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Onaydan sonra otomatik yayınlanmaz: "Yayınla"ya kullanıcı basar.
+          fastlane deliver \
+            --api_key_path "$RUNNER_TEMP/asc_api_key.json" \
+            --app_identifier "$DINI_MAIN_BUNDLE_ID" \
+            --platform ios \
+            --app_version 1.0.0 \
+            --build_number "$BUILD_NUMBER" \
+            --skip_binary_upload true \
+            --skip_metadata true \
+            --skip_screenshots true \
+            --automatic_release false \
+            --submit_for_review true \
+            --run_precheck_before_submit false \
+            --precheck_include_in_app_purchases false \
+            --submission_information '{"add_id_info_uses_idfa": false, "export_compliance_uses_encryption": false, "content_rights_contains_third_party_content": true, "content_rights_has_rights": true}' \
+            --force true

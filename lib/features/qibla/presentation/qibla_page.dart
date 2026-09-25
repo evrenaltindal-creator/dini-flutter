@@ -5,6 +5,8 @@ import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../home/presentation/mosque_backdrop.dart';
 import '../../prayer_times/domain/prayer_engine.dart';
 import '../../prayer_times/presentation/providers.dart';
 import '../data/magnetic_declination.dart';
@@ -114,16 +116,19 @@ class _QiblaPageState extends ConsumerState<QiblaPage> {
         : calculator.turnDifference(bearing: bearing, heading: _heading!);
     final aligned = difference != null && difference.abs() < 4;
 
-    return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.text('home.qibla'))),
+    return BackdropScaffold(
+      title: context.l10n.text('home.qibla'),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsetsDirectional.fromSTEB(20, 18, 20, 28),
           children: [
+            // Başlık, kalibrasyon satırı ve gizlilik notu kartın dışında,
+            // doğrudan cami perdesinin üstünde duruyor.
             Text(
               context.l10n.text('qibla.title'),
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.headlineSmall,
+              style: Theme.of(context).textTheme.headlineSmall
+                  ?.copyWith(color: BackdropPalette.text),
             ),
             const SizedBox(height: 24),
             Center(
@@ -185,15 +190,25 @@ class _QiblaPageState extends ConsumerState<QiblaPage> {
             ),
             const SizedBox(height: 12),
             ListTile(
-              leading: const Icon(Icons.screen_rotation_outlined),
-              title: Text(context.l10n.text('qibla.calibration')),
-              subtitle: Text(context.l10n.text('qibla.calibrationHint')),
+              leading: const Icon(
+                Icons.screen_rotation_outlined,
+                color: BackdropPalette.mutedText,
+              ),
+              title: Text(
+                context.l10n.text('qibla.calibration'),
+                style: const TextStyle(color: BackdropPalette.text),
+              ),
+              subtitle: Text(
+                context.l10n.text('qibla.calibrationHint'),
+                style: const TextStyle(color: BackdropPalette.mutedText),
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               context.l10n.text('qibla.privacy'),
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodySmall,
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: BackdropPalette.mutedText),
             ),
           ],
         ),

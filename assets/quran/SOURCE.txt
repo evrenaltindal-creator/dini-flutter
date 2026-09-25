@@ -1,0 +1,24 @@
+Kuran metni
+Kaynak: Tanzil Projesi — https://tanzil.net
+Metin: Tanzil Quran Text (Uthmani, Version 1.1)
+Lisans: Creative Commons Atıf 3.0 (CC BY 3.0)
+Şartlar: metin değiştirilmeden kullanılır, kaynak açıkça
+yazılır ve tanzil.net'e bağlantı verilir (Hakkında sayfası:
+about.quran). Telif bloğu sıkıştırılmış dosyanın içindedir.
+Dosya: assets/quran/quran-uthmani.txt.gz (gzip, içerik değiştirilmedi)
+SHA-256 (sıkıştırılmamış): 7f30c647331a61100ebf24a80507dc0fcdd9f2df97f1312b5b2dfcb982a7f326
+
+Üst veri (sûre adları, cüzler, hizbler, Medine Mushaf'ı sayfaları)
+Kaynak: Tanzil Projesi — quran-data.xml, CC BY
+Dosya: assets/quran/quran-data.xml.gz (gzip, içerik değiştirilmedi)
+SHA-256 (sıkıştırılmamış): 8867c1d88191472adec9db694b3cd9f135b1a2ef580574d32cf888dcb22c5c7a
+
+Meal: Pickthall (en.pickthall)
+Kaynak: Tanzil.net
+Dosya: assets/quran/en.pickthall.txt.gz (gzip, içerik değiştirilmedi)
+SHA-256 (sıkıştırılmamış): 4aabbfa9d96796f5a6b0217d2c39dce1a3084f772bf6f2650e37082a774e3cc7
+
+Meal: Elmalılı Hamdi Yazır (1935 aslı, sadeleştirilmemiş) (tr.elmalili)
+Kaynak: namazzamani.net, "Elmalılı Hamdi Yazır (Orijinal)"
+Dosya: assets/quran/tr.elmalili.txt.gz (gzip, içerik değiştirilmedi)
+SHA-256 (sıkıştırılmamış): 1bcc9a368e5c0c6e58c95dd0a6bc42d0a8a3cec0b7cd94c4620e3a243f7538a8

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Bildirim sesleri koddan değil, bildirim kanalından ADIYLA çağrılır
+     (android.resource://…/raw/ezan). Yayın derlemesindeki kaynak küçültücü
+     bu kullanımı göremez ve dosyaları silebilir; kanal da sessiz çalar.
+     raw_resources_test.dart buradaki listeyi klasördeki seslerle bekçiler. -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@raw/notification_tone,@raw/ezan" />

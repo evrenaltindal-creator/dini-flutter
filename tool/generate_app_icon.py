@@ -1,155 +1,262 @@
 #!/usr/bin/env python3
 """Uygulama simgesini üretir.
 
-Simge bir vektör tarifi olarak burada durur; PNG'ler bu betikten üretilir.
-Böylece boyut listesi değiştiğinde ya da renkler temaya göre güncellendiğinde
-simgeyi elle yeniden çizmek gerekmez.
+Kaynak, `assets/branding/app_icon_source.png` dosyasındaki 1024x1024
+tasarımdır: degrade zemin üzerinde altın hatlı cami, pusula, halkalar ve
+vakit adları.
+
+Kaynak tasarımda iki yazı bloğu vardır ("Huzur Rehberi" ve "Namazlar");
+uygulamanın adı yalnızca **Namaz Yolu** olduğu için ikisi de burada silinir.
+Silme el ile yapılmaz: yazının altın pikselleri bağlı bileşen olarak bulunur,
+kenarına taşan yumuşamayla birlikte maskelenir ve yerine satır satır
+enterpolasyonla zeminin degradesi yazılır. Böylece kaynak dosya olduğu gibi
+kalır, çıktı temizlenir.
+
+Kaynak **tam kenar** olmalıdır: kare, saydamlıksız, köşeleri yuvarlatılmamış
+ve etrafında "saydamlık" damalı deseni çizilmemiş. iOS ve Android simgeye
+kendi maskesini uygular; hazır yuvarlatılmış ya da damalı bir kaynak köşede
+beyaz kırıntı veya dama tahtası olarak görünür. `_source` bunları kontrol
+eder ve sessizce kabul etmez.
+
+Uyarlanabilir (Android) simgede sistem ön planın dışını kırpar; güvenli daire
+tuvalin %30,5'idir. Tasarımın altın içeriği tuval yarı-genişliğinin %88'ine
+kadar uzandığı için ön plan küçültülür — ölçüldü, tahmin edilmedi. Zemin
+degrade olduğu için uyarlanabilir simgenin zemini de düz renk değil, üretilen
+bir PNG katmanıdır.
 
 Çalıştırmak için:
 
     pip install Pillow
     python3 tool/generate_app_icon.py
-
-Tasarım: koyu yeşil zemin üzerinde altın renkli mihrap kemeri; kemerin içine
-hilal negatif boşluk olarak oyulmuştur. Renkler `lib/core/theme/app_theme.dart`
-içindeki tohum renk (#0b3d3a) ve ikincil renkten (#cda45e) alınmıştır.
 """
 
 import json
 import os
 import subprocess
-from PIL import Image, ImageDraw
+from collections import deque
+from PIL import Image, ImageFilter
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Tema renkleri.
-GREEN_DARK = (7, 40, 38)
-GREEN_LIGHT = (18, 77, 72)
-GOLD_TOP = (232, 200, 140)
-GOLD_BOTTOM = (186, 143, 74)
+SOURCE = os.path.join(ROOT, "assets/branding/app_icon_source.png")
 
-# Kenar yumuşatma: her şey bu katsayıyla büyütülüp sonra küçültülür.
-SS = 4
+# Kaynak tasarım yalnızca bu betik tarafından, derleme öncesinde okunur.
+# `pubspec.yaml` içindeki `assets:` listesine EKLENMEZ: uygulama onu çalışma
+# anında yüklemiyor, eklemek pakete boşuna yer bindirirdi.
+
+# Altın içeriğin merkeze uzaklığı / tuval yarı-genişliği. Ölçülerek bulundu;
+# tasarım değişirse yeniden ölçülmelidir.
+CONTENT_EXTENT = 0.88
+
+# Uyarlanabilir simgenin güvenli dairesi: tuvalin %30,5'i.
+SAFE_RADIUS = 0.305
+
+# Ön planın küçültme oranı; içerik güvenli daireye bu oranla sığar.
+ADAPTIVE_SAFE = SAFE_RADIUS / (CONTENT_EXTENT / 2)
+
+_cache = {}
+
+# Silinecek yazı blokları (sol, üst, sağ, alt). Kaynak 1024x1024 olduğu için
+# piksel cinsindendir ve tasarımdan ÖLÇÜLDÜ: üstteki kuşak madalyonun içinde,
+# kubbe ile iç halka arasındaki düz zemine oturur; alttaki, halkanın tamamen
+# dışındadır. Kutular yalnızca düz zemin içerir; içlerinde kalan çizgiler
+# (minare, kubbe külahı, halka) kutunun kenarına DEĞDİĞİ için korunur.
+TEXT_BANDS = ((330, 270, 700, 375), (330, 860, 700, 985))
 
 
-def _lerp(a, b, t):
-    return tuple(round(x + (y - x) * t) for x, y in zip(a, b))
+def _source():
+    """Kaynak tasarım; tam kenar olduğu doğrulanır.
 
+    Sessizce düzeltmeye çalışmak yerine hata verir: damalı ya da yuvarlatılmış
+    bir kaynak fark edilmeden mağazaya gidebilir.
+    """
+    if "source" in _cache:
+        return _cache["source"]
+    if not os.path.exists(SOURCE):
+        raise SystemExit(f"kaynak tasarım yok: {SOURCE}")
 
-def _background(size):
-    """Merkezi hafifçe açılan dikey degrade."""
-    image = Image.new("RGB", (size, size), GREEN_DARK)
-    draw = ImageDraw.Draw(image)
-    for y in range(size):
-        # Üstte açık, altta koyu; tepe noktası 0.35 yükseklikte.
-        t = abs(y / size - 0.35) / 0.75
-        draw.line([(0, y), (size, y)], fill=_lerp(GREEN_LIGHT, GREEN_DARK, min(t, 1.0)))
+    image = Image.open(SOURCE)
+    if image.mode in ("RGBA", "LA") and image.getchannel("A").getextrema()[0] < 250:
+        raise SystemExit("kaynakta saydamlık var; simge tam kenar olmalı")
+    image = image.convert("RGB")
+    if image.size[0] != image.size[1]:
+        raise SystemExit(f"kaynak kare değil: {image.size}")
+
+    width, height = image.size
+    for x, y in ((2, 2), (width - 3, 2), (2, height - 3), (width - 3, height - 3)):
+        red, green, blue = image.getpixel((x, y))
+        if abs(red - green) < 12 and abs(green - blue) < 12 and red > 180:
+            raise SystemExit(
+                "kaynağın köşesi açık gri: tasarım ya yuvarlatılmış ya da "
+                "etrafına saydamlık damaları çizilmiş; tuvali dolduran bir "
+                "sürüm gerekir"
+            )
+    for band in TEXT_BANDS:
+        _erase(image, band)
+    _cache["source"] = image
     return image
 
 
-def _arch_mask(size):
-    """İki merkezli (sivri) mihrap kemerinin maskesi.
+def _text_mask(image, box):
+    """Kutudaki yazının maskesi.
 
-    Kemer, yay merkezleri omuz hizasında olan iki dairenin kesişimidir; omuz
-    hizasının altı düz gövdedir.
+    Yazı, zeminden altın rengiyle ayrılır; ama kutuda yazı dışında da altın
+    vardır (minare, külah, halka). Ayrım şöyle yapılır: kutunun kenarına
+    değen her bağlı bileşen tasarımın bir parçasıdır ve KORUNUR. Yazı
+    kutunun ortasında yüzer, kenara değmez.
     """
-    mask = Image.new("L", (size, size), 0)
-    draw = ImageDraw.Draw(mask)
+    left, top, right, bottom = box
+    width, height = right - left, bottom - top
+    pixels = image.load()
+    gold = [
+        [
+            (lambda rgb: rgb[0] - rgb[2] > 6 and (rgb[0] + rgb[1]) / 2 > 60)(
+                pixels[left + x, top + y]
+            )
+            for x in range(width)
+        ]
+        for y in range(height)
+    ]
 
-    cx = size / 2
-    width = 0.46 * size
-    half = width / 2
-    spring = 0.56 * size  # omuz hizası
-    apex = 0.18 * size  # tepe
-    bottom = 0.80 * size
-
-    height = spring - apex
-    # d: yay merkezinin eksenden kayması. h^2 = W^2/4 + W*d denkleminden.
-    offset = (height * height - half * half) / width
-    radius = half + offset
-
-    draw.rectangle([cx - half, spring, cx + half, bottom], fill=255)
-    # Sağ yayın merkezi solda kalır ve tersi; kesişimleri sivri ucu verir.
-    left = Image.new("L", (size, size), 0)
-    ImageDraw.Draw(left).ellipse(
-        [cx - offset - radius, spring - radius, cx - offset + radius, spring + radius],
-        fill=255,
-    )
-    right = Image.new("L", (size, size), 0)
-    ImageDraw.Draw(right).ellipse(
-        [cx + offset - radius, spring - radius, cx + offset + radius, spring + radius],
-        fill=255,
-    )
-    lens = Image.new("L", (size, size), 0)
-    lens.paste(Image.composite(left, Image.new("L", (size, size), 0), right), (0, 0))
-    # Yalnızca omuz hizasının üstündeki kısmı al.
-    top = Image.new("L", (size, size), 0)
-    ImageDraw.Draw(top).rectangle([0, 0, size, spring], fill=255)
-    lens = Image.composite(lens, Image.new("L", (size, size), 0), top)
-
-    mask.paste(255, (0, 0), lens)
+    mask = Image.new("L", (width, height), 0)
+    painter = mask.load()
+    seen = [[False] * width for _ in range(height)]
+    for start_y in range(height):
+        for start_x in range(width):
+            if not gold[start_y][start_x] or seen[start_y][start_x]:
+                continue
+            component, touches_edge = [], False
+            queue = deque([(start_x, start_y)])
+            seen[start_y][start_x] = True
+            while queue:
+                x, y = queue.popleft()
+                component.append((x, y))
+                if x in (0, width - 1) or y in (0, height - 1):
+                    touches_edge = True
+                for step_x in (-1, 0, 1):
+                    for step_y in (-1, 0, 1):
+                        next_x, next_y = x + step_x, y + step_y
+                        if not (0 <= next_x < width and 0 <= next_y < height):
+                            continue
+                        if gold[next_y][next_x] and not seen[next_y][next_x]:
+                            seen[next_y][next_x] = True
+                            queue.append((next_x, next_y))
+            # Tek tük piksel gürültüsü zaten zeminle aynı; harf gövdesi büyüktür.
+            if not touches_edge and len(component) > 20:
+                for x, y in component:
+                    painter[x, y] = 255
     return mask
 
 
-def _crescent_mask(size):
-    """Kemerin içine oyulacak hilal."""
-    # Hilalin görsel ağırlık merkezi oyuk yüzünden sola kayar; kemerin
-    # ortasında dursun diye tamamı hafifçe sağa alınır.
-    cx = size / 2 + 0.028 * size
-    cy = 0.495 * size
-    outer = 0.135 * size
-    inner = 0.117 * size
-    # İç daireyi sağa ve yukarı kaydırmak sola açılan bir hilal bırakır.
-    ix = cx + 0.066 * size
-    iy = cy - 0.032 * size
+def _erase(image, box):
+    """Kutudaki yazıyı siler, yerine zeminin degradesini koyar."""
+    mask = _text_mask(image, box)
+    if mask.getextrema()[1] == 0:
+        return
+    # Harfin çevresindeki yumuşama eşiğin altında kalır; maske büyütülmezse
+    # silinen yazının soluk bir hayaleti durur.
+    mask = mask.filter(ImageFilter.MaxFilter(9))
+    marked = mask.load()
 
-    full = Image.new("L", (size, size), 0)
-    ImageDraw.Draw(full).ellipse([cx - outer, cy - outer, cx + outer, cy + outer], fill=255)
-    cut = Image.new("L", (size, size), 0)
-    ImageDraw.Draw(cut).ellipse([ix - inner, iy - inner, ix + inner, iy + inner], fill=255)
-    return Image.composite(Image.new("L", (size, size), 0), full, cut)
+    patch = image.crop(box)
+    canvas = patch.load()
+    width, height = patch.size
+    for y in range(height):
+        for x in range(width):
+            if not marked[x, y]:
+                continue
+            before = next((i for i in range(x - 1, -1, -1) if not marked[i, y]), None)
+            after = next((i for i in range(x + 1, width) if not marked[i, y]), None)
+            if before is None and after is None:
+                continue
+            if before is None:
+                canvas[x, y] = canvas[after, y]
+            elif after is None:
+                canvas[x, y] = canvas[before, y]
+            else:
+                ratio = (x - before) / (after - before)
+                start, end = canvas[before, y], canvas[after, y]
+                canvas[x, y] = tuple(
+                    int(round(start[i] + (end[i] - start[i]) * ratio))
+                    for i in range(3)
+                )
+    # Satır satır enterpolasyon dikey yönde ince şeritler bırakır; dolgu
+    # bölgesi yumuşatılınca degradeden ayırt edilemez hâle gelir.
+    patch = Image.composite(
+        patch.filter(ImageFilter.GaussianBlur(4)),
+        patch,
+        mask.filter(ImageFilter.GaussianBlur(3)),
+    )
+    image.paste(patch, box)
 
 
-def _gold(size):
-    image = Image.new("RGB", (size, size), GOLD_TOP)
-    draw = ImageDraw.Draw(image)
-    for y in range(size):
-        draw.line([(0, y), (size, y)], fill=_lerp(GOLD_TOP, GOLD_BOTTOM, y / size))
-    return image
+def _artwork():
+    """Altın hatlar; zemin saydam.
+
+    Uyarlanabilir simgenin ön planı zemini TAŞIMAMALI: ön plan küçültüldüğü
+    için kendi degrade parçası arka katmanın degradesiyle uyuşmuyor ve
+    madalyonun çevresinde daire şeklinde bir dikiş görünüyordu. Zemin koyu,
+    hatlar altın olduğu için ayrım parlaklıkla yapılır; yumuşak geçiş
+    korunsun diye alfa kademelidir.
+    """
+    if "artwork" in _cache:
+        return _cache["artwork"]
+    source = _source()
+    width, height = source.size
+    result = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+    src_pixels = source.load()
+    out_pixels = result.load()
+    for y in range(height):
+        for x in range(width):
+            red, green, blue = src_pixels[x, y]
+            # Altın: parlak ve sıcak. Koyu yeşil/lacivert zeminden bu ikisiyle
+            # ayrılır.
+            warmth = red - blue
+            level = (red + green) / 2
+            alpha = 0.0
+            if warmth > 10 and level > 70:
+                alpha = min(1.0, (level - 70) / 90) * min(1.0, (warmth - 10) / 40)
+            if alpha > 0:
+                out_pixels[x, y] = (red, green, blue, int(round(alpha * 255)))
+    _cache["artwork"] = result
+    return result
 
 
 def render(size, *, background=True, scale=1.0):
     """Simgeyi `size` piksellik kare olarak üretir.
 
-    `background` kapalıyken yalnızca kemer döner (Android uyarlanabilir
-    simgesinin ön planı için). `scale`, ön planı güvenli alana sığdırmak için
-    içeriği küçültür.
+    `background` açıkken tasarım tuvali doldurur (iOS ve Android eski simge).
+    Kapalıyken yalnızca madalyon döner ve `scale` ile güvenli alana sığdırılır
+    (Android uyarlanabilir simgenin ön planı).
     """
-    work = size * SS
-    layer = Image.new("RGBA", (work, work), (0, 0, 0, 0))
-
-    content = int(work * scale)
-    arch = _arch_mask(content)
-    crescent = _crescent_mask(content)
-    arch.paste(0, (0, 0), crescent)
-
-    gold = _gold(content).convert("RGBA")
-    gold.putalpha(arch)
-    inset = (work - content) // 2
-    layer.paste(gold, (inset, inset), gold)
-
     if background:
-        base = _background(work).convert("RGBA")
-        base.alpha_composite(layer)
-        layer = base
+        return _source().resize((size, size), Image.LANCZOS).convert("RGBA")
 
-    return layer.resize((size, size), Image.LANCZOS)
+    content = max(1, int(size * scale))
+    layer = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    artwork = _artwork().resize((content, content), Image.LANCZOS)
+    inset = (size - content) // 2
+    layer.paste(artwork, (inset, inset), artwork)
+    return layer
+
+
+def render_background(size):
+    """Uyarlanabilir simgenin zemin katmanı.
+
+    Tasarımın zemini degradedir; düz renk bir katman ön planın kenarında renk
+    farkı bırakırdı. Madalyonun olmadığı köşe bölgesi büyütülerek tuvali
+    dolduran bir degrade elde edilir.
+    """
+    corner = _source()
+    edge = corner.size[0]
+    corner = corner.crop((0, 0, int(edge * 0.22), int(edge * 0.22)))
+    return corner.resize((size, size), Image.LANCZOS).convert("RGBA")
 
 
 def _write(image, path, *, opaque):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     if opaque:
-        flat = Image.new("RGB", image.size, GREEN_DARK)
+        flat = Image.new("RGB", image.size, (20, 62, 70))
         flat.paste(image, (0, 0), image)
         image = flat
     image.save(path, "PNG", optimize=True)
@@ -178,11 +285,6 @@ ANDROID_LEGACY = {
     "mipmap-xxxhdpi": 192,
 }
 
-# Uyarlanabilir simgede sistem ön planın dış %25'ini kırpabilir; içerik
-# güvenli daireye sığsın diye küçültülür.
-ADAPTIVE_SAFE = 0.62
-
-
 def build_android():
     res = os.path.join(ROOT, "android/app/src/main/res")
     for folder, pixels in ANDROID_LEGACY.items():
@@ -191,19 +293,63 @@ def build_android():
             os.path.join(res, folder, "ic_launcher.png"),
             opaque=True,
         )
-        # Uyarlanabilir simge katmanları 108dp'lik tuval ister. Zemin düz
-        # renk olduğu için PNG değil, values/colors.xml'deki renk kullanılır.
+        # Uyarlanabilir simge katmanları 108dp'lik tuval ister. Zemin DEGRADE
+        # olduğu için düz renk değil, ayrı bir PNG katmanı üretilir; düz renk
+        # kullanıldığında ön planın kenarında renk farkı görünüyordu.
         adaptive = round(pixels * 108 / 48)
         _write(
             render(adaptive, background=False, scale=ADAPTIVE_SAFE),
             os.path.join(res, folder, "ic_launcher_foreground.png"),
             opaque=False,
         )
+        _write(
+            render_background(adaptive),
+            os.path.join(res, folder, "ic_launcher_background.png"),
+            opaque=True,
+        )
+
+
+WATCH_ICONS = os.path.join(ROOT, "ios/DiniWatch/Assets.xcassets")
+
+
+def build_watch():
+    """Apple Watch uygulamasının simgesi.
+
+    watchOS tek bir 1024x1024 simge ister; sistem onu daireye kırpar.
+    Simgesi olmayan saat uygulaması App Store yüklemesinde reddedilir.
+    iOS simgesi gibi opaktır: saydamlık da reddedilir.
+    """
+    os.makedirs(WATCH_ICONS, exist_ok=True)
+    with open(os.path.join(WATCH_ICONS, "Contents.json"), "w") as handle:
+        json.dump({"info": {"author": "xcode", "version": 1}}, handle, indent=2)
+        handle.write("\n")
+    folder = os.path.join(WATCH_ICONS, "AppIcon.appiconset")
+    os.makedirs(folder, exist_ok=True)
+    filename = "AppIcon-1024.png"
+    with open(os.path.join(folder, "Contents.json"), "w") as handle:
+        json.dump(
+            {
+                "images": [
+                    {
+                        "filename": filename,
+                        "idiom": "universal",
+                        "platform": "watchos",
+                        "size": "1024x1024",
+                    }
+                ],
+                "info": {"author": "xcode", "version": 1},
+            },
+            handle,
+            indent=2,
+        )
+        handle.write("\n")
+    _write(render(1024), os.path.join(folder, filename), opaque=True)
 
 
 def main():
     build_ios()
     build_android()
+    build_watch()
     preview = os.path.join(ROOT, "build", "icon_preview.png")
     os.makedirs(os.path.dirname(preview), exist_ok=True)
     strip = Image.new("RGB", (1024 + 192 + 96 + 48 + 40, 1024), (245, 245, 245))

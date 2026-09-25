@@ -36,10 +36,24 @@ class NotificationSoundInstaller {
   final AssetBytesLoader loadAsset;
   final SoundDirectoryLocator locateDirectory;
 
+  /// Kopyalanacak varlık ve iOS'taki dosya adı. Varsayılan uygulama tonudur;
+  /// ezan için [NotificationSoundInstaller.ezan].
+  final String sourceAsset;
+  final String targetFileName;
+
   const NotificationSoundInstaller({
     this.loadAsset = loadFromRootBundle,
     this.locateDirectory = defaultSoundDirectory,
+    this.sourceAsset = assetKey,
+    this.targetFileName = soundFileName,
   });
+
+  /// Ezan sesini kuran örnek.
+  const NotificationSoundInstaller.ezan({
+    this.loadAsset = loadFromRootBundle,
+    this.locateDirectory = defaultSoundDirectory,
+  }) : sourceAsset = EzanSound.assetKey,
+       targetFileName = EzanSound.fileName;
 
   /// Sesi yerine kopyalar ve kurulup kurulmadığını döner.
   ///
@@ -50,8 +64,8 @@ class NotificationSoundInstaller {
       final directory = await locateDirectory();
       if (directory == null) return false;
 
-      final bytes = (await loadAsset(assetKey)).buffer.asUint8List();
-      final target = File('${directory.path}/$soundFileName');
+      final bytes = (await loadAsset(sourceAsset)).buffer.asUint8List();
+      final target = File('${directory.path}/$targetFileName');
 
       // Aynı dosya zaten yerindeyse diske yazma. Kurulum her açılışta
       // çalışır; her seferinde 100 KB yazmak gereksizdir.
@@ -72,5 +86,34 @@ class NotificationSoundInstaller {
     if (!Platform.isIOS) return null;
     final library = await getLibraryDirectory();
     return Directory('${library.path}/Sounds');
+  }
+}
+
+/// Ezan bildirim sesi.
+///
+/// Kayıt dosyası depoya BİLEREK konmadı: telifi netleşmemiş bir kayıt
+/// uygulamaya alınmaz. Lisansı belli bir kayıt geldiğinde
+/// `tool/prepare_ezan_sound.py` ilk 5 saniyesini alıp sonunu kısar, buraya
+/// ve Android'in `res/raw` klasörüne yazar; seçenek o zaman görünür ve
+/// açılış tekbirinin yerine de bu ses çalar.
+class EzanSound {
+  static const assetKey = 'assets/audio/ezan.wav';
+  static const fileName = 'ezan.wav';
+  static const androidResourceName = 'ezan';
+
+  /// iOS bildirim sesini en fazla 30 saniye çalar; daha uzun dosyada
+  /// sessizce varsayılan sese döner.
+  static const maxSeconds = 30;
+
+  /// Kayıt pakette var mı?
+  static Future<bool> isAvailable({
+    AssetBytesLoader loadAsset = loadFromRootBundle,
+  }) async {
+    try {
+      final data = await loadAsset(assetKey);
+      return data.lengthInBytes > 44; // WAV başlığından büyük
+    } catch (_) {
+      return false;
+    }
   }
 }

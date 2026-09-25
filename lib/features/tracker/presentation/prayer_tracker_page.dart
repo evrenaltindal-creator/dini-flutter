@@ -1,13 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/storage/storage_provider.dart';
+import '../data/exemption_repository.dart';
 import '../data/prayer_tracker_repository.dart';
 import '../domain/prayer_tracker.dart';
+import '../domain/streak.dart';
+import 'streak_view.dart';
 import '../../prayer_times/domain/timezone_service.dart';
 import '../../prayer_times/presentation/providers.dart';
 import '../../../shared/models/domain.dart';
+
+/// Isı haritası ve seri için okunan geçmiş.
+///
+/// [heatmapWeeks] hafta artı ilk haftanın başındaki boşluk kadar gün okunur;
+/// daha azı haritanın ilk sütununu eksik bırakır.
+final trackerHistoryProvider =
+    FutureProvider.family<List<PrayerTrackerDay>, DateTime>((ref, today) {
+      final repository = LocalPrayerTrackerRepository(
+        ref.watch(localStorageProvider),
+      );
+      return repository.recent(today, days: heatmapWeeks * 7 + 7);
+    });
+
+/// Muaf günler: o günlerde namaz kılınmaz, seri bozulmaz.
+final exemptionsProvider = FutureProvider.family<Set<DateTime>, DateTime>((
+  ref,
+  today,
+) {
+  final repository = ExemptionRepository(ref.watch(localStorageProvider));
+  return repository.recent(today, days: heatmapWeeks * 7 + 7);
+});
 
 class PrayerTrackerPage extends StatelessWidget {
   const PrayerTrackerPage({super.key});
@@ -47,7 +72,7 @@ class _PrayerTrackerViewState extends ConsumerState<PrayerTrackerView> {
     final times = ref.watch(prayerTimesProvider);
     return TimezoneService.inLocation(
       times.timezoneId ?? 'Europe/Istanbul',
-      DateTime.now(),
+      ref.watch(clockProvider)(),
     );
   }
 
@@ -69,7 +94,15 @@ class _PrayerTrackerViewState extends ConsumerState<PrayerTrackerView> {
       return const Center(child: CircularProgressIndicator());
     }
     final content = ListView(
-      padding: const EdgeInsetsDirectional.fromSTEB(16, 18, 16, 28),
+      // Sekme kabuğunda sayfa alttaki çubuğun arkasına uzanır: "Kaza
+      // takibi" ve alttaki not çubuğun altında kalıyordu. Çubuğun payı
+      // eklenir (tek başına açılan /tracker'da SafeArea bunu sıfırlar).
+      padding: EdgeInsetsDirectional.fromSTEB(
+        16,
+        18,
+        16,
+        28 + MediaQuery.paddingOf(context).bottom,
+      ),
       children: [
         Card(
           child: Padding(
@@ -128,10 +161,74 @@ class _PrayerTrackerViewState extends ConsumerState<PrayerTrackerView> {
                   final next = current.toggle(prayer);
                   setState(() => day = next);
                   await repository.save(next);
+                  // Seri ve ısı haritası bu kayda bakar; tazelenmezse
+                  // işaretleme ekranda karşılık bulmaz.
+                  ref.invalidate(trackerHistoryProvider(today));
                 },
                 controlAffinity: ListTileControlAffinity.trailing,
               );
             }).toList(),
+          ),
+        ),
+        const SizedBox(height: 12),
+        ref
+            .watch(exemptionsProvider(today))
+            .when(
+              loading: () => const SizedBox.shrink(),
+              error: (error, stack) => const SizedBox.shrink(),
+              data: (exempt) => Card(
+                child: SwitchListTile.adaptive(
+                  secondary: const Icon(Icons.event_busy_outlined),
+                  title: Text(context.l10n.text('tracker.exemptToday')),
+                  subtitle: Text(context.l10n.text('tracker.exemptNote')),
+                  value: exempt.contains(today),
+                  onChanged: (value) async {
+                    await ExemptionRepository(ref.read(localStorageProvider))
+                        .setExempt(today, value);
+                    ref.invalidate(exemptionsProvider(today));
+                  },
+                ),
+              ),
+            ),
+        ref
+            .watch(trackerHistoryProvider(today))
+            .when(
+              loading: () => const SizedBox.shrink(),
+              error: (error, stack) => const SizedBox.shrink(),
+              data: (history) {
+                final exempt =
+                    ref.watch(exemptionsProvider(today)).value ??
+                    const <DateTime>{};
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    StreakCard(
+                      summary: streakOf(history, today: today, exempt: exempt),
+                      // Muaf günde "bugünü tamamla" demek yanlış olurdu.
+                      todayComplete:
+                          trackerDayIsComplete(current) ||
+                          exempt.contains(today),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      context.l10n.text('tracker.heatmap'),
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    HeatmapView(
+                      weeks: heatmapOf(history, today: today, exempt: exempt),
+                    ),
+                  ],
+                );
+              },
+            ),
+        const SizedBox(height: 12),
+        Card(
+          child: ListTile(
+            leading: const Icon(Icons.history_toggle_off_outlined),
+            title: Text(context.l10n.text('qada.open')),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/qada'),
           ),
         ),
         const SizedBox(height: 12),

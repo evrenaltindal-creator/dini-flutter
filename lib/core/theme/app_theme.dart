@@ -1,5 +1,24 @@
 import 'package:flutter/material.dart';
 
+/// Cami sahnesinin ÜZERİNE doğrudan yazılan metnin renkleri.
+///
+/// Sahne her iki temada da koyudur: `BackdropScrim.heavy` perdesi fotoğrafı
+/// karartır, aydınlatmaz. Tema açıkken `textTheme`'in koyu renkleri bu
+/// perdenin üzerinde okunmuyor — imsakiye çizelgesi ve takvim ızgarası
+/// aydınlık kipte neredeyse görünmezdi. Kartların içi bu renklere DEĞİL,
+/// kendi zeminlerine göre renklenir; burada yalnızca perdenin üstünde
+/// duran metin var.
+class BackdropPalette {
+  /// Başlık ve asıl içerik.
+  static const Color text = Color(0xFFF4EFE4);
+
+  /// İkincil satırlar, sütun başlıkları, açıklama.
+  static const Color mutedText = Color(0xB8F4EFE4);
+
+  /// Perdenin üstündeki ince ayraçlar.
+  static const Color divider = Color(0x33F4EFE4);
+}
+
 class AppTheme {
   static ThemeData get light => _theme(Brightness.light);
   static ThemeData get dark => _theme(Brightness.dark);

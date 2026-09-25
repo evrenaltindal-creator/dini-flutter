@@ -1,0 +1,9 @@
+# Tanıtım görselleri üreten test CI'da çalışmamalı: ekran görüntüsünü
+# diske yazdıktan sonra koşucu kapanmıyor (açık kalan pusula/ses akışları)
+# ve `flutter test` asılı kalırdı. Etiket varsayılan olarak atlanır;
+# görselleri üretmek için tool/capture_promo_shots.sh kullanılır.
+tags:
+  promo:
+    skip: "Tanıtım görselleri; tool/capture_promo_shots.sh ile elle üretilir"
+  store:
+    skip: "Apple Watch mağaza görseli çizelgesi; app-store-listing.yml çalıştırır"

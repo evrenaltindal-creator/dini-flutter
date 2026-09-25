@@ -22,20 +22,38 @@ import '../features/calendar/domain/ramadan_status.dart';
 import '../features/calendar/presentation/ramadan_headline.dart';
 import '../features/calendar/presentation/calendar_page.dart';
 import '../features/prayer_times/presentation/imsakiye_page.dart';
+import '../features/ramadan/presentation/fasting_page.dart';
+import '../features/tracker/presentation/qada_page.dart';
+import '../features/ramadan/presentation/teravih_page.dart';
+import '../features/prayer_times/presentation/location_page.dart';
+import '../features/prayer_times/presentation/save_settings.dart';
 import '../features/tasbih/presentation/tasbih_page.dart';
 import '../features/notifications/presentation/notification_settings_page.dart';
 import '../features/notifications/data/flutter_local_notification_service.dart';
-import '../features/notifications/data/notification_scheduler.dart';
 import '../features/widgets/data/widget_preferences_repository.dart';
+import '../features/widgets/data/widget_snapshot_builder.dart';
+import '../features/watch/data/watch_schedule_builder.dart';
 import '../features/widgets/domain/widget_snapshot.dart';
-import '../features/premium/presentation/premium_page.dart';
-import '../features/quran/presentation/quran_coming_soon_page.dart';
 import '../features/info/diyanet_flow.dart';
 import '../features/audio/presentation/opening_takbir.dart';
+import '../features/calendar/presentation/daily_leaf_page.dart';
+import '../features/quran/data/quran_book.dart';
+import '../features/quran/presentation/book_opening.dart';
+import '../features/quran/presentation/quran_home_page.dart';
+import '../features/quran/presentation/quran_meal_page.dart';
+import '../features/quran/presentation/quran_reader_page.dart';
+import '../features/worship/presentation/guided_prayer_page.dart';
+import '../features/worship/presentation/prayer_guide_view.dart';
 import '../features/worship/presentation/worship_hub_page.dart';
+import '../features/onboarding/data/onboarding_repository.dart';
+import '../features/onboarding/presentation/onboarding_page.dart';
 
-final appRouter = GoRouter(
-  initialLocation: '/',
+/// Uygulamanın rota tablosu.
+///
+/// [initialLocation] ile başlangıç rotası verilebilir: ilk açılış akışı
+/// tamamlanmamışsa `main.dart` buraya `/onboarding` geçer.
+GoRouter createRouter({String initialLocation = '/'}) => GoRouter(
+  initialLocation: initialLocation,
   routes: [
     StatefulShellRoute.indexedStack(
       builder: (context, state, shell) {
@@ -76,7 +94,16 @@ final appRouter = GoRouter(
                   : const NavigationBarThemeData(),
               child: NavigationBar(
                 selectedIndex: shell.currentIndex,
-                onDestinationSelected: shell.goBranch,
+                onDestinationSelected: (index) {
+                  // Kuran sekmesine her girişte kapak yeniden açılır.
+                  if (index == 1 && shell.currentIndex != 1) {
+                    ProviderScope.containerOf(
+                      context,
+                      listen: false,
+                    ).read(quranOpenedProvider.notifier).state++;
+                  }
+                  shell.goBranch(index);
+                },
                 destinations: [
                   NavigationDestination(
                     icon: const Icon(Icons.home_outlined),
@@ -113,7 +140,23 @@ final appRouter = GoRouter(
           routes: [
             GoRoute(
               path: '/quran',
-              builder: (_, _) => const QuranComingSoonPage(),
+              builder: (_, _) => const BookOpening(child: QuranHomePage()),
+              routes: [
+                GoRoute(
+                  path: 'page/:page',
+                  builder: (_, state) => QuranReaderPage(
+                    initialPage:
+                        int.tryParse(state.pathParameters['page']!) ?? 1,
+                  ),
+                ),
+                GoRoute(
+                  path: 'surah/:surah',
+                  builder: (_, state) => QuranMealPage(
+                    surah: (int.tryParse(state.pathParameters['surah']!) ?? 1)
+                        .clamp(1, 114),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -127,7 +170,16 @@ final appRouter = GoRouter(
         ),
         StatefulShellBranch(
           routes: [
-            GoRoute(path: '/calendar', builder: (_, _) => const CalendarPage()),
+            // Takvime girince önce günün yaprağı gelir; aylık takvim üstteki
+            // geçişle açılır.
+            GoRoute(
+              path: DailyLeafPage.tabRoute,
+              builder: (_, _) => const DailyLeafPage(embedded: true),
+            ),
+            GoRoute(
+              path: DailyLeafPage.monthRoute,
+              builder: (_, _) => const CalendarPage(),
+            ),
           ],
         ),
         StatefulShellBranch(
@@ -137,12 +189,29 @@ final appRouter = GoRouter(
         ),
       ],
     ),
-    GoRoute(path: '/premium', builder: (_, _) => const PremiumStorePage()),
+    // Premium (satın alma) ilk App Store sürümünde YOK (kullanıcı kararı):
+    // her şey ücretsiz. Satın alma ürünleri App Store Connect'te hazır
+    // olmadan sayfa açık kalsaydı inceleme satın almayı dener ve reddederdi.
+    // Geri gelince rota ve Ayarlar'daki satır birlikte eklenir.
     GoRoute(path: '/privacy', builder: (_, _) => const PrivacyPage()),
     GoRoute(path: '/about', builder: (_, _) => const AboutPage()),
     GoRoute(
       path: '/qibla',
       builder: (_, _) => const MosqueBackdrop(child: QiblaPage()),
+    ),
+    GoRoute(path: '/location', builder: (_, _) => const LocationPage()),
+    GoRoute(path: '/onboarding', builder: (_, _) => const OnboardingPage()),
+    GoRoute(
+      path: '/qada',
+      builder: (_, _) => const MosqueBackdrop(child: QadaPage()),
+    ),
+    GoRoute(
+      path: '/teravih',
+      builder: (_, _) => const MosqueBackdrop(child: TeravihPage()),
+    ),
+    GoRoute(
+      path: '/fasting',
+      builder: (_, _) => const MosqueBackdrop(child: FastingPage()),
     ),
     GoRoute(
       path: '/imsakiye',
@@ -156,6 +225,57 @@ final appRouter = GoRouter(
       path: '/tracker',
       builder: (_, _) =>
           const MosqueBackdrop(child: WorshipHubPage(initialIndex: 0)),
+    ),
+    // Günün takvim yaprağı; tarih verilmezse seçilen şehrin bugünü.
+    GoRoute(
+      path: '/leaf',
+      builder: (_, _) => const MosqueBackdrop(child: DailyLeafPage()),
+    ),
+    GoRoute(
+      path: '/leaf/:date',
+      builder: (_, state) => MosqueBackdrop(
+        child: DailyLeafPage(
+          initialDate: DailyLeafPage.parse(state.pathParameters['date']),
+        ),
+      ),
+    ),
+    // Namaz hocası: namazı adım adım kıldırır (?part= yalnız o bölüm).
+    GoRoute(
+      path: '/guide/prayer/:prayer/hoca',
+      builder: (_, state) {
+        final guide = PrayerGuideDetailPage.guideFor(
+          state.pathParameters['prayer'],
+        );
+        final part = int.tryParse(state.uri.queryParameters['part'] ?? '');
+        return MosqueBackdrop(
+          child: guide == null
+              ? const WorshipHubPage(initialIndex: 1)
+              : GuidedPrayerPage(
+                  guide: guide,
+                  // Olmayan bölüm numarası bütün namaza düşer.
+                  partIndex:
+                      part != null && part >= 0 && part < guide.parts.length
+                      ? part
+                      : null,
+                ),
+        );
+      },
+    ),
+    // Ana ekranda bir vakte dokununca o namazın kılınışı açılır.
+    GoRoute(
+      path: '/guide/prayer/:prayer',
+      builder: (_, state) {
+        final guide = PrayerGuideDetailPage.guideFor(
+          state.pathParameters['prayer'],
+        );
+        // Bilinmeyen vakit adında yanlış bir namazın rehberini açmaktansa
+        // rehber listesine düşülür.
+        return MosqueBackdrop(
+          child: guide == null
+              ? const WorshipHubPage(initialIndex: 1)
+              : PrayerGuideDetailPage(guide: guide),
+        );
+      },
     ),
     GoRoute(
       path: '/notifications',
@@ -175,7 +295,7 @@ class HomePage extends ConsumerWidget {
     final settings = ref.watch(effectivePrayerSettingsProvider);
     final now = TimezoneService.inLocation(
       times.timezoneId ?? 'Europe/Istanbul',
-      DateTime.now(),
+      ref.watch(clockProvider)(),
     );
     final hijri = settings.calendar.hijri(now);
     final ramadan = ramadanStatus(now, calendar: settings.calendar);
@@ -322,6 +442,20 @@ class HomePage extends ConsumerWidget {
                           label: l10n.text('home.tracker'),
                           onPressed: () => context.push('/tracker'),
                         ),
+                        // Oruç takibi yalnızca Ramazan görünürken çıkar;
+                        // yılın geri kalanında ana ekranı meşgul etmez.
+                        if (ramadan.isVisible)
+                          _QuickAction(
+                            icon: Icons.brightness_2_outlined,
+                            label: l10n.text('home.fasting'),
+                            onPressed: () => context.push('/fasting'),
+                          ),
+                        if (ramadan.isVisible)
+                          _QuickAction(
+                            icon: Icons.nights_stay_outlined,
+                            label: l10n.text('home.teravih'),
+                            onPressed: () => context.push('/teravih'),
+                          ),
                         _QuickAction(
                           icon: Icons.calendar_month_outlined,
                           label: l10n.text('home.calendar'),
@@ -357,6 +491,12 @@ class HomePage extends ConsumerWidget {
                         icon: _prayerIcon(p),
                         label: label(p),
                         time: fmt(times.times[p]!),
+                        // Vakte dokununca o namazın nasıl kılındığı açılır.
+                        onTap: () =>
+                            context.push(PrayerGuideDetailPage.routeFor(p)),
+                        tapHint: l10n.text('home.howToPray', {
+                          'prayer': label(p),
+                        }),
                         badge: isCurrent
                             ? l10n.text('home.now')
                             : isNext
@@ -598,16 +738,42 @@ class _PrayerTimeRow extends StatelessWidget {
   final String? badge;
   final bool highlighted;
 
+  /// Dokununca açılacak rehber. Güneş doğuşunun rehberi yoktur; o satır
+  /// dokunulamaz kalır.
+  final VoidCallback? onTap;
+
+  /// Ekran okuyucunun ve uzun basışın söylediği: "Öğle namazı nasıl kılınır".
+  final String? tapHint;
+
   const _PrayerTimeRow({
     required this.icon,
     required this.label,
     required this.time,
     this.badge,
     this.highlighted = false,
+    this.onTap,
+    this.tapHint,
   });
 
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) {
+    final row = _row();
+    if (onTap == null) return row;
+    return Tooltip(
+      message: tapHint ?? label,
+      child: Semantics(
+        button: true,
+        hint: tapHint,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: onTap,
+          child: row,
+        ),
+      ),
+    );
+  }
+
+  Widget _row() => Container(
     margin: const EdgeInsets.symmetric(vertical: 2),
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
     decoration: BoxDecoration(
@@ -693,10 +859,6 @@ class SettingsPage extends ConsumerWidget {
             onTap: () => context.push('/about'),
           ),
           _Tile(
-            l10n.text('settings.premium'),
-            onTap: () => context.push('/premium'),
-          ),
-          _Tile(
             l10n.text('settings.privacy'),
             onTap: () => context.push('/privacy'),
           ),
@@ -705,6 +867,19 @@ class SettingsPage extends ConsumerWidget {
       data: (settings) => _Page(
         title: l10n.text('settings.title'),
         children: [
+          // Konum en üstte: vakitlerin doğruluğu her şeyden önce buna bağlı.
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.place_outlined),
+              title: Text(l10n.text('settings.location')),
+              subtitle: Text(
+                settings.location.city ?? l10n.text('location.unknown'),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push('/location'),
+            ),
+          ),
+          const SizedBox(height: 12),
           DropdownButtonFormField<PrayerCalculationMethod>(
             // Dar ekran ve büyük yazı ölçeğinde yatay taşmayı önler.
             isExpanded: true,
@@ -751,11 +926,6 @@ class SettingsPage extends ConsumerWidget {
             value: settings.use24Hour,
             onChanged: (v) =>
                 _saveSettings(ref, settings.copyWith(use24Hour: v)),
-          ),
-          _Tile(
-            l10n.text('settings.theme'),
-            onTap: () =>
-                ref.read(themeModeProvider.notifier).state = ThemeMode.dark,
           ),
           _languageSelector(context, ref),
           const OpeningTakbirSettingTile(),
@@ -813,7 +983,19 @@ class SettingsPage extends ConsumerWidget {
                   ref.read(localStorageProvider),
                 ).setShowLocationName(next);
                 ref.invalidate(widgetLocationVisibilityProvider);
-                await const WidgetSnapshotService().refresh();
+                // Yalnızca tazelemek yetmez: konum adının görünürlüğü
+                // anlık görüntünün içinde taşınır.
+                await pushWidgetSnapshot(
+                  storage: ref.read(localStorageProvider),
+                  settings: settings,
+                  now: DateTime.now(),
+                );
+                // Saat de konum adını aynı ayardan alır.
+                await pushWatchSchedule(
+                  storage: ref.read(localStorageProvider),
+                  settings: settings,
+                  now: DateTime.now(),
+                );
               },
             ),
             loading: () =>
@@ -825,6 +1007,16 @@ class SettingsPage extends ConsumerWidget {
             l10n.text('settings.notifications'),
             onTap: () => context.push('/notifications'),
           ),
+          // Akış bir kez geçilince bir daha görünmez; pil rehberi ve konum
+          // adımı buradan yeniden ulaşılabilir olmalı.
+          _Tile(
+            l10n.text('settings.rerunOnboarding'),
+            onTap: () async {
+              await OnboardingRepository(ref.read(localStorageProvider))
+                  .reset();
+              if (context.mounted) context.push('/onboarding');
+            },
+          ),
           _Tile(
             l10n.text('settings.askDiyanet'),
             onTap: () async {
@@ -834,10 +1026,6 @@ class SettingsPage extends ConsumerWidget {
           _Tile(
             l10n.text('settings.about'),
             onTap: () => context.push('/about'),
-          ),
-          _Tile(
-            l10n.text('settings.premium'),
-            onTap: () => context.push('/premium'),
           ),
           _Tile(
             l10n.text('settings.privacy'),
@@ -898,21 +1086,19 @@ class SettingsPage extends ConsumerWidget {
         .setString(localePreferenceKey, languageCode);
   }
 
-  Future<void> _saveSettings(WidgetRef ref, PrayerSettings value) async {
-    await ref.read(prayerSettingsProvider.notifier).saveSettings(value);
-    await const WidgetSnapshotService().refresh();
-    await reschedulePrayerNotifications(
-      storage: ref.read(localStorageProvider),
-      settings: value,
-    );
-  }
+  /// Ayarları kaydeder. Gövdesi `savePrayerSettings` içindedir; kaydetmenin
+  /// tek bir yolu olmalı ki bildirimleri yeniden planlamak unutulmasın.
+  Future<void> _saveSettings(WidgetRef ref, PrayerSettings value) =>
+      savePrayerSettings(ref, value);
 }
 
 class PremiumPage extends StatelessWidget {
   const PremiumPage({super.key});
   @override
   Widget build(BuildContext context) => _Page(
-    title: 'Dini Premium',
+    // Ad çeviriden gelir: düz string yazılırsa uygulama adı değiştiğinde
+    // burası geride kalır (nitekim kaldı).
+    title: '${context.l10n.text('appTitle')} Premium',
     children: [
       const Text('Temel dini özellikler herkes için ücretsiz kalır.'),
       _Card(
@@ -983,6 +1169,17 @@ class AboutPage extends StatelessWidget {
       Text(context.l10n.text('about.content')),
       const SizedBox(height: 12),
       Text(context.l10n.text('about.diyanet')),
+      const SizedBox(height: 12),
+      // CC BY lisansının tek şartı atıftır: kaydın sahibi burada yazmalı.
+      Text(context.l10n.text('about.ezan')),
+      const SizedBox(height: 12),
+      // Tanzil'in şartı: kaynak açıkça yazılır ve tanzil.net'e bağlantı
+      // verilir ki kullanıcı metindeki düzeltmeleri izleyebilsin.
+      Text(context.l10n.text('about.quran')),
+      for (final id in quranTranslations.values) ...[
+        const SizedBox(height: 12),
+        Text(context.l10n.text('quran.source.$id')),
+      ],
     ],
   );
 }

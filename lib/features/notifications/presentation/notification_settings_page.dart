@@ -3,18 +3,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/storage/storage_provider.dart';
+import '../../home/presentation/mosque_backdrop.dart';
 import '../../prayer_times/presentation/providers.dart';
 import '../../../shared/models/domain.dart';
 import '../data/notification_preferences_repository.dart';
+import '../data/flutter_local_notification_service.dart';
 import '../data/notification_scheduler.dart';
+import '../data/notification_sound_installer.dart';
 import '../domain/notification_system.dart';
+import '../../onboarding/data/system_settings.dart';
 
 class NotificationSettingsPage extends StatelessWidget {
   const NotificationSettingsPage({super.key});
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(context.l10n.text('settings.notifications'))),
+  Widget build(BuildContext context) => BackdropScaffold(
+    title: context.l10n.text('settings.notifications'),
     body: const SafeArea(child: NotificationSettingsView()),
   );
 }
@@ -33,6 +37,14 @@ class _NotificationSettingsViewState
   late final LocalNotificationService service;
   NotificationPreferences? preferences;
   bool permissionRequested = false;
+
+  /// Tam zamanlı alarm izni. Kapalıyken bildirimler birkaç dakika gecikir;
+  /// kullanıcı bunu bilmeli ve açabilmeli.
+  ExactAlarmPermission exactAlarms = ExactAlarmPermission.unknown;
+
+  /// Ezan kaydı pakette var mı? Yoksa seçenek hiç gösterilmez: seçilebilen
+  /// ama çalmayan bir ses kullanıcıyı yanıltır.
+  bool ezanAvailable = false;
   @override
   void initState() {
     super.initState();
@@ -46,8 +58,14 @@ class _NotificationSettingsViewState
 
   Future<void> _load() async {
     final value = await repository.load();
+    final exact = await _readExactAlarmPermission();
+    final ezan = await EzanSound.isAvailable();
     if (!mounted) return;
-    setState(() => preferences = value);
+    setState(() {
+      preferences = value;
+      exactAlarms = exact;
+      ezanAvailable = ezan;
+    });
     // Daha önce kaydedilmiş tercihler hiçbir yerde yeniden planlanmıyordu.
     // Ekranı açmak, kayan sekiz günlük pencereyi de tazeler.
     await _reschedule(value);
@@ -76,11 +94,21 @@ class _NotificationSettingsViewState
         DropdownButtonFormField<NotificationSound>(
           // Dar ekran ve büyük yazı ölçeğinde yatay taşmayı önler.
           isExpanded: true,
-          initialValue: value.sound,
+          initialValue: FlutterLocalNotificationService.effectiveSound(
+            value.sound,
+            ezanAvailable: ezanAvailable,
+          ),
           decoration: InputDecoration(
             labelText: context.l10n.text('notifications.sound'),
+            helperText: ezanAvailable
+                ? context.l10n.text('notifications.ezanHint')
+                : null,
+            helperMaxLines: 3,
           ),
           items: NotificationSound.values
+              .where(
+                (sound) => sound != NotificationSound.ezan || ezanAvailable,
+              )
               .map(
                 (sound) => DropdownMenuItem(
                   value: sound,
@@ -150,6 +178,34 @@ class _NotificationSettingsViewState
           ),
         ),
         const SizedBox(height: 8),
+        // İzin kapalıyken bildirimler gecikir. Sessizce geciktirmek yerine
+        // durumu söylemek ve açma yolunu göstermek gerekir.
+        if (exactAlarms == ExactAlarmPermission.denied)
+          Card(
+            color: Theme.of(context).colorScheme.errorContainer,
+            child: Padding(
+              padding: const EdgeInsetsDirectional.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(context.l10n.text('notifications.exactWarning')),
+                  const SizedBox(height: 8),
+                  FilledButton.tonalIcon(
+                    onPressed: _requestExactAlarms,
+                    icon: const Icon(Icons.alarm_on_outlined),
+                    label: Text(context.l10n.text('notifications.exactAllow')),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        const SizedBox(height: 8),
+        // Tam zamanlı alarm izni verilmiş olsa bile agresif pil yönetimi olan
+        // cihazlar uygulamayı uyutur ve bildirim dakikalarca gecikir. Rehber
+        // ilk açılışta gösteriliyor; oradan geçen kullanıcı için tek kalıcı
+        // yer burasıdır.
+        const _BatteryGuide(),
+        const SizedBox(height: 8),
         Text(context.l10n.text('notifications.notice')),
       ],
     );
@@ -206,6 +262,26 @@ class _NotificationSettingsViewState
         service: service,
       );
 
+  /// Servis somut türse izin durumunu okur. Sahte servislerde bu kavram yok.
+  Future<ExactAlarmPermission> _readExactAlarmPermission() async {
+    final concrete = service;
+    if (concrete is! FlutterLocalNotificationService) {
+      return ExactAlarmPermission.allowed;
+    }
+    return concrete.refreshExactAlarmPermission();
+  }
+
+  Future<void> _requestExactAlarms() async {
+    final concrete = service;
+    if (concrete is! FlutterLocalNotificationService) return;
+    final next = await concrete.requestExactAlarmPermission();
+    if (!mounted) return;
+    setState(() => exactAlarms = next);
+    // İzin verildiyse kip değişti; alarmlar yeni kiple yeniden kurulmalı.
+    final value = preferences;
+    if (value != null) await _reschedule(value);
+  }
+
   String _soundLabel(BuildContext context, NotificationSound sound) =>
       switch (sound) {
         NotificationSound.defaultSound => context.l10n.text(
@@ -215,6 +291,7 @@ class _NotificationSettingsViewState
           'notifications.bundledSound',
         ),
         NotificationSound.silent => context.l10n.text('notifications.silent'),
+        NotificationSound.ezan => context.l10n.text('notifications.ezanSound'),
       };
   String _permissionLabel(
     BuildContext context,
@@ -342,6 +419,48 @@ class _MinutesField extends StatelessWidget {
         onChanged: (minutes) {
           if (minutes != null) onChanged(minutes);
         },
+      ),
+    );
+  }
+}
+
+/// Pil optimizasyonu ve otomatik başlatma rehberi.
+///
+/// Üretici ayar ekranlarının intent'leri belgelenmemiştir ve cihazdan cihaza
+/// değişir; doğrudan açmaya çalışmak kırılır. Uygulamanın kendi ayar sayfası
+/// her Android sürümünde vardır, pil ayarı oradan ulaşılır. Açılamazsa çökme
+/// değil, elle izlenebilir bir yönlendirme gösterilir.
+class _BatteryGuide extends ConsumerWidget {
+  const _BatteryGuide();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    return Card(
+      child: ExpansionTile(
+        leading: const Icon(Icons.battery_saver_outlined),
+        title: Text(l10n.text('onboarding.battery.title')),
+        childrenPadding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 16),
+        expandedCrossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.text('onboarding.battery.body')),
+          const SizedBox(height: 12),
+          FilledButton.tonalIcon(
+            onPressed: () async {
+              final opened = await ref
+                  .read(systemSettingsProvider)
+                  .openAppSettings();
+              if (opened || !context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(l10n.text('onboarding.battery.unavailable')),
+                ),
+              );
+            },
+            icon: const Icon(Icons.open_in_new),
+            label: Text(l10n.text('onboarding.battery.action')),
+          ),
+        ],
       ),
     );
   }

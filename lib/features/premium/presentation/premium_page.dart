@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/storage/storage_provider.dart';
+import '../../home/presentation/mosque_backdrop.dart';
 import '../data/entitlement_repository.dart';
 import '../data/purchase_service.dart';
 import '../domain/premium.dart';
@@ -50,8 +51,8 @@ class _PremiumStorePageState extends ConsumerState<PremiumStorePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('${context.l10n.text('appTitle')} Premium')),
+    return BackdropScaffold(
+      title: '${context.l10n.text('appTitle')} Premium',
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [

@@ -11,7 +11,41 @@ const notificationPrayers = [
   Prayer.isha,
 ];
 
-enum NotificationSound { defaultSound, bundled, silent }
+/// Bildirim sesi.
+///
+/// **Sıra kalıcıdır:** tercih sıra numarasıyla saklanır. Yeni ses her zaman
+/// sona eklenir; araya eklenirse kayıtlı tercihler bir kayar ve kullanıcının
+/// seçtiği ses sessizce değişir.
+enum NotificationSound {
+  /// Telefonun varsayılan bildirim sesi.
+  defaultSound,
+
+  /// Uygulamanın kendi tonu.
+  bundled,
+  silent,
+
+  /// Ezan kaydının ilk 5 saniyesi, sonu kısılarak biter (açılışta çalanla
+  /// aynı dosya). Yalnızca kayıt dosyası pakette varsa sunulur (bkz.
+  /// `EzanSound`); iOS bildirim sesini 30 saniyeyle sınırlar.
+  ezan,
+}
+
+/// Tam zamanlı alarm izninin durumu.
+///
+/// Android 12'den itibaren dakikası dakikasına alarm kurmak ayrı bir izin
+/// ister; Android 14'ten itibaren bu izin varsayılan olarak reddedilmiş gelir.
+/// İzin yokken de bildirim gönderilebilir, ama vakti birkaç dakika kayabilir.
+enum ExactAlarmPermission {
+  /// Bu platformda tam zamanlı alarm izni diye bir kavram yok (iOS, eski
+  /// Android) ya da izin verilmiş.
+  allowed,
+
+  /// İzin reddedilmiş; bildirimler yaklaşık zamanda gönderilir.
+  denied,
+
+  /// Henüz sorulmadı ya da sorgulanamadı.
+  unknown,
+}
 
 enum NotificationPermissionStatus {
   unknown,
@@ -319,3 +353,28 @@ class PrayerNotificationCoordinator {
     }
   }
 }
+
+/// Bildirimlerin hangi Android alarm kipiyle kurulacağını seçer.
+///
+/// Namaz vakti bildiriminin gecikmemesi gerekir. `alarmClock` kipi
+/// `AlarmManager.setAlarmClock()` kullanır: sistem bunu çalar saat gibi ele
+/// alır ve düşük güç kipinde bile zamanında çalıştırır. Xiaomi ve Samsung gibi
+/// agresif pil yönetimi olan cihazlarda bildirimlerin dakikalarca gecikmesinin
+/// önüne geçen tek güvenilir yol budur; bedeli durum çubuğunda kalıcı bir
+/// alarm simgesidir.
+///
+/// İzin yoksa tam zamanlı kip kullanılamaz: denemek güvenlik hatasına düşer ve
+/// bildirim HİÇ kurulmaz. Yaklaşık kipe düşmek, geç gelen bir bildirimi hiç
+/// gelmeyen bir bildirime tercih etmektir.
+AndroidScheduleModeChoice androidScheduleModeFor(ExactAlarmPermission status) =>
+    switch (status) {
+      ExactAlarmPermission.allowed => AndroidScheduleModeChoice.alarmClock,
+      // Bilinmiyorsa da yaklaşık kip seçilir: izin olmadan tam zamanlı alarm
+      // kurmaya çalışmak bildirimi tamamen düşürür.
+      ExactAlarmPermission.denied ||
+      ExactAlarmPermission.unknown => AndroidScheduleModeChoice.inexact,
+    };
+
+/// Eklentinin kip türüne bağımlı kalmadan seçim yapabilmek için kullanılan
+/// alan katmanı karşılığı.
+enum AndroidScheduleModeChoice { alarmClock, inexact }

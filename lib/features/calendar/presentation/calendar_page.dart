@@ -3,12 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../prayer_times/presentation/providers.dart';
 import '../domain/islamic_calendar.dart';
 import '../domain/religious_events.dart';
+import 'daily_leaf_page.dart';
 
 class CalendarPage extends ConsumerStatefulWidget {
   const CalendarPage({super.key});
+
+  /// Seçili gün hücresi; okunabilirlik testi onu ayırt edebilsin diye.
+  static const selectedDayKey = ValueKey('calendar-selected-day');
   @override
   ConsumerState<CalendarPage> createState() => _CalendarPageState();
 }
@@ -39,12 +44,22 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
       child: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          // Yaprak takvim sekmesinin ilk sayfasıdır; buradan geri dönülür.
+          const CalendarModeSwitch(showingLeaf: false),
+          const SizedBox(height: 16),
+          // Bu ekranın başlığı, ızgarası ve açıklaması kart içinde değil,
+          // doğrudan cami perdesinin üstünde duruyor; temanın koyu yazı
+          // renkleriyle aydınlık kipte okunmuyorlardı.
           Text(
             l10n.text('nav.calendar'),
-            style: Theme.of(context).textTheme.headlineMedium,
+            style: Theme.of(context).textTheme.headlineMedium
+                ?.copyWith(color: BackdropPalette.text),
           ),
           const SizedBox(height: 8),
-          Text(l10n.text('calendar.disclaimer')),
+          Text(
+            l10n.text('calendar.disclaimer'),
+            style: TextStyle(color: BackdropPalette.mutedText),
+          ),
           const SizedBox(height: 16),
           Row(
             children: [
@@ -53,13 +68,15 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
                 onPressed: () => setState(
                   () => month = DateTime(month.year, month.month - 1),
                 ),
+                color: BackdropPalette.text,
                 icon: const Icon(Icons.chevron_left),
               ),
               Expanded(
                 child: Center(
                   child: Text(
                     '${l10n.month(month.month)} ${month.year}',
-                    style: Theme.of(context).textTheme.titleLarge,
+                    style: Theme.of(context).textTheme.titleLarge
+                        ?.copyWith(color: BackdropPalette.text),
                   ),
                 ),
               ),
@@ -68,10 +85,14 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
                 onPressed: () => setState(
                   () => month = DateTime(month.year, month.month + 1),
                 ),
+                color: BackdropPalette.text,
                 icon: const Icon(Icons.chevron_right),
               ),
               TextButton(
                 onPressed: _goToday,
+                style: TextButton.styleFrom(
+                  foregroundColor: BackdropPalette.text,
+                ),
                 child: Text(l10n.text('calendar.today')),
               ),
             ],
@@ -85,7 +106,8 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
                         child: Center(
                           child: Text(
                             day,
-                            style: Theme.of(context).textTheme.labelSmall,
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(color: BackdropPalette.mutedText),
                           ),
                         ),
                       ),
@@ -121,6 +143,10 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
                   borderRadius: BorderRadius.circular(10),
                   onTap: () => setState(() => selected = date),
                   child: Container(
+                    // Seçili hücrenin yazısı bilerek koyudur (açık renk bir
+                    // kutunun içindedir); okunabilirlik testi onu bu
+                    // anahtarla ayırır.
+                    key: isSelected ? CalendarPage.selectedDayKey : null,
                     margin: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
                       color: isSelected
@@ -138,13 +164,38 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
                         children: [
                           Text(
                             '$dayNumber',
-                            style: const TextStyle(fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              // Seçili gün açık renk bir kutudadır; yazısı
+                              // o kutunun rengine göre koyulaşır.
+                              color: isSelected
+                                  ? Theme.of(context)
+                                        .colorScheme
+                                        .onPrimaryContainer
+                                  : BackdropPalette.text,
+                            ),
                           ),
                           Text(
                             '${hijri.day}',
-                            style: Theme.of(context).textTheme.labelSmall,
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(
+                                  color: isSelected
+                                      ? Theme.of(context)
+                                            .colorScheme
+                                            .onPrimaryContainer
+                                      : BackdropPalette.mutedText,
+                                ),
                           ),
-                          if (marked) const Icon(Icons.star, size: 12),
+                          if (marked)
+                            Icon(
+                              Icons.star,
+                              size: 12,
+                              color: isSelected
+                                  ? Theme.of(context)
+                                        .colorScheme
+                                        .onPrimaryContainer
+                                  : BackdropPalette.mutedText,
+                            ),
                         ],
                       ),
                     ),
@@ -204,6 +255,13 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
               ),
             const SizedBox(height: 8),
             Text(context.l10n.text('calendar.dateNotice')),
+            const SizedBox(height: 12),
+            // Seçilen günün takvim yaprağı.
+            FilledButton.tonalIcon(
+              onPressed: () => context.push(DailyLeafPage.routeFor(selected)),
+              icon: const Icon(Icons.auto_stories_outlined),
+              label: Text(context.l10n.text('leaf.open')),
+            ),
           ],
         ),
       ),

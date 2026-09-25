@@ -1,28 +1,67 @@
-Bu yapıda ibadet merkezi, yenilenen kıble ve alarmlar ilk kez test ediliyor.
-Uygulama lansman döneminde tam sürüm: her şey açık, satın alma yok.
+Namaz Yolu — Kur'an-ı Kerim, Apple Watch, takvim yaprağı ve düzeltmeler.
+Lansman döneminde tam sürüm: her şey açık, satın alma yok.
 
-Öncelikli olarak şunları doğrulayın:
+Yeni:
+- Düzeltme (ikinci deneme): ana ekran widget'ı boş beyaz kutu olarak
+  kalıyordu. Widget'ı
+  bir kez kaldırıp yeniden ekleyin.
+- Apple Watch kadran göstergesi: saat kadranına uzun basın → Düzenle →
+  bir komplikasyon yerine "Namaz Yolu"yu seçin. Sıradaki vakit ve saati
+  görünür; büyük yuvada kalan süre de sayar, yuvarlak yuvada halka vakte
+  doğru dolar. Önce telefonda uygulamayı bir kez açın ki saat vakitleri
+  alsın. Lütfen deneyin: vakit geçince gösterge kendiliğinden sıradakine
+  geçiyor mu?
+- Apple Watch'ta tesbih: saatte vakitler sayfasından aşağı kaydırın. Ekrana
+  dokunun ya da Digital Crown'u çevirin; her sayışta bilek hafifçe titrer,
+  hedefe (33, 99 ya da sınırsız) varınca belirgin titrer ve yeni tur başlar.
+  Sayı saatte saklanır. Lütfen deneyin: Crown sayıyor mu, sayfa mı
+  değiştiriyor?
+- Ana ekran widget'ı (orta boy): sıradaki namaz, kalan süre (canlı geri
+  sayım), günün vakitleri üstte üç altta iki. Konum yerine Tesbih, Kıble ve
+  Takip düğmeleri: dokununca uygulama doğrudan o bölümde açılır. Widget
+  yatsıdan sonra uygulama açılmasa da yarının sabahına geçer. Widget'ı bir
+  kez kaldırıp yeniden eklemeniz gerekebilir.
+- İbadet → Takip, Namaz, Abdest ve Kuran listesinin sonu artık alttaki
+  çubuğun altında kalmıyor.
+- Kur'an-ı Kerim: Kuran sekmesinde kapak açılır, sûreler ve cüzler listelenir.
+  Bir sûreye dokunun: Medine Mushaf'ının o sayfası açılır (604 sayfa, basılı
+  Mushaf'la aynı). Sayfayı parmakla sola çekerek ya da kenarına dokunarak
+  kitap gibi çevirin. Kaldığınız sayfa saklanır, "Kaldığın yerden devam et"
+  ile döner. Metin: Tanzil Projesi (Uthmani). Üstteki düğmeyle sûre meal
+  ile açılır: Türkçede Elmalılı Hamdi Yazır'ın 1935 aslı (sadeleştirilmemiş),
+  İngilizcede Pickthall.
+  Lütfen bakın: yazı okunaklı mı, sayfalar kitapla aynı mı?
+- Takvim sekmesi artık önce günün yaprağıyla açılır; üstteki "Aylık takvim"
+  düğmesiyle ay görünümüne geçilir.
+- Ezan sesi: uygulama açılırken tekbirin yerine ezanın ilk 5 saniyesi
+  çalar; normal sesle başlar, kısılarak biter (telefon sessizdeyse çalmaz).
+  Ayarlar → Bildirimler'de bildirim sesi olarak "Ezan" da seçilebilir.
+- Namaz hocasında sesli okuma artık telefonun en kaliteli Arapça sesini
+  kullanır ve âyetler arasında soluk verir. Daha doğal ses için: Ayarlar →
+  Erişilebilirlik → Sözlü İçerik → Sesler → Arapça → "Gelişmiş" sesi indirin.
+- Namaz hocası: Namaz rehberinde bir vakti açın, "Hocayla adım adım kıl".
+  Niyetten selâma kadar her adımda figür hareketi gösterir, altta o anda
+  okunacak dua Arapça ve okunuşuyla yazar (istenirse anlamı). "Başlat" ile
+  kendiliğinden ilerler; hız 0,5× ile 2× arası. Hoparlör düğmesiyle dualar
+  telefonun sesiyle okunur (yapay sestir, tecvidli değildir). Bölüm
+  yanındaki ▶ yalnız o bölümü (ör. farzı) kıldırır. Lütfen bir hocaya da
+  gösterin: sıra ve okunanlar doğru mu?
+- Apple Watch: eşleşmiş saatinize kendiliğinden kurulmalı (Watch
+  uygulamasında "Otomatik Uygulama Yükleme" açıksa). Telefonda Namaz Yolu'nu
+  bir kez açın; saatte sıradaki vakit, geri sayım ve günün vakitleri
+  görünmeli. Telefon uzaktayken de vakitler görünür.
+- Takvim yaprağı: Takvim → "Bugünün yaprağı" ya da bir gün seçip "Takvim
+  yaprağını aç". Hicri ve Rumi tarih, Hızır/Kasım günü, günün vakitleri ve
+  günün duası; yana kaydırarak ya da oklarla gün değiştirin.
+- Ana ekranda "Bugünün vakitleri"nde bir vakte dokunun: o namazın nasıl
+  kılındığı açılır.
 
-- Kıble oku: telefonu yavaşça tam tur çevirin. Ok her zaman kısa taraftan
-  dönmeli; kıble tam arkanızdayken ters yöne tam tur atmamalı.
-- Pusula kalibrasyonu ve metal eşya etkisi; sensör yoksa açıklayıcı uyarı.
-- Alarmlar: bir namazı açın, uygulamayı kapatın ve bildirimin gerçekten
-  geldiğini görün. İzin vermeden açtığınız alarm da izin verdikten sonra
-  çalışmalı.
-- Açılış tekbiri: telefon sessizdeyken çalmamalı, müzik çalıyorsa onu
-  kesmemeli. Ayarlar'dan kapatınca bir daha çalmamalı.
-- İbadet sekmeleri: Takip, Namaz, Abdest ve Alarmlar sekmelerinin dördü de
-  ekranda görünmeli (dar telefonlarda da).
-- Tesbih: sayaç uygulamayı kapatıp açınca korunmalı. Hedefe ulaşınca geçmişe
-  tek kayıt düşmeli, hedefi geçince yenileri eklenmemeli.
-- Namaz takibi: gece yarısını geçtikten sonra işaretleme doğru güne yazılmalı.
-- Namaz vakitlerinin konuma ve tarihe göre doğruluğu, konum izni akışı.
-- Takvim ekranı, tarih geçişleri ve büyük yazı boyutunda hücrelerin taşmaması.
-- Ana ekran küçük/orta widget içerikleri ve yenilenmesi.
+Düzeltmeler — lütfen deneyin:
+- Bütün sayfalar okunur olmalı (Ayarlar, Konum, Teravih, Oruç ...).
+  Uygulama artık tek bir koyu tasarım kullanıyor.
+- Günün duasında "Paylaş" paylaşım penceresini açmalı.
+- Bildirim sesi: "Telefonun varsayılan sesi" seçeneği.
+- Widget ve kilit ekranı geri sayımı (önceki build'lerden).
 
 Bilinen eksikler:
-
-- Kuran sekmesi "yakında" ekranı gösteriyor; içerik henüz eklenmedi.
-- Namaz rehberindeki okunacak metinler (Sübhâneke, Ettehiyyâtü vb.) henüz
-  girilmedi, bu yüzden o bölüm görünmüyor.
-- Uygulama simgesi hâlâ Flutter varsayılanı.
+- Saat kadranı komplikasyonları ve Kuran sekmesi henüz yok.

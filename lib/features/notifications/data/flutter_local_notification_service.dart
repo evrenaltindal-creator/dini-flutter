@@ -27,6 +27,54 @@ class FlutterLocalNotificationService implements LocalNotificationService {
   /// eder; yalnızca işletim sistemine bildirim kurulmaz.
   bool _available = false;
 
+  /// Ezan kaydı pakette var mı? [initialize] içinde okunur.
+  bool _ezanAvailable = false;
+
+  /// Tam zamanlı alarm izninin son bilinen durumu.
+  ExactAlarmPermission _exactAlarms = ExactAlarmPermission.unknown;
+
+  /// Bildirimler dakikası dakikasına kurulabiliyor mu?
+  ExactAlarmPermission get exactAlarmPermission => _exactAlarms;
+
+  /// İzni işletim sisteminden sorar.
+  ///
+  /// iOS'ta ve eski Android sürümlerinde böyle bir kavram yok; eklenti null
+  /// döner ve bu "izin var" sayılır.
+  Future<ExactAlarmPermission> refreshExactAlarmPermission() async {
+    if (!_available) return _exactAlarms = ExactAlarmPermission.unknown;
+    try {
+      final android = plugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+      if (android == null) return _exactAlarms = ExactAlarmPermission.allowed;
+      final can = await android.canScheduleExactNotifications();
+      return _exactAlarms = can == false
+          ? ExactAlarmPermission.denied
+          : ExactAlarmPermission.allowed;
+    } catch (_) {
+      return _exactAlarms = ExactAlarmPermission.unknown;
+    }
+  }
+
+  /// Kullanıcıyı tam zamanlı alarm izni ekranına yönlendirir.
+  ///
+  /// Android 14'ten itibaren bu izin varsayılan olarak reddedilmiş gelir;
+  /// istemeden bildirimler yaklaşık zamanda gönderilir.
+  Future<ExactAlarmPermission> requestExactAlarmPermission() async {
+    if (!_available) return _exactAlarms;
+    try {
+      await plugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
+          ?.requestExactAlarmsPermission();
+    } catch (_) {
+      // İzin ekranı açılamadıysa durum sorguyla yeniden okunur.
+    }
+    return refreshExactAlarmPermission();
+  }
+
   @override
   Future<void> initialize() async {
     const settings = InitializationSettings(
@@ -39,6 +87,15 @@ class FlutterLocalNotificationService implements LocalNotificationService {
       // Sesin kurulması bildirimlerin çalışmasının önkoşulu değildir; hata
       // durumunda sistem sesi kullanılır.
       await soundInstaller.install();
+      _ezanAvailable = await EzanSound.isAvailable(
+        loadAsset: soundInstaller.loadAsset,
+      );
+      if (_ezanAvailable) {
+        await NotificationSoundInstaller.ezan(
+          loadAsset: soundInstaller.loadAsset,
+          locateDirectory: soundInstaller.locateDirectory,
+        ).install();
+      }
       // Sesi değiştirilemeyen eski tek kanaldan yükseltilen cihazlarda o kanal
       // ayarlarda öylece durur. Kimliği artık kullanılmıyor, silinir.
       await plugin
@@ -46,6 +103,7 @@ class FlutterLocalNotificationService implements LocalNotificationService {
             AndroidFlutterLocalNotificationsPlugin
           >()
           ?.deleteNotificationChannel(_retiredChannelId);
+      await refreshExactAlarmPermission();
     } catch (_) {
       _available = false;
     }
@@ -114,7 +172,39 @@ class FlutterLocalNotificationService implements LocalNotificationService {
       importance: Importance.high,
       playSound: false,
     ),
+    NotificationSound.ezan => const AndroidNotificationChannel(
+      'dini_prayers_ezan',
+      'Namaz vakitleri (ezan)',
+      description: 'Cihaz üzerinde hesaplanan namaz bildirimleri',
+      importance: Importance.high,
+      sound: RawResourceAndroidNotificationSound(EzanSound.androidResourceName),
+    ),
   };
+
+  /// Kayıt pakette yoksa ezan seçimi varsayılan sese düşer: olmayan bir
+  /// ham kaynağı gösteren kanal bildirimi SESSİZ çalardı.
+  static NotificationSound effectiveSound(
+    NotificationSound chosen, {
+    required bool ezanAvailable,
+  }) => chosen == NotificationSound.ezan && !ezanAvailable
+      ? NotificationSound.defaultSound
+      : chosen;
+
+  /// iOS'ta bildirimde adı geçen ses dosyası; sistem sesi için null.
+  static String? iosSoundFor(NotificationSound sound) => switch (sound) {
+    NotificationSound.bundled => NotificationSoundInstaller.soundFileName,
+    NotificationSound.ezan => EzanSound.fileName,
+    NotificationSound.defaultSound || NotificationSound.silent => null,
+  };
+
+  /// Eklentinin kip karşılığı. İzin yokken tam zamanlı alarm kurmaya
+  /// çalışmak bildirimi tamamen düşürür; bkz. [androidScheduleModeFor].
+  AndroidScheduleMode get _scheduleMode =>
+      switch (androidScheduleModeFor(_exactAlarms)) {
+        AndroidScheduleModeChoice.alarmClock => AndroidScheduleMode.alarmClock,
+        AndroidScheduleModeChoice.inexact =>
+          AndroidScheduleMode.inexactAllowWhileIdle,
+      };
 
   @override
   Future<void> schedule(
@@ -122,6 +212,7 @@ class FlutterLocalNotificationService implements LocalNotificationService {
     NotificationSound sound,
   ) async {
     if (!_available) return;
+    sound = effectiveSound(sound, ezanAvailable: _ezanAvailable);
     final channel = androidChannelFor(sound);
     await plugin
         .resolvePlatformSpecificImplementation<
@@ -142,9 +233,7 @@ class FlutterLocalNotificationService implements LocalNotificationService {
         presentAlert: true,
         presentBadge: true,
         presentSound: sound != NotificationSound.silent,
-        sound: sound == NotificationSound.bundled
-            ? NotificationSoundInstaller.soundFileName
-            : null,
+        sound: iosSoundFor(sound),
       ),
     );
     await plugin.zonedSchedule(
@@ -153,7 +242,7 @@ class FlutterLocalNotificationService implements LocalNotificationService {
       notification.body,
       tz.TZDateTime.from(notification.scheduledAt, tz.local),
       details,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      androidScheduleMode: _scheduleMode,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
     );

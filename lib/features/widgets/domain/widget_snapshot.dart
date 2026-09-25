@@ -12,6 +12,22 @@ class WidgetSnapshot {
   final Prayer? nextPrayer;
   final DateTime? nextPrayerTime;
   final MosqueScenePeriod scenePeriod;
+
+  /// Vakit adlarının kullanıcının dilindeki karşılığı.
+  ///
+  /// Uzantının uygulamanın çeviri haritasına erişimi yok; adlar hazır metin
+  /// olarak gönderilmezse widget'ta enum adları ("maghrib") görünür.
+  final Map<Prayer, String> labels;
+
+  /// Ertesi günün sabah vakti. Uzantı sıradaki vakti her an kendisi seçer;
+  /// yatsıdan sonra sıradaki vakit yarının sabahıdır ve uygulama o sırada
+  /// açılmamış olabilir.
+  final DateTime? tomorrowFajr;
+
+  /// Widget'taki diğer yazılar kullanıcının dilinde: "kaldı" ve kısayol
+  /// düğmeleri (Tesbih, Kıble, Takip). Anahtarlar `label_` önekiyle gider.
+  final Map<String, String> extraLabels;
+
   const WidgetSnapshot({
     required this.effectiveDate,
     required this.locationName,
@@ -19,6 +35,9 @@ class WidgetSnapshot {
     required this.nextPrayer,
     required this.nextPrayerTime,
     required this.scenePeriod,
+    this.labels = const {},
+    this.tomorrowFajr,
+    this.extraLabels = const {},
   });
   Map<String, dynamic> toJson({required bool showLocationName}) => {
     'effectiveDate': effectiveDate.toIso8601String(),
@@ -30,8 +49,12 @@ class WidgetSnapshot {
     'maghrib': prayers[Prayer.maghrib]?.toIso8601String(),
     'isha': prayers[Prayer.isha]?.toIso8601String(),
     'nextPrayer': nextPrayer?.name,
+    'nextPrayerLabel': nextPrayer == null ? null : labels[nextPrayer],
     'nextPrayerTime': nextPrayerTime?.toIso8601String(),
     'scenePeriod': scenePeriod.name,
+    'tomorrowFajr': tomorrowFajr?.toIso8601String(),
+    for (final entry in labels.entries) 'label_${entry.key.name}': entry.value,
+    for (final entry in extraLabels.entries) 'label_${entry.key}': entry.value,
   };
 }
 
@@ -51,6 +74,9 @@ class WidgetSnapshotService {
       });
     } on MissingPluginException {
       // Native widgets are unavailable in the Linux/test host.
+    } on PlatformException {
+      // Widget ikincil bir özellik: native tarafın hatası ayar kaydını ya da
+      // açılışı durdurmamalı.
     }
   }
 
@@ -59,6 +85,9 @@ class WidgetSnapshotService {
       await _channel.invokeMethod('clearSnapshot');
     } on MissingPluginException {
       // Native widgets are unavailable in the Linux/test host.
+    } on PlatformException {
+      // Widget ikincil bir özellik: native tarafın hatası ayar kaydını ya da
+      // açılışı durdurmamalı.
     }
   }
 
@@ -67,6 +96,9 @@ class WidgetSnapshotService {
       await _channel.invokeMethod('refreshWidgets');
     } on MissingPluginException {
       // Native widgets are unavailable in the Linux/test host.
+    } on PlatformException {
+      // Widget ikincil bir özellik: native tarafın hatası ayar kaydını ya da
+      // açılışı durdurmamalı.
     }
   }
 }

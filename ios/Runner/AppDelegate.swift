@@ -13,5 +13,7 @@ import UIKit
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
     WidgetSnapshotBridge.register(with: engineBridge.pluginRegistry)
+    LiveActivityBridge.register(with: engineBridge.pluginRegistry)
+    WatchBridge.register(with: engineBridge.pluginRegistry)
   }
 }

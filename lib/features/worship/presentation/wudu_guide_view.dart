@@ -9,7 +9,14 @@ class WuduGuideView extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return ListView(
-      padding: const EdgeInsetsDirectional.fromSTEB(16, 18, 16, 28),
+      // Sekme kabuğunda sayfa alttaki çubuğun arkasına uzanır: listenin
+      // sonu çubuğun üstüne çıkabilsin diye onun payı eklenir.
+      padding: EdgeInsetsDirectional.fromSTEB(
+        16,
+        18,
+        16,
+        28 + MediaQuery.paddingOf(context).bottom,
+      ),
       children: [
         Text(
           l10n.text('worship.wudu'),

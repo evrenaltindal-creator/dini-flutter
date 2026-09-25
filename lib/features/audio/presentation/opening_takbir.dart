@@ -4,8 +4,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/storage/storage_provider.dart';
+import '../../notifications/data/notification_sound_installer.dart';
 
 const _openingTakbirKey = 'dini.openingTakbir.enabled';
+
+/// Açılışta çalan ses ve seviyesi.
+///
+/// Ezan kaydı pakette varsa onun ilk 5 saniyesi çalar: normal sesle başlar,
+/// sonu dosyanın içinde kısılarak biter (`tool/prepare_ezan_sound.py`).
+/// Kayıt yokken eski, çok kısık tekbir kalır. Seviye `AudioPlayer`'ın
+/// kendi çarpanıdır; asıl yüksekliği telefonun medya sesi belirler.
+typedef OpeningSound = ({String asset, double volume});
+
+OpeningSound openingSoundFor({required bool ezanAvailable}) => ezanAvailable
+    ? (asset: EzanSound.assetKey.replaceFirst('assets/', ''), volume: 1.0)
+    : (asset: 'audio/opening_takbir.mp3', volume: .18);
 
 final openingTakbirEnabledProvider = FutureProvider<bool>((ref) async {
   return await ref.watch(localStorageProvider).read(_openingTakbirKey) !=
@@ -34,9 +47,13 @@ class _OpeningTakbirGateState extends ConsumerState<OpeningTakbirGate> {
     try {
       final enabled = await ref.read(openingTakbirEnabledProvider.future);
       if (!enabled || !mounted) return;
+      final sound = openingSoundFor(
+        ezanAvailable: await EzanSound.isAvailable(),
+      );
+      if (!mounted) return;
       final player = AudioPlayer();
       _player = player;
-      // Açılış tekbiri kullanıcının ortamına saygılı olmalı:
+      // Açılış sesi kullanıcının ortamına saygılı olmalı:
       // - respectSilence: telefon sessiz moddayken hiç çalmaz.
       // - mixWithOthers: hâlihazırda çalan müziği kesmez veya duraklatmaz
       //   (Android'de audio focus istenmez, iOS'ta ambient kategori kullanılır).
@@ -48,14 +65,14 @@ class _OpeningTakbirGateState extends ConsumerState<OpeningTakbirGate> {
           respectSilence: true,
         ).build(),
       );
-      await player.setVolume(.18);
-      // Çalma bitince yerel kaynakları bırak; tekbir tek seferlik çalar.
+      await player.setVolume(sound.volume);
+      // Çalma bitince yerel kaynakları bırak; ses tek seferlik çalar.
       // _player'ı da temizle ki dispose() aynı player'ı ikinci kez kapatmasın.
       player.onPlayerComplete.listen((_) {
         if (identical(_player, player)) _player = null;
         player.dispose();
       });
-      await player.play(AssetSource('audio/opening_takbir.mp3'));
+      await player.play(AssetSource(sound.asset));
     } catch (_) {
       // Ses desteği olmayan cihazlarda uygulamanın açılışı etkilenmez.
     }

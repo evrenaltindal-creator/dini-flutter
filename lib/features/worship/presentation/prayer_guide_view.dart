@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../../shared/models/domain.dart';
+import '../../home/presentation/mosque_backdrop.dart';
 import '../domain/prayer_flow.dart';
 import '../domain/worship_guide.dart';
+import 'guided_prayer_page.dart';
 
 class PrayerGuideView extends StatelessWidget {
   const PrayerGuideView({super.key});
@@ -11,7 +15,14 @@ class PrayerGuideView extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return ListView(
-      padding: const EdgeInsetsDirectional.fromSTEB(16, 18, 16, 28),
+      // Sekme kabuğunda sayfa alttaki çubuğun arkasına uzanır: listenin
+      // sonu çubuğun üstüne çıkabilsin diye onun payı eklenir.
+      padding: EdgeInsetsDirectional.fromSTEB(
+        16,
+        18,
+        16,
+        28 + MediaQuery.paddingOf(context).bottom,
+      ),
       children: [
         _IntroCard(
           icon: Icons.auto_stories_outlined,
@@ -23,11 +34,8 @@ class PrayerGuideView extends StatelessWidget {
           (guide) => Card(
             child: InkWell(
               borderRadius: BorderRadius.circular(22),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => PrayerGuideDetailPage(guide: guide),
-                ),
-              ),
+              onTap: () =>
+                  context.push(PrayerGuideDetailPage.routeFor(guide.prayer)),
               child: Padding(
                 padding: const EdgeInsetsDirectional.fromSTEB(18, 16, 12, 16),
                 child: Row(
@@ -74,13 +82,32 @@ class PrayerGuideDetailPage extends StatelessWidget {
 
   const PrayerGuideDetailPage({super.key, required this.guide});
 
+  /// Vaktin rehber sayfasının yolu. Ana ekranda bir vakte dokununca bu
+  /// açılır; güneş doğuşunun rehberi yoktur, o bir namaz vakti değildir.
+  static String routeFor(Prayer prayer) => '/guide/prayer/${prayer.name}';
+
+  /// Yoldaki vakit adından rehber; bilinmeyen addan null.
+  static DailyPrayerGuide? guideFor(String? name) {
+    for (final guide in dailyPrayerGuides) {
+      if (guide.prayer.name == name) return guide;
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.prayer(guide.prayer.name))),
+    // BackdropScaffold: düz Scaffold temanın opak zeminini çizer ve arkadaki
+    // camiyi örterdi.
+    return BackdropScaffold(
+      title: l10n.prayer(guide.prayer.name),
       body: ListView(
-        padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 32),
+        padding: EdgeInsetsDirectional.fromSTEB(
+          16,
+          8,
+          16,
+          32 + MediaQuery.paddingOf(context).bottom,
+        ),
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(24),
@@ -88,6 +115,17 @@ class PrayerGuideDetailPage extends StatelessWidget {
               'assets/guides/prayer_movements.png',
               fit: BoxFit.fitWidth,
               semanticLabel: l10n.text('guide.prayerImageLabel'),
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Namaz hocası: bütün bölümleri sırayla adım adım kıldırır.
+          FilledButton.icon(
+            onPressed: () =>
+                context.push(GuidedPrayerPage.routeFor(guide.prayer)),
+            icon: const Icon(Icons.play_circle_outline),
+            label: Text(l10n.text('hoca.start')),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(52),
             ),
           ),
           const SizedBox(height: 16),
@@ -103,6 +141,15 @@ class PrayerGuideDetailPage extends StatelessWidget {
                 title: Text(_partLabel(context, entry.$2.kind)),
                 subtitle: Text(
                   l10n.text('guide.rakatCount', {'count': entry.$2.rakats}),
+                ),
+                trailing: IconButton(
+                  tooltip: l10n.text('hoca.startPart', {
+                    'part': _partLabel(context, entry.$2.kind),
+                  }),
+                  icon: const Icon(Icons.play_arrow_rounded),
+                  onPressed: () => context.push(
+                    GuidedPrayerPage.routeFor(guide.prayer, part: entry.$1),
+                  ),
                 ),
               ),
             ),
@@ -261,49 +308,60 @@ class _RecitationSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
     return Column(
       children: [
-        for (final recitation in recitationLibrary.values)
-          if (recitation.isComplete)
-            Card(
-              child: Padding(
-                padding: const EdgeInsetsDirectional.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.text(recitation.nameKey),
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      recitation.arabic,
-                      textDirection: TextDirection.rtl,
-                      style: const TextStyle(fontSize: 22, height: 1.9),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '${l10n.text('guide.transliteration')}: '
-                      '${recitation.transliteration}',
-                      style: const TextStyle(height: 1.45),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      '${l10n.text('guide.meaning')}: '
-                      '${l10n.text(recitation.meaningKey)}',
-                      style: const TextStyle(height: 1.45),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      l10n.text(recitation.sourceKey),
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-              ),
-            ),
+        for (final id in guideRecitationIds)
+          if (recitationLibrary[id]!.isComplete)
+            _RecitationCard(recitation: recitationLibrary[id]!),
       ],
+    );
+  }
+}
+
+class _RecitationCard extends StatelessWidget {
+  final Recitation recitation;
+
+  const _RecitationCard({required this.recitation});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsetsDirectional.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.text(recitation.nameKey),
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              recitation.arabic,
+              textDirection: TextDirection.rtl,
+              style: const TextStyle(fontSize: 22, height: 1.9),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '${l10n.text('guide.transliteration')}: '
+              '${recitation.transliteration}',
+              style: const TextStyle(height: 1.45),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              '${l10n.text('guide.meaning')}: '
+              '${l10n.text(recitation.meaningKey)}',
+              style: const TextStyle(height: 1.45),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.text(recitation.sourceKey),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
