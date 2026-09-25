@@ -208,8 +208,8 @@ jobs:
             ls -1 "$out/$locale"
           done
 
-      - name: Open store languages with their own names
-        run: python3 tool/app_store_connect_setup.py languages
+      - name: Store languages and review contact (before deliver)
+        run: python3 tool/app_store_connect_setup.py before-deliver
 
       - name: Upload listing to App Store Connect
         shell: bash

@@ -283,13 +283,16 @@ def set_age_rating(api: Client, app: str) -> None:
     print(f"Yaş sınırı: {len(answers)} soru 'yok'. Dokunulmayan alanlar: {unknown}")
 
 
-def set_review_details(api: Client, app: str) -> None:
+def set_review_details(api: Client, app: str, required: bool = True) -> None:
     versions = api.get_all(
         f"/v1/apps/{app}/appStoreVersions?filter[platform]=IOS"
         "&filter[appStoreState]=PREPARE_FOR_SUBMISSION,DEVELOPER_REJECTED,REJECTED,METADATA_REJECTED"
     )
     if not versions:
-        sys.exit("Düzenlenebilir App Store sürümü yok (önce deliver çalışmalı).")
+        if required:
+            sys.exit("Düzenlenebilir App Store sürümü yok (önce deliver çalışmalı).")
+        print("Düzenlenebilir sürüm henüz yok; inceleme bilgisi sonra yazılacak.")
+        return
     version = versions[0]["id"]
     attributes = dict(REVIEW_CONTACT, notes=REVIEW_NOTES, demoAccountRequired=False)
     phone = os.environ.get("APP_REVIEW_PHONE", "").strip()
@@ -331,9 +334,12 @@ def main() -> None:
     api = Client()
     app = find_app(api, os.environ.get("DINI_MAIN_BUNDLE_ID", "com.dini.diniFlutter"))
     print(f"Uygulama: {app}")
-    if sys.argv[1:] == ["languages"]:
-        # deliver'dan önce: yeni mağaza dillerinin adı.
+    if sys.argv[1:] == ["before-deliver"]:
+        # deliver'dan önce: yeni mağaza dillerinin adı ve inceleme bilgisi
+        # kaydı. deliver ilk sürümde kayıt yoksa "No data" deyip duruyor
+        # (fastlane#20538).
         ensure_info_localizations(api, app)
+        set_review_details(api, app, required=False)
         return
     set_content_rights(api, app)
     set_free_price(api, app)
