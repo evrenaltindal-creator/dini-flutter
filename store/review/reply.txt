@@ -1,0 +1,36 @@
+Hello,
+
+Thank you for the review. Please find the requested information below; the same text has also been added to the Notes field of the App Review Information section.
+
+1. SCREEN RECORDING
+Attached: a recording made on a physical iPhone running the latest iOS. It starts with launching the app and shows the first-launch setup and the main features. The app has no account registration or login, no user-generated content and no paid content or in-app purchases.
+
+2. PURPOSE AND AUDIENCE
+Namaz Yolu (Prayer Path) is a free prayer companion for Muslims, mainly in Türkiye and for Turkish, English and Arabic speakers anywhere. It answers a daily need: the five prayer times and the Qibla direction wherever the user is, even without internet, plus reading the Quran and learning how to perform the prayer. No account, no ads, no in-app purchases, no user-generated content, no data collection.
+
+3. HOW TO USE (no login, no sample files)
+1. First launch: a short setup asks for the language, the location (Allow, or pick a city from the bundled list), notification permission, and shows a battery tip.
+2. Home tab: next prayer with a countdown and today's times. Tap a prayer time to see how that prayer is performed. Shortcuts: Qibla compass, Tasbih, prayer tracker.
+3. Quran tab: the 604-page Mushaf (swipe to turn pages), surah and juz lists, translation view (Turkish: Elmalili Hamdi Yazir, English: Pickthall).
+4. Worship tab: prayer tracker, prayer and wudu guide, and the guided prayer that leads through each rakat; recitations are shown on screen and can be read aloud with the device's built-in voice.
+5. Calendar tab: daily calendar leaf, monthly calendar and the monthly prayer timetable (imsakiye).
+6. Settings: location, calculation method, notifications (phone sound or a short adhan), language, About and sources.
+7. Widget: add "Namaz Yolu" from the Home Screen widget gallery. Apple Watch: the watch app installs with the iPhone app; open the iPhone app once so it sends the schedule to the watch.
+If location permission is denied, choose a city under Settings > Location.
+
+4. EXTERNAL SERVICES
+None. The app has no server and makes no network requests for its features. Prayer times, Qibla and the Hijri date are calculated on the device; the Quran text and translations are bundled in the app. It uses only on-device Apple frameworks (Core Location, compass heading, UserNotifications, WidgetKit, WatchConnectivity, on-device text-to-speech). One optional button opens the question page of Diyanet (Turkish Presidency of Religious Affairs) in Safari; the app is not affiliated with Diyanet and does not issue religious rulings.
+
+5. REGIONS
+The app works the same in every region. Prayer times are calculated for the user's own location with a selectable method (Diyanet, Muslim World League, Umm al-Qura, Egyptian, Karachi, ISNA). The app is not distributed in mainland China.
+
+6. THIRD-PARTY MATERIAL (credited in Settings > About and sources)
+- Quran Arabic text and page/juz data: Tanzil Project (tanzil.net), CC BY 3.0, used unmodified.
+- English translation: Marmaduke Pickthall (1930), public domain.
+- Turkish translation: Elmalili Hamdi Yazir, original 1935 edition (the author died in 1942), public domain.
+- Adhan recording: "1 Ezan 16 Makam" by ismail demir (YouTube), CC BY 3.0.
+- Fonts: Amiri and Amiri Quran, SIL Open Font License 1.1.
+The app does not operate in a regulated industry.
+
+Best regards,
+Evren Altındal
