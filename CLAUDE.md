@@ -188,6 +188,16 @@ flutter test --reporter expanded
   tekrarlamaz). Pazarlama adresi ewocom.com/namaz-yolu/; sayfanın kaynağı
   `docs/ewocom/`, sitenin kendi kalıbıyla (kullanıcı: "sayfa yapısını
   bozma"), site kaynağı bu depoda değil, kullanıcı yükler.
+  **Reddedilen gönderim API ile şöyle yeniden gönderilir:** önce gönderim
+  öğesi `resolved: true` işaretlenir, sonra gönderim `submitted: true`;
+  işaretlemeden Apple 409 "Version is not ready to be submitted" der
+  (10 dakika denendi). İş akışının `resubmit_only` girdisi yalnızca bunu
+  yapar, `diagnose` salt okunur durum döker. App Review 2.1 (yeni hesap
+  bilgi isteği) cevabı `store/review/`'dadır; istenen ekran kaydı gerçek
+  iPhone'da, GÖNDERİLEN derlemeyle çekilmeli (eski TestFlight derlemesinde
+  kaldırılmış Premium satırı görünüyordu); kayıt inceleme bilgisine ek
+  olarak yüklenip depodan silinir. Çin anakarası satışta değildir (dini
+  içerik izin belgesi ister).
 - **İlk App Store sürümünde Premium YOK** (kullanıcı kararı): `/premium`
   rotası ve Ayarlar'daki satır kaldırıldı, her şey ücretsiz. Satın alma
   ürünleri App Store Connect'te hazır olmadan sayfa açık kalsaydı App
