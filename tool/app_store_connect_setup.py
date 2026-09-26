@@ -25,6 +25,7 @@ APP_REVIEW_PHONE. `pip install pyjwt cryptography requests`.
 
 from __future__ import annotations
 
+import hashlib
 import os
 import sys
 import time
@@ -41,15 +42,19 @@ REVIEW_CONTACT = {
     "contactLastName": "Altındal",
     "contactEmail": "info@ewocom.com",
 }
-REVIEW_NOTES = (
-    "Namaz Yolu (Prayer Path) works fully offline and needs no account or "
-    "sign-in. Prayer times and the Qibla are calculated on the device; the "
-    "location is never sent anywhere. If location permission is denied, a "
-    "city can be chosen under Settings > Location. The app has no in-app "
-    "purchases, no ads and collects no data. The Apple Watch app receives "
-    "its schedule from the iPhone app over WatchConnectivity; open the "
-    "iPhone app once first."
-)
+# İnceleme ekibinin notu. App Review 2.1 "Information Needed" (26.9.2026)
+# amaç, kullanım, dış servisler, bölgeler ve üçüncü taraf içeriği sordu ve
+# cevabın bu alana da yazılmasını istedi; metin store/review/notes.txt'te.
+REVIEW_NOTES = (METADATA.parent / "review" / "notes.txt").read_text().strip()
+
+# App Review'un istediği ekran kaydı (gerçek iPhone). İnceleme bilgisine ek
+# olarak yüklenir; depoda kalıcı durmaz (bkz. store/review/README.md).
+REVIEW_VIDEO = METADATA.parent / "review" / "screen-recording.mp4"
+
+# Satışa açılmayan ülkeler. Çin anakarası dini içerikli uygulamalar için
+# izin belgesi ister (App Store Connect'teki inceleme notu uyarısı); bu
+# izin yok, uygulama orada sunulmaz.
+EXCLUDED_TERRITORIES = {"CHN"}
 
 # Yaş sınırı anketindeki sıklık soruları ("yok / seyrek / sık").
 FREQUENCY_QUESTIONS = {
@@ -221,8 +226,9 @@ def set_free_price(api: Client, app: str) -> None:
 
 
 def set_availability(api: Client, app: str) -> None:
-    if api.request("GET", f"/v1/apps/{app}/appAvailabilityV2"):
-        print("Satış ülkeleri zaten ayarlı; dokunulmadı.")
+    current = api.request("GET", f"/v1/apps/{app}/appAvailabilityV2")
+    if current and current.get("data"):
+        exclude_territories(api, current["data"]["id"])
         return
     territories = api.get_all("/v1/territories?limit=200")
     api.request(
@@ -246,14 +252,38 @@ def set_availability(api: Client, app: str) -> None:
                 {
                     "type": "territoryAvailabilities",
                     "id": f"${{{t['id']}}}",
-                    "attributes": {"available": True},
+                    "attributes": {"available": t["id"] not in EXCLUDED_TERRITORIES},
                     "relationships": {"territory": {"data": {"type": "territories", "id": t["id"]}}},
                 }
                 for t in territories
             ],
         },
     )
-    print(f"Satış ülkeleri: {len(territories)} ülkenin hepsi.")
+    print(f"Satış ülkeleri: {len(territories)} ülke, {sorted(EXCLUDED_TERRITORIES)} hariç.")
+
+
+def exclude_territories(api: Client, availability: str) -> None:
+    """Hariç tutulan ülkeleri satıştan kaldırır, diğerlerine dokunmaz."""
+    rows = api.get_all(
+        f"/v2/appAvailabilities/{availability}/territoryAvailabilities?include=territory&limit=200"
+    )
+    removed = []
+    for row in rows:
+        territory = row["relationships"]["territory"]["data"]["id"]
+        if territory in EXCLUDED_TERRITORIES and row["attributes"].get("available"):
+            api.request(
+                "PATCH",
+                f"/v1/territoryAvailabilities/{row['id']}",
+                json={
+                    "data": {
+                        "type": "territoryAvailabilities",
+                        "id": row["id"],
+                        "attributes": {"available": False},
+                    }
+                },
+            )
+            removed.append(territory)
+    print(f"Satış ülkeleri zaten ayarlı; satıştan kaldırılan: {removed or 'yok'}.")
 
 
 def set_age_rating(api: Client, app: str) -> None:
@@ -330,6 +360,91 @@ def set_review_details(api: Client, app: str, required: bool = True) -> None:
     print("İnceleme iletişim bilgileri ve notu yazıldı." + ("" if has_phone else " TELEFON EKSİK."))
 
 
+def editable_version(api: Client, app: str) -> str:
+    versions = api.get_all(
+        f"/v1/apps/{app}/appStoreVersions?filter[platform]=IOS"
+        "&filter[appStoreState]=PREPARE_FOR_SUBMISSION,DEVELOPER_REJECTED,REJECTED,METADATA_REJECTED"
+    )
+    if not versions:
+        sys.exit("Düzenlenebilir App Store sürümü yok.")
+    return versions[0]["id"]
+
+
+def upload_review_video(api: Client, app: str) -> None:
+    """Ekran kaydını inceleme bilgisine ek olarak yükler (aynı adlı eski ek silinir)."""
+    if not REVIEW_VIDEO.exists():
+        print("Ekran kaydı yok; ek yüklenmedi.")
+        return
+    version = editable_version(api, app)
+    detail = api.request("GET", f"/v1/appStoreVersions/{version}/appStoreReviewDetail")
+    if not detail or not detail.get("data"):
+        sys.exit("İnceleme bilgisi kaydı yok; önce set_review_details çalışmalı.")
+    detail_id = detail["data"]["id"]
+    for old in api.get_all(f"/v1/appStoreReviewDetails/{detail_id}/appStoreReviewAttachments"):
+        if old["attributes"].get("fileName") == REVIEW_VIDEO.name:
+            api.request("DELETE", f"/v1/appStoreReviewAttachments/{old['id']}")
+    data = REVIEW_VIDEO.read_bytes()
+    created = api.request(
+        "POST",
+        "/v1/appStoreReviewAttachments",
+        json={
+            "data": {
+                "type": "appStoreReviewAttachments",
+                "attributes": {"fileName": REVIEW_VIDEO.name, "fileSize": len(data)},
+                "relationships": {
+                    "appStoreReviewDetail": {
+                        "data": {"type": "appStoreReviewDetails", "id": detail_id}
+                    }
+                },
+            }
+        },
+    )["data"]
+    for op in created["attributes"]["uploadOperations"]:
+        headers = {h["name"]: h["value"] for h in op.get("requestHeaders", [])}
+        chunk = data[op["offset"] : op["offset"] + op["length"]]
+        response = requests.request(op["method"], op["url"], headers=headers, data=chunk, timeout=300)
+        if response.status_code >= 400:
+            sys.exit(f"Ek yüklenemedi: {response.status_code} {response.text}")
+    api.request(
+        "PATCH",
+        f"/v1/appStoreReviewAttachments/{created['id']}",
+        json={
+            "data": {
+                "type": "appStoreReviewAttachments",
+                "id": created["id"],
+                "attributes": {
+                    "uploaded": True,
+                    "sourceFileChecksum": hashlib.md5(data).hexdigest(),
+                },
+            }
+        },
+    )
+    print(f"Ekran kaydı inceleme bilgisine eklendi ({len(data) // 1024 // 1024} MB).")
+
+
+def resubmit(api: Client, app: str) -> None:
+    """Çözülmemiş sorunu olan gönderimi yeniden incelemeye yollar."""
+    pending = api.get_all(
+        f"/v1/reviewSubmissions?filter[app]={app}&filter[platform]=IOS"
+        "&filter[state]=UNRESOLVED_ISSUES"
+    )
+    if not pending:
+        sys.exit("Çözülmemiş sorunu olan gönderim yok; yeniden gönderilecek bir şey yok.")
+    submission = pending[0]["id"]
+    api.request(
+        "PATCH",
+        f"/v1/reviewSubmissions/{submission}",
+        json={
+            "data": {
+                "type": "reviewSubmissions",
+                "id": submission,
+                "attributes": {"submitted": True},
+            }
+        },
+    )
+    print(f"Gönderim {submission} yeniden incelemeye yollandı.")
+
+
 def main() -> None:
     api = Client()
     app = find_app(api, os.environ.get("DINI_MAIN_BUNDLE_ID", "com.dini.diniFlutter"))
@@ -346,6 +461,9 @@ def main() -> None:
     set_availability(api, app)
     set_age_rating(api, app)
     set_review_details(api, app)
+    upload_review_video(api, app)
+    if sys.argv[1:] == ["resubmit"]:
+        resubmit(api, app)
 
 
 if __name__ == "__main__":

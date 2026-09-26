@@ -19,6 +19,10 @@ on:
         description: "Yükledikten sonra incelemeye gönder"
         type: boolean
         default: false
+      resubmit:
+        description: "Reddedilen gönderimi düzeltmelerle yeniden incelemeye gönder"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -243,7 +247,9 @@ jobs:
             --force true
 
       - name: Price, availability, age rating, review contact
-        run: python3 tool/app_store_connect_setup.py
+        # resubmit: App Review'un "çözülmemiş sorun" dediği gönderim, notlar
+        # ve ekran kaydı yazıldıktan sonra yeniden incelemeye yollanır.
+        run: python3 tool/app_store_connect_setup.py ${{ inputs.resubmit && 'resubmit' || '' }}
 
       - name: Submit for review
         if: ${{ inputs.submit_for_review }}
