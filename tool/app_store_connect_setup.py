@@ -431,6 +431,23 @@ def resubmit(api: Client, app: str) -> None:
     if not pending:
         sys.exit("Çözülmemiş sorunu olan gönderim yok; yeniden gönderilecek bir şey yok.")
     submission = pending[0]["id"]
+    # Reddedilen öğe önce "çözüldü" diye işaretlenir (App Store Connect'teki
+    # düzeltmeden sonra yeniden gönderme); işaretlenmezse Apple sürüm için
+    # "henüz gönderilmeye hazır değil" (409) der.
+    for item in api.get_all(f"/v1/reviewSubmissions/{submission}/items"):
+        if item["attributes"].get("state") in ("REJECTED", "UNRESOLVED_ISSUES"):
+            api.request(
+                "PATCH",
+                f"/v1/reviewSubmissionItems/{item['id']}",
+                json={
+                    "data": {
+                        "type": "reviewSubmissionItems",
+                        "id": item["id"],
+                        "attributes": {"resolved": True},
+                    }
+                },
+            )
+            print(f"Gönderim öğesi {item['id']} çözüldü olarak işaretlendi.")
     body = {
         "data": {
             "type": "reviewSubmissions",
@@ -501,6 +518,10 @@ def main() -> None:
     print(f"Uygulama: {app}")
     if sys.argv[1:] == ["diagnose"]:
         diagnose(api, app)
+        return
+    if sys.argv[1:] == ["resubmit-only"]:
+        # Metinler ve ek zaten yüklü; yalnızca yeniden gönderir.
+        resubmit(api, app)
         return
     if sys.argv[1:] == ["before-deliver"]:
         # deliver'dan önce: yeni mağaza dillerinin adı ve inceleme bilgisi

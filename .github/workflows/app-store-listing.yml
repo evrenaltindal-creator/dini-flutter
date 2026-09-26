@@ -27,6 +27,10 @@ on:
         description: "Yalnızca durumu yaz (hiçbir şey yüklemez, göndermez)"
         type: boolean
         default: false
+      resubmit_only:
+        description: "Hiçbir şey yüklemeden yalnızca yeniden incelemeye gönder"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -40,7 +44,7 @@ jobs:
     # Gönderim neden olmuyor? Sürümün, dillerin, görsellerin, inceleme
     # ekinin ve gönderimin durumunu yazar; hiçbir şeyi değiştirmez.
     name: Diagnose submission
-    if: ${{ inputs.diagnose }}
+    if: ${{ inputs.diagnose || inputs.resubmit_only }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: testflight
@@ -55,10 +59,14 @@ jobs:
       - name: Install App Store Connect API client
         run: python3 -m pip install pyjwt cryptography requests
       - name: Diagnose
+        if: ${{ inputs.diagnose }}
         run: python3 tool/app_store_connect_setup.py diagnose
+      - name: Resubmit only
+        if: ${{ inputs.resubmit_only }}
+        run: python3 tool/app_store_connect_setup.py resubmit-only
 
   watch-screenshots:
-    if: ${{ !inputs.diagnose }}
+    if: ${{ !inputs.diagnose && !inputs.resubmit_only }}
     # Apple Watch görselleri: saat uygulaması simülatörde gerçekten çalışır
     # ve ekranı çekilir. Simülatörde eşleşmiş telefon olmadığından çizelge
     # açılış argümanıyla verilir; çizelgeyi uygulamanın kendi motoru o an
