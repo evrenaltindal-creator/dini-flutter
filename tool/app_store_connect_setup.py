@@ -457,10 +457,51 @@ def resubmit(api: Client, app: str) -> None:
     sys.exit("Sürüm 10 dakikada gönderilmeye hazır olmadı.")
 
 
+def diagnose(api: Client, app: str) -> None:
+    """Gönderimi engelleyen durumu yazar (yalnızca okur)."""
+    import json
+
+    def show(title: str, data) -> None:
+        print(f"--- {title}")
+        print(json.dumps(data, indent=1, ensure_ascii=False)[:6000])
+
+    versions = api.get_all(f"/v1/apps/{app}/appStoreVersions?filter[platform]=IOS")
+    for v in versions:
+        show(f"sürüm {v['id']}", v["attributes"])
+    version = versions[0]["id"]
+    build = api.request("GET", f"/v1/appStoreVersions/{version}/build")
+    show("seçili derleme", build and build.get("data") and build["data"]["attributes"])
+    for loc in api.get_all(f"/v1/appStoreVersions/{version}/appStoreVersionLocalizations"):
+        a = loc["attributes"]
+        print(f"--- dil {a['locale']}: " + ", ".join(
+            f"{k}={'VAR' if a.get(k) else 'BOŞ'}"
+            for k in ("description", "keywords", "supportUrl", "marketingUrl", "promotionalText", "whatsNew")
+        ))
+        for s in api.get_all(f"/v1/appStoreVersionLocalizations/{loc['id']}/appScreenshotSets"):
+            shots = api.get_all(f"/v1/appScreenshotSets/{s['id']}/appScreenshots")
+            states = sorted({x["attributes"].get("assetDeliveryState", {}).get("state", "?") for x in shots})
+            print(f"    {s['attributes']['screenshotDisplayType']}: {len(shots)} görsel {states}")
+    info = editable_app_info(api, app)
+    show("uygulama bilgisi", info["attributes"])
+    for loc in api.get_all(f"/v1/appInfos/{info['id']}/appInfoLocalizations"):
+        show(f"uygulama bilgisi dili {loc['attributes']['locale']}", loc["attributes"])
+    detail = api.request("GET", f"/v1/appStoreVersions/{version}/appStoreReviewDetail")
+    if detail and detail.get("data"):
+        for att in api.get_all(f"/v1/appStoreReviewDetails/{detail['data']['id']}/appStoreReviewAttachments"):
+            show("inceleme eki", att["attributes"])
+    for sub in api.get_all(f"/v1/reviewSubmissions?filter[app]={app}&filter[platform]=IOS"):
+        show(f"gönderim {sub['id']}", sub["attributes"])
+        for item in api.get_all(f"/v1/reviewSubmissions/{sub['id']}/items"):
+            show("  öğe", item["attributes"])
+
+
 def main() -> None:
     api = Client()
     app = find_app(api, os.environ.get("DINI_MAIN_BUNDLE_ID", "com.dini.diniFlutter"))
     print(f"Uygulama: {app}")
+    if sys.argv[1:] == ["diagnose"]:
+        diagnose(api, app)
+        return
     if sys.argv[1:] == ["before-deliver"]:
         # deliver'dan önce: yeni mağaza dillerinin adı ve inceleme bilgisi
         # kaydı. deliver ilk sürümde kayıt yoksa "No data" deyip duruyor

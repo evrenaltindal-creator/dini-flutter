@@ -23,6 +23,10 @@ on:
         description: "Reddedilen gönderimi düzeltmelerle yeniden incelemeye gönder"
         type: boolean
         default: false
+      diagnose:
+        description: "Yalnızca durumu yaz (hiçbir şey yüklemez, göndermez)"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -32,7 +36,29 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  diagnose:
+    # Gönderim neden olmuyor? Sürümün, dillerin, görsellerin, inceleme
+    # ekinin ve gönderimin durumunu yazar; hiçbir şeyi değiştirmez.
+    name: Diagnose submission
+    if: ${{ inputs.diagnose }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: testflight
+    env:
+      DINI_MAIN_BUNDLE_ID: com.dini.diniFlutter
+      APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_KEY_IDENTIFIER }}
+      APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+      - name: Install App Store Connect API client
+        run: python3 -m pip install pyjwt cryptography requests
+      - name: Diagnose
+        run: python3 tool/app_store_connect_setup.py diagnose
+
   watch-screenshots:
+    if: ${{ !inputs.diagnose }}
     # Apple Watch görselleri: saat uygulaması simülatörde gerçekten çalışır
     # ve ekranı çekilir. Simülatörde eşleşmiş telefon olmadığından çizelge
     # açılış argümanıyla verilir; çizelgeyi uygulamanın kendi motoru o an
