@@ -431,18 +431,30 @@ def resubmit(api: Client, app: str) -> None:
     if not pending:
         sys.exit("Çözülmemiş sorunu olan gönderim yok; yeniden gönderilecek bir şey yok.")
     submission = pending[0]["id"]
-    api.request(
-        "PATCH",
-        f"/v1/reviewSubmissions/{submission}",
-        json={
-            "data": {
-                "type": "reviewSubmissions",
-                "id": submission,
-                "attributes": {"submitted": True},
-            }
-        },
-    )
-    print(f"Gönderim {submission} yeniden incelemeye yollandı.")
+    body = {
+        "data": {
+            "type": "reviewSubmissions",
+            "id": submission,
+            "attributes": {"submitted": True},
+        }
+    }
+    # Görseller yeni yüklendiyse Apple onları işlerken sürüm "henüz
+    # gönderilmeye hazır değil" (409) der; işlem bitene kadar beklenir.
+    for attempt in range(1, 21):
+        response = requests.patch(
+            f"{API}/v1/reviewSubmissions/{submission}",
+            headers=api._auth(),
+            json=body,
+            timeout=60,
+        )
+        if response.status_code < 400:
+            print(f"Gönderim {submission} yeniden incelemeye yollandı.")
+            return
+        if response.status_code != 409 or "not ready" not in response.text:
+            sys.exit(f"Yeniden gönderilemedi: {response.status_code}\n{response.text}")
+        print(f"Sürüm henüz hazır değil (deneme {attempt}/20); 30 sn bekleniyor.")
+        time.sleep(30)
+    sys.exit("Sürüm 10 dakikada gönderilmeye hazır olmadı.")
 
 
 def main() -> None:
