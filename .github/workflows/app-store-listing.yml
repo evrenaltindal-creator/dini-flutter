@@ -31,6 +31,10 @@ on:
         description: "Hiçbir şey yüklemeden yalnızca yeniden incelemeye gönder"
         type: boolean
         default: false
+      release_only:
+        description: "Apple'ın onayladığı sürümü App Store'da yayınla"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -44,7 +48,7 @@ jobs:
     # Gönderim neden olmuyor? Sürümün, dillerin, görsellerin, inceleme
     # ekinin ve gönderimin durumunu yazar; hiçbir şeyi değiştirmez.
     name: Diagnose submission
-    if: ${{ inputs.diagnose || inputs.resubmit_only }}
+    if: ${{ inputs.diagnose || inputs.resubmit_only || inputs.release_only }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: testflight
@@ -64,9 +68,12 @@ jobs:
       - name: Resubmit only
         if: ${{ inputs.resubmit_only }}
         run: python3 tool/app_store_connect_setup.py resubmit-only
+      - name: Release approved version
+        if: ${{ inputs.release_only }}
+        run: python3 tool/app_store_connect_setup.py release-only
 
   watch-screenshots:
-    if: ${{ !inputs.diagnose && !inputs.resubmit_only }}
+    if: ${{ !inputs.diagnose && !inputs.resubmit_only && !inputs.release_only }}
     # Apple Watch görselleri: saat uygulaması simülatörde gerçekten çalışır
     # ve ekranı çekilir. Simülatörde eşleşmiş telefon olmadığından çizelge
     # açılış argümanıyla verilir; çizelgeyi uygulamanın kendi motoru o an

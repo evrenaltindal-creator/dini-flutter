@@ -512,6 +512,45 @@ def diagnose(api: Client, app: str) -> None:
             show("  öğe", item["attributes"])
 
 
+def release_approved_version(api: Client, app: str) -> None:
+    """Apple'ın onayladığı, geliştirici yayını bekleyen tek iOS sürümünü yayınlar."""
+    versions = api.get_all(
+        f"/v1/apps/{app}/appStoreVersions?filter[platform]=IOS"
+        "&filter[appStoreState]=PENDING_DEVELOPER_RELEASE"
+    )
+    if len(versions) != 1:
+        states = [
+            f"{version['attributes'].get('versionString')}="
+            f"{version['attributes'].get('appStoreState')}"
+            for version in api.get_all(
+                f"/v1/apps/{app}/appStoreVersions?filter[platform]=IOS"
+            )
+        ]
+        sys.exit(
+            "Yayınlanabilir durumda tam olarak bir sürüm bekleniyordu; "
+            f"{len(versions)} bulundu. Mevcut durumlar: {', '.join(states)}"
+        )
+    version = versions[0]
+    version_id = version["id"]
+    version_name = version["attributes"].get("versionString")
+    created = api.request(
+        "POST",
+        "/v1/appStoreVersionReleaseRequests",
+        json={
+            "data": {
+                "type": "appStoreVersionReleaseRequests",
+                "relationships": {
+                    "appStoreVersion": {
+                        "data": {"type": "appStoreVersions", "id": version_id}
+                    }
+                },
+            }
+        },
+    )
+    request_id = created["data"]["id"]
+    print(f"Sürüm {version_name} için yayın isteği gönderildi: {request_id}")
+
+
 def main() -> None:
     api = Client()
     app = find_app(api, os.environ.get("DINI_MAIN_BUNDLE_ID", "com.dini.diniFlutter"))
@@ -522,6 +561,9 @@ def main() -> None:
     if sys.argv[1:] == ["resubmit-only"]:
         # Metinler ve ek zaten yüklü; yalnızca yeniden gönderir.
         resubmit(api, app)
+        return
+    if sys.argv[1:] == ["release-only"]:
+        release_approved_version(api, app)
         return
     if sys.argv[1:] == ["before-deliver"]:
         # deliver'dan önce: yeni mağaza dillerinin adı ve inceleme bilgisi
