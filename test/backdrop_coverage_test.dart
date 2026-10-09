@@ -48,6 +48,8 @@ const routes = [
   '/tasbih',
   '/tracker',
   '/notifications',
+  '/knowledge/prophets',
+  '/knowledge/fiqh/foundations',
   '/guide/prayer/dhuhr',
   '/leaf/2026-09-22',
   '/guide/prayer/fajr/hoca',

@@ -52,6 +52,8 @@ import '../features/worship/presentation/prayer_guide_view.dart';
 import '../features/worship/presentation/worship_hub_page.dart';
 import '../features/onboarding/data/onboarding_repository.dart';
 import '../features/onboarding/presentation/onboarding_page.dart';
+import '../features/knowledge/domain/islamic_knowledge.dart';
+import '../features/knowledge/presentation/islamic_knowledge_pages.dart';
 
 /// Uygulamanın rota tablosu.
 ///
@@ -286,6 +288,38 @@ GoRouter createRouter({String initialLocation = '/'}) => GoRouter(
       path: '/notifications',
       builder: (_, _) =>
           const MosqueBackdrop(child: NotificationSettingsPage()),
+    ),
+    GoRoute(
+      path: '/knowledge/:section',
+      builder: (_, state) {
+        final section = knowledgeSectionById(state.pathParameters['section']);
+        return MosqueBackdrop(
+          child: section == null
+              ? const WorshipHubPage(initialIndex: 4)
+              : KnowledgeCategoryPage(section: section),
+        );
+      },
+      routes: [
+        GoRoute(
+          path: ':article',
+          builder: (_, state) {
+            final section = knowledgeSectionById(
+              state.pathParameters['section'],
+            );
+            final article = section == null
+                ? null
+                : knowledgeArticleById(
+                    section,
+                    state.pathParameters['article'],
+                  );
+            return MosqueBackdrop(
+              child: section == null || article == null
+                  ? const WorshipHubPage(initialIndex: 4)
+                  : KnowledgeArticlePage(section: section, article: article),
+            );
+          },
+        ),
+      ],
     ),
   ],
 );
