@@ -39,9 +39,9 @@ Widget _app(
 /// istisna olmaması yetmez, sekmenin görünür alanda olması da gerekir.
 Future<void> _visitEveryTab(WidgetTester tester, double screen) async {
   final tabs = find.byType(Tab);
-  expect(tabs, findsNWidgets(4));
+  expect(tabs, findsNWidgets(5));
 
-  for (var index = 0; index < 4; index++) {
+  for (var index = 0; index < 5; index++) {
     final rect = tester.getRect(tabs.at(index));
     expect(
       rect.left,

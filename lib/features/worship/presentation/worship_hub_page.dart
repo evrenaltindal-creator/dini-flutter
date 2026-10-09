@@ -5,6 +5,7 @@ import '../../../core/layout/readable_width.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../notifications/presentation/notification_settings_page.dart';
+import '../../knowledge/presentation/islamic_knowledge_pages.dart';
 import '../../tracker/presentation/prayer_tracker_page.dart';
 import 'prayer_guide_view.dart';
 import 'wudu_guide_view.dart';
@@ -18,7 +19,7 @@ class WorshipHubPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return DefaultTabController(
-      length: 4,
+      length: 5,
       initialIndex: initialIndex,
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -36,9 +37,8 @@ class WorshipHubPage extends StatelessWidget {
               icon: const Icon(Icons.touch_app_outlined),
             ),
           ],
-          // Dört sekme her genişlikte görünür kalmalı: kaydırmalı bir sekme
-          // çubuğunda son sekme ekran dışında kalıyor ve kullanıcı onu
-          // bulamıyordu. Uzun açıklamalar sayfa içi başlık olarak duruyor.
+          // Beş ana bölüm her genişlikte görünür kalır. Kısa sekme adları
+          // kullanıldığı için kaydırma gerekmez ve son bölüm gizlenmez.
           bottom: TabBar(
             // Sekme çubuğu cami perdesinin üstünde duruyor; temanın
             // varsayılan renkleri aydınlık kipte seçili olmayan sekmeleri
@@ -63,6 +63,10 @@ class WorshipHubPage extends StatelessWidget {
                 icon: const Icon(Icons.alarm_outlined),
                 text: l10n.text('worship.alarms'),
               ),
+              Tab(
+                icon: const Icon(Icons.local_library_outlined),
+                text: l10n.text('worship.knowledge'),
+              ),
             ],
           ),
         ),
@@ -74,6 +78,7 @@ class WorshipHubPage extends StatelessWidget {
               PrayerGuideView(),
               WuduGuideView(),
               NotificationSettingsView(),
+              IslamicKnowledgeView(),
             ],
           ),
         ),
