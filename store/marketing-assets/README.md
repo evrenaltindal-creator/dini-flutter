@@ -42,5 +42,6 @@ App Store Connect upload completed on 2026-10-21. The custom product page has
 one Turkish advertising Header asset, one Turkish advertising Search Results
 asset, and nine iPhone screenshots: the advertising poster first, followed by
 eight real product screens. The original text-free Header and Search Results
-assets remain recoverable in Asset Library. Submission for Apple review is a
-separate action and is intentionally not recorded as completed here.
+assets remain recoverable in Asset Library. The custom product page was
+submitted to Apple App Review on 2026-10-21 and entered `Waiting for Review`
+under submission `7997d552-ee49-45ee-a460-4f3cbef17cee`.
