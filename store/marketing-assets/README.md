@@ -8,12 +8,20 @@ screenshots, and can be reused for every supported locale.
 | --- | --- | --- |
 | `namaz-yolu-header-3840x1646-v1.png` | Header | 3840 x 1646 px |
 | `namaz-yolu-search-1920x1280-v1.png` | Search Results | 1920 x 1280 px |
+| `namaz-yolu-ad-poster-tr-v1.png` | Turkish advertising poster master | 941 x 1672 px |
 
 The originals were generated with OpenAI's built-in image generation tool. The
 creative direction was a serene premium emerald/navy scene with a sculptural
 gold mosque, restrained geometric ornament, and an unlabeled compass motif.
 The prompts explicitly excluded text, Arabic calligraphy, numbers, flags,
 prices, fake UI, people, watermarks, and claims of religious authority.
+
+The Turkish advertising poster is a separate lifestyle campaign asset. It
+uses the real home-screen screenshot and app icon as references, shows one
+relatable user peacefully using the app after prayer, and contains the exact
+copy: `NAMAZ YOLU`, `Vakit, kıble ve ibadet rehberi tek yerde.`,
+`İyi ki Namaz Yolu var.`, and `Şimdi indir`. It does not replace the
+text-free Header or Search Results assets.
 
 App Store Connect upload completed on 2026-10-21. Both placements showed
 `1 of 1` assets on the custom product page. Submission for Apple review is a
