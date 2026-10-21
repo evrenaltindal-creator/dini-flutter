@@ -8,8 +8,8 @@ screenshots, and can be reused for every supported locale.
 | --- | --- | --- |
 | `namaz-yolu-header-3840x1646-v1.png` | Header | 3840 x 1646 px |
 | `namaz-yolu-search-1920x1280-v1.png` | Search Results | 1920 x 1280 px |
-| `namaz-yolu-header-ad-tr-3840x1646-v1.png` | Turkish advertising Header candidate | 3840 x 1646 px |
-| `namaz-yolu-search-ad-tr-1920x1280-v1.png` | Turkish advertising Search Results candidate | 1920 x 1280 px |
+| `namaz-yolu-header-ad-tr-3840x1646-v1.png` | Turkish advertising Header | 3840 x 1646 px |
+| `namaz-yolu-search-ad-tr-1920x1280-v1.png` | Turkish advertising Search Results | 1920 x 1280 px |
 | `namaz-yolu-ad-poster-tr-v1.png` | Turkish advertising poster master | 941 x 1672 px |
 | `namaz-yolu-ad-poster-tr-appstore-1206x2622-v1.png` | Turkish custom product-page screenshot | 1206 x 2622 px |
 
@@ -39,7 +39,8 @@ cropping its copy, person, phone, or call to action. The eight existing Turkish
 store screenshots also have matching exports in `store/screenshots/tr/apple-medium/`.
 
 App Store Connect upload completed on 2026-10-21. The custom product page has
-one Header asset, one Search Results asset, and nine iPhone screenshots: the
-advertising poster first, followed by eight real product screens. Submission
-for Apple review is a separate action and is intentionally not recorded as
-completed here.
+one Turkish advertising Header asset, one Turkish advertising Search Results
+asset, and nine iPhone screenshots: the advertising poster first, followed by
+eight real product screens. The original text-free Header and Search Results
+assets remain recoverable in Asset Library. Submission for Apple review is a
+separate action and is intentionally not recorded as completed here.
