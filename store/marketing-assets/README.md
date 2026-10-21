@@ -9,6 +9,7 @@ screenshots, and can be reused for every supported locale.
 | `namaz-yolu-header-3840x1646-v1.png` | Header | 3840 x 1646 px |
 | `namaz-yolu-search-1920x1280-v1.png` | Search Results | 1920 x 1280 px |
 | `namaz-yolu-ad-poster-tr-v1.png` | Turkish advertising poster master | 941 x 1672 px |
+| `namaz-yolu-ad-poster-tr-appstore-1206x2622-v1.png` | Turkish custom product-page screenshot | 1206 x 2622 px |
 
 The originals were generated with OpenAI's built-in image generation tool. The
 creative direction was a serene premium emerald/navy scene with a sculptural
@@ -23,6 +24,13 @@ copy: `NAMAZ YOLU`, `Vakit, kıble ve ibadet rehberi tek yerde.`,
 `İyi ki Namaz Yolu var.`, and `Şimdi indir`. It does not replace the
 text-free Header or Search Results assets.
 
-App Store Connect upload completed on 2026-10-21. Both placements showed
-`1 of 1` assets on the custom product page. Submission for Apple review is a
-separate action and is intentionally not recorded as completed here.
+The App Store export uses a restrained blurred-background extension so that
+the approved poster fits Apple's 1206 x 2622 px screenshot slot without
+cropping its copy, person, phone, or call to action. The eight existing Turkish
+store screenshots also have matching exports in `store/screenshots/tr/apple-medium/`.
+
+App Store Connect upload completed on 2026-10-21. The custom product page has
+one Header asset, one Search Results asset, and nine iPhone screenshots: the
+advertising poster first, followed by eight real product screens. Submission
+for Apple review is a separate action and is intentionally not recorded as
+completed here.
