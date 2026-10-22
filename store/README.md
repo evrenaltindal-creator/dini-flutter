@@ -8,6 +8,7 @@
 | `screenshots/raw/<dil>/` | Kullanıcının kendi iPhone'undan çektiği gerçek ekran görüntüleri (girdi) |
 | `screenshots/<dil>/` | App Store görselleri, 1320×2868 — `tool/generate_store_screenshots.py` üretir, elle düzenlenmez |
 | `screenshots/watch/` | Apple Watch ekran görüntüleri, saatin kendi çözünürlüğünde, çerçevesiz |
+| `ramadan-2027/` | 2027 Ramazan özel ürün sayfası, yaratıcı set ve yayın takvimi |
 
 Görselleri yeniden üretmek:
 
