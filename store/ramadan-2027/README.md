@@ -113,6 +113,81 @@ Her özellik gerçek uygulama ekranıyla gösterilecek. Üretken yapay zekâ yal
 yaşam tarzı sahnesi ve arka plan için kullanılabilir; telefon arayüzü sonradan
 gerçek ekran görüntüsüyle yerleştirilir.
 
+## Kesinleştirilen Ramazan yaratıcı serisi
+
+Bu altı fikir kampanyanın zorunlu üretim listesine eklenmiştir; yalnızca öneri
+değildir. Bütün telefon ekranları güncel uygulamadan alınır, yaşam tarzı
+sahneleri aynı oyuncu, renk paleti ve sinematik dil ile bir seri gibi görünür.
+
+### 1. Ana Ramazan afişi
+
+Sahurdan önce pencere veya mutfak yakınında Namaz Yolu'nu kullanan huzurlu bir
+yetişkin. Dışarıda mavi gece ışığı, uzakta cami ve ölçülü bir hilal bulunur.
+
+Metin:
+
+- `Ramazan'ın ritmini huzurla takip et.`
+- `İmsakiye, sahur, iftar ve ibadet takibi tek yerde.`
+
+### 2. İftara kalan süre
+
+İftar sofrası hazırlanırken telefonda gerçek iftar geri sayımı görünür. Yemek
+gösterisi yerine hazırlık, aile sıcaklığı ve bekleyiş huzuru anlatılır.
+
+Metin:
+
+- `İftara ne kadar kaldığını gör.`
+
+### 3. Sahur ve imsak
+
+Sessiz bir sahur sabahında telefonda gerçek sahur hatırlatması ve imsak vakti
+görünür. Ekran alarm uygulaması gibi değil, Namaz Yolu arayüzü olarak kalır.
+
+Metin:
+
+- `Sahur ve imsak vaktini kaçırma.`
+
+### 4. Aylık imsakiye
+
+Gerçek aylık imsakiye ekranı telefon üzerinde büyük, temiz ve okunabilir
+gösterilir. Konum ve hesaplama yöntemiyle ilgili gerçek ürün davranışı
+korunur.
+
+Metin:
+
+- `Ramazan imsakiyen her zaman yanında.`
+
+### 5. Oruç günlüğü ve teravih
+
+Oruç günlüğü ile teravih sayacı aynı kampanya karesinde veya birbirini izleyen
+iki ekran olarak gösterilir. Kişisel takip vurgulanır; dinî hüküm veya başarı
+yarışı hissi verilmez.
+
+Metin:
+
+- `Oruç ve teravihlerini kendin için takip et.`
+
+### 6. Mahya gecesi
+
+Uygulamanın gerçek cami sahnesinde iki minare arasındaki ışıklı mahya görünür.
+Mahya yazısı o gece uygulamada gerçekten gösterilen metinlerden biri olur.
+
+Metin:
+
+- `Her gece başka bir Ramazan hatırası.`
+
+### Seri için kabul ölçütleri
+
+- Kişi uygulamayı doğal biçimde kullanır; yüz ifadesi sakin ve huzurludur.
+- Hilal, fener ve altın ışık destek unsurudur; görsel klişe yığınına dönüşmez.
+- Telefon ekranında uydurma arayüz, yanlış vakit veya okunmayan yazı bulunmaz.
+- Aynı kişi ve aynı sanat yönetimi Header, Search Results ve dikey afişte
+  korunur.
+- İlk üç App Store görseli birlikte görüldüğünde ana fayda beş saniyede
+  anlaşılır.
+- Görsellerde sahte puan, ödül, fiyat, kullanıcı yorumu veya dinî otorite
+  iddiası kullanılmaz.
+
 ## App Store metni ve anahtar kelimeler
 
 Türkçe tanıtım metni, 170 karakter sınırı içinde:
