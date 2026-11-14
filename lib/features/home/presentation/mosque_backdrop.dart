@@ -173,12 +173,14 @@ class BackdropScaffold extends StatelessWidget {
   final String? title;
   final List<Widget> actions;
   final BackdropScrim scrim;
+  final bool readable;
 
   const BackdropScaffold({
     required this.body,
     this.title,
     this.actions = const [],
     this.scrim = BackdropScrim.heavy,
+    this.readable = true,
     super.key,
   });
 
@@ -198,7 +200,7 @@ class BackdropScaffold extends StatelessWidget {
               actions: actions,
             ),
       // Geniş ekranda içerik okunur genişlikte ortalanır; sahne tam kalır.
-      body: ReadableWidth(child: body),
+      body: readable ? ReadableWidth(child: body) : body,
     ),
   );
 }

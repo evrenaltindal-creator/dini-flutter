@@ -41,7 +41,7 @@ class MushafPage extends StatelessWidget {
       child: DefaultTextStyle(
         style: const TextStyle(color: QuranPalette.ink),
         child: MushafFrame(
-          padding: const EdgeInsetsDirectional.fromSTEB(24, 18, 24, 14),
+          padding: const EdgeInsetsDirectional.fromSTEB(18, 12, 18, 12),
           // Mushaf sayfası Arapçadır ve her dilde sağdan sola dizilir; bu,
           // arayüzün yönü değil metnin kendi yönüdür.
           child: Directionality(

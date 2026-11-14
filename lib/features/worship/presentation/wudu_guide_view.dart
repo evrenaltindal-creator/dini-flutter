@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/layout/book_layout.dart';
+import 'worship_book_reader.dart';
 
 class WuduGuideView extends StatelessWidget {
   const WuduGuideView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    if (bookDisplayOf(context)) return const WorshipBookReader(wuduOnly: true);
     final l10n = context.l10n;
     return ListView(
       // Sekme kabuğunda sayfa alttaki çubuğun arkasına uzanır: listenin

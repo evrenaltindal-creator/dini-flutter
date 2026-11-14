@@ -6,6 +6,8 @@ import 'package:dini_flutter/main.dart';
 
 void main() {
   testWidgets('application starts and home renders', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(
       ProviderScope(child: DiniApp(router: createRouter())),
     );

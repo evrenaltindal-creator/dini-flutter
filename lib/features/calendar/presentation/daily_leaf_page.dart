@@ -41,8 +41,18 @@ class DailyLeafPage extends ConsumerStatefulWidget {
   /// Scaffold'u zaten çizer; ikinci perde sahneyi koyulaştırırdı. Sekmede
   /// üstte "Günün yaprağı / Aylık takvim" geçişi durur.
   final bool embedded;
+  final bool showModeSwitch;
+  final DateTime? selectedDate;
+  final ValueChanged<DateTime>? onDateChanged;
 
-  const DailyLeafPage({super.key, this.initialDate, this.embedded = false});
+  const DailyLeafPage({
+    super.key,
+    this.initialDate,
+    this.embedded = false,
+    this.showModeSwitch = true,
+    this.selectedDate,
+    this.onDateChanged,
+  });
 
   /// Takvim sekmesinin yolları: önce yaprak, sonra aylık takvim.
   static const tabRoute = '/calendar';
@@ -83,11 +93,12 @@ class _DailyLeafPageState extends ConsumerState<DailyLeafPage> {
 
   late final DateTime origin;
   late final PageController controller;
+  int visibleIndex = _center;
 
   @override
   void initState() {
     super.initState();
-    origin = widget.initialDate ?? _cityToday();
+    origin = widget.selectedDate ?? widget.initialDate ?? _cityToday();
     controller = PageController(initialPage: _center);
   }
 
@@ -103,6 +114,20 @@ class _DailyLeafPageState extends ConsumerState<DailyLeafPage> {
 
   DateTime _dateAt(int index) =>
       DateTime(origin.year, origin.month, origin.day + index - _center);
+
+  @override
+  void didUpdateWidget(DailyLeafPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final date = widget.selectedDate;
+    if (date != null && !DateUtils.isSameDay(date, _dateAt(visibleIndex))) {
+      visibleIndex =
+          _center +
+          DateTime.utc(date.year, date.month, date.day)
+              .difference(DateTime.utc(origin.year, origin.month, origin.day))
+              .inDays;
+      if (controller.hasClients) controller.jumpToPage(visibleIndex);
+    }
+  }
 
   @override
   void dispose() {
@@ -121,6 +146,10 @@ class _DailyLeafPageState extends ConsumerState<DailyLeafPage> {
     final l10n = context.l10n;
     final pages = PageView.builder(
       controller: controller,
+      onPageChanged: (index) {
+        visibleIndex = index;
+        widget.onDateChanged?.call(_dateAt(index));
+      },
       itemBuilder: (context, index) => _Leaf(
         date: _dateAt(index),
         onPrevious: () => _turn(-1),
@@ -132,10 +161,11 @@ class _DailyLeafPageState extends ConsumerState<DailyLeafPage> {
         child: ReadableWidth(
           child: Column(
             children: [
-              const Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(16, 12, 16, 0),
-                child: CalendarModeSwitch(showingLeaf: true),
-              ),
+              if (widget.showModeSwitch)
+                const Padding(
+                  padding: EdgeInsetsDirectional.fromSTEB(16, 12, 16, 0),
+                  child: CalendarModeSwitch(showingLeaf: true),
+                ),
               Expanded(child: pages),
             ],
           ),

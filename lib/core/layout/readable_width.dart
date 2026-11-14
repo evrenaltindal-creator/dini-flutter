@@ -13,14 +13,19 @@ const readableContentWidth = 720.0;
 /// İçeriği [readableContentWidth] genişliğinde ortalar.
 class ReadableWidth extends StatelessWidget {
   final Widget child;
+  final double maxWidth;
 
-  const ReadableWidth({required this.child, super.key});
+  const ReadableWidth({
+    required this.child,
+    this.maxWidth = readableContentWidth,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) => Align(
     alignment: Alignment.topCenter,
     child: ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: readableContentWidth),
+      constraints: BoxConstraints(maxWidth: maxWidth),
       child: child,
     ),
   );

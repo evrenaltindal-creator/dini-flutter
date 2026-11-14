@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/layout/readable_width.dart';
+import '../../../core/layout/book_layout.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../notifications/presentation/notification_settings_page.dart';
@@ -18,18 +19,23 @@ class WorshipHubPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final expanded = bookDisplayOf(context);
     return DefaultTabController(
       length: 5,
       initialIndex: initialIndex,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
+          toolbarHeight: expanded ? 44 : null,
           backgroundColor: Colors.transparent,
           foregroundColor: Colors.white,
           elevation: 0,
           scrolledUnderElevation: 0,
           automaticallyImplyLeading: Navigator.of(context).canPop(),
-          title: Text(l10n.text('worship.title')),
+          title: Text(
+            l10n.text('worship.title'),
+            style: expanded ? const TextStyle(fontSize: 16) : null,
+          ),
           actions: [
             IconButton(
               tooltip: l10n.text('home.tasbih'),
@@ -48,37 +54,40 @@ class WorshipHubPage extends StatelessWidget {
             indicatorColor: BackdropPalette.text,
             tabs: [
               Tab(
-                icon: const Icon(Icons.check_circle_outline),
+                icon: expanded ? null : const Icon(Icons.check_circle_outline),
                 text: l10n.text('worship.tracker'),
               ),
               Tab(
-                icon: const Icon(Icons.menu_book_outlined),
+                icon: expanded ? null : const Icon(Icons.menu_book_outlined),
                 text: l10n.text('worship.tabPrayer'),
               ),
               Tab(
-                icon: const Icon(Icons.water_drop_outlined),
+                icon: expanded ? null : const Icon(Icons.water_drop_outlined),
                 text: l10n.text('worship.tabWudu'),
               ),
               Tab(
-                icon: const Icon(Icons.alarm_outlined),
+                icon: expanded ? null : const Icon(Icons.alarm_outlined),
                 text: l10n.text('worship.alarms'),
               ),
               Tab(
-                icon: const Icon(Icons.local_library_outlined),
+                icon: expanded
+                    ? null
+                    : const Icon(Icons.local_library_outlined),
                 text: l10n.text('worship.knowledge'),
               ),
             ],
           ),
         ),
         // Geniş ekranda içerik okunur genişlikte ortalanır.
-        body: const ReadableWidth(
-          child: TabBarView(
+        body: ReadableWidth(
+          maxWidth: expanded ? double.infinity : readableContentWidth,
+          child: const TabBarView(
             children: [
-              PrayerTrackerView(),
+              ReadableWidth(child: PrayerTrackerView()),
               PrayerGuideView(),
               WuduGuideView(),
-              NotificationSettingsView(),
-              IslamicKnowledgeView(),
+              ReadableWidth(child: NotificationSettingsView()),
+              ReadableWidth(child: IslamicKnowledgeView()),
             ],
           ),
         ),

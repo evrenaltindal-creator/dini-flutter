@@ -22,7 +22,6 @@ import '../core/storage/local_data_repository.dart';
 import '../features/calendar/domain/islamic_calendar.dart';
 import '../features/calendar/domain/ramadan_status.dart';
 import '../features/calendar/presentation/ramadan_headline.dart';
-import '../features/calendar/presentation/calendar_page.dart';
 import '../features/prayer_times/presentation/imsakiye_page.dart';
 import '../features/ramadan/presentation/fasting_page.dart';
 import '../features/tracker/presentation/qada_page.dart';
@@ -43,10 +42,10 @@ import '../core/layout/readable_width.dart';
 import '../features/home/domain/scene_layout.dart';
 import '../features/home/presentation/mosque_scene.dart';
 import '../features/quran/data/quran_book.dart';
-import '../features/quran/presentation/book_opening.dart';
-import '../features/quran/presentation/quran_home_page.dart';
 import '../features/quran/presentation/quran_meal_page.dart';
 import '../features/quran/presentation/quran_reader_page.dart';
+import 'adaptive_book_shell.dart';
+import '../features/calendar/presentation/calendar_book_page.dart';
 import '../features/worship/presentation/guided_prayer_page.dart';
 import '../features/worship/presentation/prayer_guide_view.dart';
 import '../features/worship/presentation/worship_hub_page.dart';
@@ -63,82 +62,8 @@ GoRouter createRouter({String initialLocation = '/'}) => GoRouter(
   initialLocation: initialLocation,
   routes: [
     StatefulShellRoute.indexedStack(
-      builder: (context, state, shell) {
-        final l10n = context.l10n;
-        final onHome = shell.currentIndex == 0;
-        return MosqueBackdrop(
-          // Ana ekranda fotoğraf ana öğedir; diğer sekmelerde metin öne
-          // çıksın diye perde koyulaşır.
-          scrim: onHome ? BackdropScrim.light : BackdropScrim.heavy,
-          child: Scaffold(
-            backgroundColor: Colors.transparent,
-            extendBody: true,
-            body: shell,
-            bottomNavigationBar: NavigationBarTheme(
-              data: onHome
-                  ? NavigationBarThemeData(
-                      backgroundColor: const Color(0xF20A2425),
-                      indicatorColor: const Color(0x40FFD88A),
-                      iconTheme: WidgetStateProperty.resolveWith(
-                        (states) => IconThemeData(
-                          color: states.contains(WidgetState.selected)
-                              ? const Color(0xFFFFD88A)
-                              : const Color(0xFFDCE7E4),
-                        ),
-                      ),
-                      labelTextStyle: WidgetStateProperty.resolveWith(
-                        (states) => TextStyle(
-                          color: states.contains(WidgetState.selected)
-                              ? const Color(0xFFFFD88A)
-                              : const Color(0xFFDCE7E4),
-                          fontWeight: states.contains(WidgetState.selected)
-                              ? FontWeight.w700
-                              : FontWeight.w500,
-                          fontSize: 12,
-                        ),
-                      ),
-                    )
-                  : const NavigationBarThemeData(),
-              child: NavigationBar(
-                selectedIndex: shell.currentIndex,
-                onDestinationSelected: (index) {
-                  // Kuran sekmesine her girişte kapak yeniden açılır.
-                  if (index == 1 && shell.currentIndex != 1) {
-                    ProviderScope.containerOf(
-                      context,
-                      listen: false,
-                    ).read(quranOpenedProvider.notifier).state++;
-                  }
-                  shell.goBranch(index);
-                },
-                destinations: [
-                  NavigationDestination(
-                    icon: const Icon(Icons.home_outlined),
-                    selectedIcon: const Icon(Icons.home),
-                    label: l10n.text('nav.home'),
-                  ),
-                  NavigationDestination(
-                    icon: const Icon(Icons.menu_book_outlined),
-                    label: l10n.text('nav.quran'),
-                  ),
-                  NavigationDestination(
-                    icon: const Icon(Icons.mosque_outlined),
-                    label: l10n.text('nav.worship'),
-                  ),
-                  NavigationDestination(
-                    icon: const Icon(Icons.calendar_month_outlined),
-                    label: l10n.text('nav.calendar'),
-                  ),
-                  NavigationDestination(
-                    icon: const Icon(Icons.settings_outlined),
-                    label: l10n.text('nav.settings'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
+      builder: (context, state, shell) =>
+          AdaptiveBookShell(shell: shell, location: state.uri.path),
       branches: [
         StatefulShellBranch(
           routes: [GoRoute(path: '/', builder: (_, _) => const HomePage())],
@@ -147,7 +72,7 @@ GoRouter createRouter({String initialLocation = '/'}) => GoRouter(
           routes: [
             GoRoute(
               path: '/quran',
-              builder: (_, _) => const BookOpening(child: QuranHomePage()),
+              builder: (_, _) => const QuranStartPage(),
               routes: [
                 GoRoute(
                   path: 'page/:page',
@@ -181,11 +106,12 @@ GoRouter createRouter({String initialLocation = '/'}) => GoRouter(
             // geçişle açılır.
             GoRoute(
               path: DailyLeafPage.tabRoute,
-              builder: (_, _) => const DailyLeafPage(embedded: true),
+              builder: (_, _) => const CalendarBookPage(),
             ),
             GoRoute(
               path: DailyLeafPage.monthRoute,
-              builder: (_, _) => const CalendarPage(),
+              builder: (_, _) =>
+                  const CalendarBookPage(showMonthWhenCompact: true),
             ),
           ],
         ),

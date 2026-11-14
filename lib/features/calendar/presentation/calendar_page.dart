@@ -6,12 +6,21 @@ import '../../../core/layout/readable_width.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../prayer_times/presentation/providers.dart';
+import '../../prayer_times/domain/timezone_service.dart';
 import '../domain/islamic_calendar.dart';
 import '../domain/religious_events.dart';
 import 'daily_leaf_page.dart';
 
 class CalendarPage extends ConsumerStatefulWidget {
-  const CalendarPage({super.key});
+  final bool embedded;
+  final DateTime? selectedDate;
+  final ValueChanged<DateTime>? onSelectedDate;
+  const CalendarPage({
+    super.key,
+    this.embedded = false,
+    this.selectedDate,
+    this.onSelectedDate,
+  });
 
   /// Seçili gün hücresi; okunabilirlik testi onu ayırt edebilsin diye.
   static const selectedDayKey = ValueKey('calendar-selected-day');
@@ -30,9 +39,25 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
   @override
   void initState() {
     super.initState();
-    final now = DateTime.now();
+    final settings = ref.read(effectivePrayerSettingsProvider);
+    final now =
+        widget.selectedDate ??
+        TimezoneService.inLocation(
+          settings.location.timezoneId ?? 'Europe/Istanbul',
+          ref.read(clockProvider)(),
+        );
     month = DateTime(now.year, now.month);
     selected = DateTime(now.year, now.month, now.day);
+  }
+
+  @override
+  void didUpdateWidget(CalendarPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final date = widget.selectedDate;
+    if (date != null && !DateUtils.isSameDay(date, selected)) {
+      selected = date;
+      month = DateTime(date.year, date.month);
+    }
   }
 
   @override
@@ -45,11 +70,13 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
     return SafeArea(
       child: ReadableWidth(
         child: ListView(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(widget.embedded ? 10 : 20),
           children: [
             // Yaprak takvim sekmesinin ilk sayfasıdır; buradan geri dönülür.
-            const CalendarModeSwitch(showingLeaf: false),
-            const SizedBox(height: 16),
+            if (!widget.embedded) ...[
+              const CalendarModeSwitch(showingLeaf: false),
+              const SizedBox(height: 16),
+            ],
             // Bu ekranın başlığı, ızgarası ve açıklaması kart içinde değil,
             // doğrudan cami perdesinin üstünde duruyor; temanın koyu yazı
             // renkleriyle aydınlık kipte okunmuyorlardı.
@@ -64,7 +91,9 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
               style: TextStyle(color: BackdropPalette.mutedText),
             ),
             const SizedBox(height: 16),
-            Row(
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 IconButton(
                   tooltip: l10n.text('calendar.previousMonth'),
@@ -74,14 +103,13 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
                   color: BackdropPalette.text,
                   icon: const Icon(Icons.chevron_left),
                 ),
-                Expanded(
-                  child: Center(
-                    child: Text(
-                      '${l10n.month(month.month)} ${month.year}',
-                      style: Theme.of(context).textTheme.titleLarge
+                Text(
+                  '${l10n.month(month.month)} ${month.year}',
+                  style:
+                      (widget.embedded
+                              ? Theme.of(context).textTheme.titleMedium
+                              : Theme.of(context).textTheme.titleLarge)
                           ?.copyWith(color: BackdropPalette.text),
-                    ),
-                  ),
                 ),
                 IconButton(
                   tooltip: l10n.text('calendar.nextMonth'),
@@ -144,7 +172,10 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
                       '$dayNumber ${l10n.month(month.month)} ${hijri.label}${marked ? ', ${l10n.text('calendar.religiousDay')}' : ''}',
                   child: InkWell(
                     borderRadius: BorderRadius.circular(10),
-                    onTap: () => setState(() => selected = date),
+                    onTap: () {
+                      setState(() => selected = date);
+                      widget.onSelectedDate?.call(date);
+                    },
                     child: Container(
                       // Seçili hücrenin yazısı bilerek koyudur (açık renk bir
                       // kutunun içindedir); okunabilirlik testi onu bu
@@ -216,7 +247,7 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
               label: Text(l10n.text('imsakiye.open')),
             ),
             const SizedBox(height: 16),
-            _selectedPanel(context),
+            if (!widget.embedded) _selectedPanel(context),
           ],
         ),
       ),
@@ -273,10 +304,15 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
   }
 
   void _goToday() {
-    final now = DateTime.now();
+    final settings = ref.read(effectivePrayerSettingsProvider);
+    final now = TimezoneService.inLocation(
+      settings.location.timezoneId ?? 'Europe/Istanbul',
+      ref.read(clockProvider)(),
+    );
     setState(() {
       month = DateTime(now.year, now.month);
       selected = DateTime(now.year, now.month, now.day);
     });
+    widget.onSelectedDate?.call(selected);
   }
 }

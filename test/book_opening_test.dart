@@ -7,7 +7,11 @@ import 'package:dini_flutter/features/prayer_times/data/city_repository.dart';
 import 'package:dini_flutter/features/prayer_times/domain/timezone_service.dart';
 import 'package:dini_flutter/features/prayer_times/presentation/providers.dart';
 import 'package:dini_flutter/features/quran/presentation/book_opening.dart';
-import 'package:dini_flutter/features/quran/presentation/quran_home_page.dart';
+import 'package:dini_flutter/features/quran/presentation/quran_reader_page.dart';
+import 'package:dini_flutter/features/quran/data/quran_book.dart';
+
+import 'quran_fixture.dart';
+
 import 'package:dini_flutter/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,9 +31,11 @@ class _MemoryStorage implements LocalStorage {
 }
 
 late final String _citiesJson;
+late final QuranBook book;
 
 void main() {
-  setUpAll(() {
+  setUpAll(() async {
+    book = await loadQuranBookFromDisk();
     TimezoneService.initialize();
     _citiesJson = File(CityRepository.assetKey).readAsStringSync();
   });
@@ -49,6 +55,7 @@ void main() {
       ProviderScope(
         overrides: [
           localStorageProvider.overrideWithValue(_MemoryStorage()),
+          quranBookProvider.overrideWith((ref) => book),
           cityRepositoryProvider.overrideWithValue(
             CityRepository(loadAsset: (_) async => _citiesJson),
           ),
@@ -62,52 +69,31 @@ void main() {
 
   final cover = find.byKey(BookOpening.coverKey);
 
-  testWidgets('Kuran açılırken kapak görünür, sonra içerik gelir', (
+  testWidgets('Kur’an sayfaları kapak veya liste bekletmeden açılır', (
     tester,
   ) async {
     await open(tester, '/quran');
-    await tester.pump(const Duration(milliseconds: 50));
-    expect(cover, findsOneWidget);
-
-    await tester.pump(BookOpening.duration);
     await tester.pumpAndSettle();
     expect(cover, findsNothing);
-    expect(find.byType(QuranHomePage), findsOneWidget);
-    expect(tester.takeException(), isNull);
+    expect(find.byType(QuranReaderPage), findsOneWidget);
+    expect(find.text('Fâtiha · Sayfa 1'), findsOneWidget);
   });
-
-  testWidgets('dokununca kapak hemen kalkar', (tester) async {
-    await open(tester, '/quran');
-    await tester.pump(const Duration(milliseconds: 100));
-    expect(cover, findsOneWidget);
-    await tester.tapAt(const Offset(195, 400));
-    await tester.pump();
-    expect(cover, findsNothing);
-  });
-
-  testWidgets('hareketi azalt açıkken kitap hiç oynamaz', (tester) async {
+  testWidgets('hareketi azalt açıkken de sayfalar doğrudan açılır', (
+    tester,
+  ) async {
     await open(tester, '/quran', reduceMotion: true);
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(cover, findsNothing);
-    expect(find.byType(QuranHomePage), findsOneWidget);
+    expect(find.byType(QuranReaderPage), findsOneWidget);
   });
-
-  testWidgets('sekmeye her dönüşte kitap yeniden açılır', (tester) async {
-    await open(tester, '/');
+  testWidgets('sekmeler arasında okuyucu konumu korunur', (tester) async {
+    await open(tester, '/quran/page/42');
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Kuran'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 50));
-    expect(cover, findsOneWidget);
-    await tester.pumpAndSettle();
-    expect(cover, findsNothing);
-
     await tester.tap(find.text('Ana Sayfa'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Kuran'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 50));
-    expect(cover, findsOneWidget, reason: 'İkinci girişte kapak açılmadı.');
     await tester.pumpAndSettle();
+    expect(cover, findsNothing);
+    expect(find.text('Bakara · Sayfa 42'), findsOneWidget);
   });
 }

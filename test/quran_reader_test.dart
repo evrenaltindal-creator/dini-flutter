@@ -225,39 +225,37 @@ void main() {
       return storage;
     }
 
-    testWidgets('sûreye dokununca Mushaf o sûrenin sayfasında açılır', (
+    testWidgets('Kur’an doğrudan açılır, âyet seçimi doğru sayfaya gider', (
       tester,
     ) async {
       final storage = await open(tester, '/quran');
-      expect(find.text('Fâtiha'), findsOneWidget);
-      expect(find.text('Kaldığın yerden devam et'), findsNothing);
-
-      await tester.tap(find.text('Bakara'));
+      expect(find.text('Fâtiha · Sayfa 1'), findsOneWidget);
+      await tester.tap(find.text('Âyetler'));
       await tester.pumpAndSettle();
-
-      expect(find.byType(QuranReaderPage), findsOneWidget);
+      await tester.tap(find.byType(DropdownButtonFormField<int>).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Bakara').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Âyeti aç'));
+      await tester.pumpAndSettle();
       expect(find.text('Bakara · Sayfa 2'), findsOneWidget);
-      // Sekmenin içinde açılır: sahne bir kez çizilir.
       expect(find.byType(MosqueScene), findsOneWidget);
       expect(storage.values['dini.quran.lastPage'], '2');
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('cüzler listesi', (tester) async {
+    testWidgets('cüz seçimi ilgili Mushaf sayfasını açar', (tester) async {
       await open(tester, '/quran');
       await tester.tap(find.text('Cüzler'));
       await tester.pumpAndSettle();
-      expect(find.text('1. Cüz'), findsOneWidget);
-      expect(find.text('Fâtiha 1 · Sayfa 1'), findsOneWidget);
+      await tester.tap(find.text('2. Cüz'));
+      await tester.pumpAndSettle();
+      expect(find.text('Bakara · Sayfa 22'), findsOneWidget);
     });
 
-    testWidgets('kaldığın yer saklanır ve oradan açılır', (tester) async {
+    testWidgets('kaldığın yer beklemeden doğrudan açılır', (tester) async {
       await open(tester, '/quran', saved: {'dini.quran.lastPage': '42'});
-      expect(find.text('Kaldığın yerden devam et'), findsOneWidget);
-      expect(find.text('Bakara · Sayfa 42 · 3. Cüz'), findsOneWidget);
-
-      await tester.tap(find.text('Kaldığın yerden devam et'));
-      await tester.pumpAndSettle();
+      expect(find.text('Kaldığın yerden devam et'), findsNothing);
       expect(find.text('Bakara · Sayfa 42'), findsOneWidget);
     });
 
@@ -286,7 +284,10 @@ void main() {
       ) async {
         await open(tester, QuranReaderPage.routeFor(page), size: size);
         expect(tester.takeException(), isNull);
-        expect(find.byType(MushafPage), findsOneWidget);
+        expect(
+          find.byType(MushafPage),
+          findsNWidgets(size.width >= 700 ? 2 : 1),
+        );
       });
     }
 
@@ -416,7 +417,13 @@ void main() {
     testWidgets('Arapça: Mushaf ve sûre listesi sağdan sola', (tester) async {
       await open(tester, '/quran', language: 'ar');
       expect(tester.takeException(), isNull);
-      await tester.tap(find.text('البقرة').first);
+      await tester.tap(find.text('الآيات'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(DropdownButtonFormField<int>).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('البقرة').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('افتح الآية'));
       await tester.pumpAndSettle();
       expect(find.byType(MushafPage), findsOneWidget);
       expect(tester.takeException(), isNull);

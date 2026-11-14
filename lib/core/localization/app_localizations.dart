@@ -44,6 +44,13 @@ class AppLocalizations {
 
   static const Map<String, Map<String, String>> _strings = {
     'tr': {
+      'book.previous': 'Önceki sayfa',
+      'book.next': 'Sonraki sayfa',
+      'book.position': '{current} / {total}',
+      'book.duas': 'Dua',
+      'quran.verses': 'Âyetler',
+      'quran.openVerse': 'Âyeti aç',
+
       'appTitle': 'Namaz Yolu',
       'teravih.title': 'Teravih sayacı',
       'teravih.tonight': '{night}. gece',
@@ -662,6 +669,13 @@ class AppLocalizations {
       'ramadan.eid': 'Bayramınız mübarek olsun.',
     },
     'en': {
+      'book.previous': 'Previous page',
+      'book.next': 'Next page',
+      'book.position': '{current} / {total}',
+      'book.duas': 'Supplications',
+      'quran.verses': 'Verses',
+      'quran.openVerse': 'Open verse',
+
       'appTitle': 'Prayer Path',
       'teravih.title': 'Tarawih counter',
       'teravih.tonight': 'Night {night}',
@@ -1271,6 +1285,13 @@ class AppLocalizations {
       'ramadan.eid': 'Eid Mubarak.',
     },
     'ar': {
+      'book.previous': 'الصفحة السابقة',
+      'book.next': 'الصفحة التالية',
+      'book.position': '{current} / {total}',
+      'book.duas': 'الدعاء',
+      'quran.verses': 'الآيات',
+      'quran.openVerse': 'افتح الآية',
+
       'appTitle': 'طريق الصلاة',
       'teravih.title': 'عدّاد التراويح',
       'teravih.tonight': 'الليلة {night}',

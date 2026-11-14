@@ -2,17 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/layout/book_layout.dart';
+import '../../../core/layout/book_text_reader.dart';
 import '../../../shared/models/domain.dart';
 import '../../home/presentation/mosque_backdrop.dart';
 import '../domain/prayer_flow.dart';
 import '../domain/worship_guide.dart';
 import 'guided_prayer_page.dart';
+import 'worship_book_reader.dart';
 
 class PrayerGuideView extends StatelessWidget {
   const PrayerGuideView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    if (bookDisplayOf(context)) return const WorshipBookReader();
     final l10n = context.l10n;
     return ListView(
       // Sekme kabuğunda sayfa alttaki çubuğun arkasına uzanır: listenin
@@ -100,91 +104,137 @@ class PrayerGuideDetailPage extends StatelessWidget {
     // BackdropScaffold: düz Scaffold temanın opak zeminini çizer ve arkadaki
     // camiyi örterdi.
     return BackdropScaffold(
+      readable: !bookDisplayOf(context),
       title: l10n.prayer(guide.prayer.name),
-      body: ListView(
-        padding: EdgeInsetsDirectional.fromSTEB(
-          16,
-          8,
-          16,
-          32 + MediaQuery.paddingOf(context).bottom,
-        ),
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: Image.asset(
-              'assets/guides/prayer_movements.png',
-              fit: BoxFit.fitWidth,
-              semanticLabel: l10n.text('guide.prayerImageLabel'),
-            ),
-          ),
-          const SizedBox(height: 16),
-          // Namaz hocası: bütün bölümleri sırayla adım adım kıldırır.
-          FilledButton.icon(
-            onPressed: () =>
-                context.push(GuidedPrayerPage.routeFor(guide.prayer)),
-            icon: const Icon(Icons.play_circle_outline),
-            label: Text(l10n.text('hoca.start')),
-            style: FilledButton.styleFrom(
-              minimumSize: const Size.fromHeight(52),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            l10n.text('guide.orderTitle'),
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 10),
-          ...guide.parts.indexed.map(
-            (entry) => Card(
-              child: ListTile(
-                leading: CircleAvatar(child: Text('${entry.$1 + 1}')),
-                title: Text(_partLabel(context, entry.$2.kind)),
-                subtitle: Text(
-                  l10n.text('guide.rakatCount', {'count': entry.$2.rakats}),
-                ),
-                trailing: IconButton(
-                  tooltip: l10n.text('hoca.startPart', {
-                    'part': _partLabel(context, entry.$2.kind),
-                  }),
-                  icon: const Icon(Icons.play_arrow_rounded),
-                  onPressed: () => context.push(
-                    GuidedPrayerPage.routeFor(guide.prayer, part: entry.$1),
+      body: bookDisplayOf(context)
+          ? Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                children: [
+                  TextButton.icon(
+                    onPressed: () =>
+                        context.push(GuidedPrayerPage.routeFor(guide.prayer)),
+                    icon: const Icon(Icons.play_circle_outline),
+                    label: Text(l10n.text('hoca.start')),
+                  ),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      for (final entry in guide.parts.indexed)
+                        Tooltip(
+                          message: l10n.text('hoca.startPart', {
+                            'part': _partLabel(context, entry.$2.kind),
+                          }),
+                          child: TextButton(
+                            onPressed: () => context.push(
+                              GuidedPrayerPage.routeFor(
+                                guide.prayer,
+                                part: entry.$1,
+                              ),
+                            ),
+                            child: Text(_partLabel(context, entry.$2.kind)),
+                          ),
+                        ),
+                    ],
+                  ),
+                  Expanded(
+                    child: BookTextReader(
+                      text: prayerBookText(context, only: guide),
+                      storageId: 'prayer-detail-${guide.prayer.name}',
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : ListView(
+              padding: EdgeInsetsDirectional.fromSTEB(
+                16,
+                8,
+                16,
+                32 + MediaQuery.paddingOf(context).bottom,
+              ),
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: Image.asset(
+                    'assets/guides/prayer_movements.png',
+                    fit: BoxFit.fitWidth,
+                    semanticLabel: l10n.text('guide.prayerImageLabel'),
                   ),
                 ),
-              ),
+                const SizedBox(height: 16),
+                // Namaz hocası: bütün bölümleri sırayla adım adım kıldırır.
+                FilledButton.icon(
+                  onPressed: () =>
+                      context.push(GuidedPrayerPage.routeFor(guide.prayer)),
+                  icon: const Icon(Icons.play_circle_outline),
+                  label: Text(l10n.text('hoca.start')),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size.fromHeight(52),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  l10n.text('guide.orderTitle'),
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 10),
+                ...guide.parts.indexed.map(
+                  (entry) => Card(
+                    child: ListTile(
+                      leading: CircleAvatar(child: Text('${entry.$1 + 1}')),
+                      title: Text(_partLabel(context, entry.$2.kind)),
+                      subtitle: Text(
+                        l10n.text('guide.rakatCount', {
+                          'count': entry.$2.rakats,
+                        }),
+                      ),
+                      trailing: IconButton(
+                        tooltip: l10n.text('hoca.startPart', {
+                          'part': _partLabel(context, entry.$2.kind),
+                        }),
+                        icon: const Icon(Icons.play_arrow_rounded),
+                        onPressed: () => context.push(
+                          GuidedPrayerPage.routeFor(
+                            guide.prayer,
+                            part: entry.$1,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  l10n.text('guide.movementsTitle'),
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                ...prayerFlow(guide).map((part) => _PartFlowCard(flow: part)),
+                const SizedBox(height: 12),
+                // Doğrulanmış metin girilene kadar bu bölüm hiç gösterilmez:
+                // kalıcı bir "yakında" kutusu göstermektense sessiz kalmak yeğdir.
+                if (recitationLibrary.values.any((r) => r.isComplete)) ...[
+                  Text(
+                    l10n.text('guide.recitationsTitle'),
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  const _RecitationSection(),
+                  const SizedBox(height: 12),
+                ],
+                _IntroCard(
+                  icon: Icons.info_outline,
+                  title: l10n.text('guide.beginnerTitle'),
+                  body: l10n.text('guide.beginnerEssentials'),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  l10n.text('guide.source'),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            l10n.text('guide.movementsTitle'),
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 8),
-          ...prayerFlow(guide).map((part) => _PartFlowCard(flow: part)),
-          const SizedBox(height: 12),
-          // Doğrulanmış metin girilene kadar bu bölüm hiç gösterilmez:
-          // kalıcı bir "yakında" kutusu göstermektense sessiz kalmak yeğdir.
-          if (recitationLibrary.values.any((r) => r.isComplete)) ...[
-            Text(
-              l10n.text('guide.recitationsTitle'),
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 8),
-            const _RecitationSection(),
-            const SizedBox(height: 12),
-          ],
-          _IntroCard(
-            icon: Icons.info_outline,
-            title: l10n.text('guide.beginnerTitle'),
-            body: l10n.text('guide.beginnerEssentials'),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            l10n.text('guide.source'),
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-        ],
-      ),
     );
   }
 }
