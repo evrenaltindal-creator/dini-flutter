@@ -35,10 +35,13 @@ jobs:
           [[ -n "$udid" ]]
           echo "udid=$udid" >> "$GITHUB_OUTPUT"
           xcrun simctl boot "$udid"
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          flutter-version: 3.47.1
+      - name: Install Flutter for iOS
+        timeout-minutes: 8
+        run: |
+          git clone --depth 1 --branch 3.47.1 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/flutter/bin/flutter" --version
+          "$RUNNER_TEMP/flutter/bin/flutter" precache --ios
       - name: Build simulator app
         run: |
           flutter pub get
