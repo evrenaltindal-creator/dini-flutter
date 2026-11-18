@@ -52,6 +52,9 @@ class AppLocalizations {
       'quran.openVerse': 'Âyeti aç',
 
       'appTitle': 'Namaz Yolu',
+      'startup.loading': 'Namaz Yolu açılıyor',
+      'startup.error': 'Uygulama ayarları okunamadı.',
+      'startup.retry': 'Yeniden dene',
       'teravih.title': 'Teravih sayacı',
       'teravih.tonight': '{night}. gece',
       'teravih.outsideRamadan': 'Teravih sayacı Ramazan gecelerinde çalışır.',
@@ -677,6 +680,9 @@ class AppLocalizations {
       'quran.openVerse': 'Open verse',
 
       'appTitle': 'Prayer Path',
+      'startup.loading': 'Opening Prayer Path',
+      'startup.error': 'The app settings could not be loaded.',
+      'startup.retry': 'Try again',
       'teravih.title': 'Tarawih counter',
       'teravih.tonight': 'Night {night}',
       'teravih.outsideRamadan': 'The tarawih counter runs on Ramadan nights.',
@@ -1293,6 +1299,9 @@ class AppLocalizations {
       'quran.openVerse': 'افتح الآية',
 
       'appTitle': 'طريق الصلاة',
+      'startup.loading': 'جارٍ فتح طريق الصلاة',
+      'startup.error': 'تعذّرت قراءة إعدادات التطبيق.',
+      'startup.retry': 'إعادة المحاولة',
       'teravih.title': 'عدّاد التراويح',
       'teravih.tonight': 'الليلة {night}',
       'teravih.outsideRamadan': 'يعمل عدّاد التراويح في ليالي رمضان.',
