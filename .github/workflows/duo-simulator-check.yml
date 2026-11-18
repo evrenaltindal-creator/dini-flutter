@@ -36,16 +36,18 @@ jobs:
           echo "udid=$udid" >> "$GITHUB_OUTPUT"
           xcrun simctl boot "$udid"
       - name: Install Flutter for iOS
-        timeout-minutes: 8
+        timeout-minutes: 14
         run: |
           git clone --depth 1 --branch 3.47.1 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
           echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
           "$RUNNER_TEMP/flutter/bin/flutter" --version
           "$RUNNER_TEMP/flutter/bin/flutter" precache --ios
       - name: Build simulator app
+        env:
+          UDID: ${{ steps.simulator.outputs.udid }}
         run: |
           flutter pub get
-          flutter build ios --simulator --debug
+          flutter -d "$UDID" build ios --simulator --debug --no-pub
       - name: Launch and capture rendered UI
         env:
           UDID: ${{ steps.simulator.outputs.udid }}
