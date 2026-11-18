@@ -1,0 +1,66 @@
+name: Duo simulator launch check
+
+on:
+  push:
+    branches: [codex/duo-simulator-check]
+
+permissions:
+  contents: read
+
+jobs:
+  launch:
+    runs-on: xcode-27
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v6
+      - name: Find an iOS simulator
+        id: simulator
+        run: |
+          xcodebuild -version
+          xcrun simctl list devices available
+          xcrun simctl list runtimes available
+          xcrun simctl list devicetypes | grep -E 'Duo|iPhone 18' || true
+          devices=$(xcrun simctl list devices available --json)
+          udid=$(jq -r '[.devices[][] | select(.name == "iPhone Duo")][0].udid // empty' <<<"$devices")
+          if [[ -z "$udid" ]]; then
+            duo_type=$(xcrun simctl list devicetypes --json | jq -r '[.devicetypes[] | select(.name == "iPhone Duo")][0].identifier // empty')
+            runtime=$(xcrun simctl list runtimes --json | jq -r '[.runtimes[] | select(.isAvailable and (.identifier | contains(".iOS-")))] | last | .identifier // empty')
+            if [[ -n "$duo_type" && -n "$runtime" ]]; then
+              udid=$(xcrun simctl create "iPhone Duo" "$duo_type" "$runtime" || true)
+            fi
+          fi
+          if [[ -z "$udid" ]]; then
+            udid=$(jq -r '[.devices[][] | select(.name | startswith("iPhone"))][0].udid // empty' <<<"$devices")
+          fi
+          [[ -n "$udid" ]]
+          echo "udid=$udid" >> "$GITHUB_OUTPUT"
+          xcrun simctl boot "$udid"
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.1
+      - name: Build simulator app
+        run: |
+          flutter pub get
+          flutter build ios --simulator --debug
+      - name: Launch and capture rendered UI
+        env:
+          UDID: ${{ steps.simulator.outputs.udid }}
+        run: |
+          mkdir -p simulator-result
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl list devices booted | tee simulator-result/device.txt
+          xcrun simctl status_bar "$UDID" override --time 09:41
+          xcrun simctl install "$UDID" build/ios/iphonesimulator/Runner.app
+          xcrun simctl launch --terminate-running-process \
+            --stdout="$PWD/simulator-result/runner-out.txt" \
+            --stderr="$PWD/simulator-result/runner-err.txt" \
+            "$UDID" com.dini.diniFlutter
+          sleep 12
+          xcrun simctl io "$UDID" screenshot simulator-result/launch.png
+          cat simulator-result/runner-out.txt simulator-result/runner-err.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: simulator-launch
+          path: simulator-result/
