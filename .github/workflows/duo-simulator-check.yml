@@ -10,7 +10,7 @@ permissions:
 jobs:
   launch:
     runs-on: xcode-27
-    timeout-minutes: 22
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v6
       - name: Find an iOS simulator
@@ -35,13 +35,11 @@ jobs:
           [[ -n "$udid" ]]
           echo "udid=$udid" >> "$GITHUB_OUTPUT"
           xcrun simctl boot "$udid"
-      - name: Install Flutter for iOS
-        timeout-minutes: 14
-        run: |
-          git clone --depth 1 --branch 3.47.1 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
-          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
-          "$RUNNER_TEMP/flutter/bin/flutter" --version
-          "$RUNNER_TEMP/flutter/bin/flutter" precache --ios
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.1
+          cache: true
       - name: Build simulator app
         env:
           UDID: ${{ steps.simulator.outputs.udid }}
